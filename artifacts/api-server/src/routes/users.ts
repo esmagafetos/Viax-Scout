@@ -1,10 +1,12 @@
 import { Router, type IRouter } from "express";
 import bcrypt from "bcryptjs";
+import multer from "multer";
 import { eq } from "drizzle-orm";
 import { db, usersTable, userSettingsTable } from "@workspace/db";
 import { UpdateProfileBody, UpdatePasswordBody, UpdateSettingsBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+const avatarUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 } });
 
 function requireAuth(req: any, res: any): number | null {
   const userId = req.session?.userId;
@@ -33,6 +35,40 @@ router.patch("/users/profile", async (req, res): Promise<void> => {
   const [user] = await db
     .update(usersTable)
     .set(updateData)
+    .where(eq(usersTable.id, userId))
+    .returning();
+
+  res.json({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    avatarUrl: user.avatarUrl,
+    birthDate: user.birthDate,
+    createdAt: user.createdAt.toISOString(),
+  });
+});
+
+router.post("/users/avatar", avatarUpload.single("avatar"), async (req, res): Promise<void> => {
+  const userId = requireAuth(req, res);
+  if (!userId) return;
+
+  if (!req.file) {
+    res.status(400).json({ error: "Nenhum arquivo enviado." });
+    return;
+  }
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  if (!allowedTypes.includes(req.file.mimetype)) {
+    res.status(400).json({ error: "Formato inválido. Use JPG, PNG, WEBP ou GIF." });
+    return;
+  }
+
+  const base64 = req.file.buffer.toString("base64");
+  const dataUrl = `data:${req.file.mimetype};base64,${base64}`;
+
+  const [user] = await db
+    .update(usersTable)
+    .set({ avatarUrl: dataUrl })
     .where(eq(usersTable.id, userId))
     .returning();
 
@@ -81,7 +117,7 @@ router.get("/users/settings", async (req, res): Promise<void> => {
   let [settings] = await db.select().from(userSettingsTable).where(eq(userSettingsTable.userId, userId)).limit(1);
 
   if (!settings) {
-    const [created] = await db.insert(userSettingsTable).values({ userId, parserMode: "builtin", toleranceMeters: 300 }).returning();
+    const [created] = await db.insert(userSettingsTable).values({ userId, parserMode: "builtin", toleranceMeters: 300, instanceMode: "builtin" }).returning();
     settings = created;
   }
 
@@ -90,6 +126,8 @@ router.get("/users/settings", async (req, res): Promise<void> => {
     aiProvider: settings.aiProvider,
     aiApiKey: settings.aiApiKey,
     toleranceMeters: settings.toleranceMeters,
+    instanceMode: (settings as any).instanceMode ?? "builtin",
+    googleMapsApiKey: (settings as any).googleMapsApiKey ?? null,
   });
 });
 
@@ -108,11 +146,13 @@ router.patch("/users/settings", async (req, res): Promise<void> => {
   if (parsed.data.aiProvider !== undefined) updateData.aiProvider = parsed.data.aiProvider;
   if (parsed.data.aiApiKey !== undefined) updateData.aiApiKey = parsed.data.aiApiKey;
   if (parsed.data.toleranceMeters !== undefined) updateData.toleranceMeters = parsed.data.toleranceMeters;
+  if ((parsed.data as any).instanceMode !== undefined) updateData.instanceMode = (parsed.data as any).instanceMode;
+  if ((parsed.data as any).googleMapsApiKey !== undefined) updateData.googleMapsApiKey = (parsed.data as any).googleMapsApiKey;
 
   let [settings] = await db.select().from(userSettingsTable).where(eq(userSettingsTable.userId, userId)).limit(1);
 
   if (!settings) {
-    const [created] = await db.insert(userSettingsTable).values({ userId, parserMode: "builtin", toleranceMeters: 300, ...updateData }).returning();
+    const [created] = await db.insert(userSettingsTable).values({ userId, parserMode: "builtin", toleranceMeters: 300, instanceMode: "builtin", ...updateData }).returning();
     settings = created;
   } else {
     const [updated] = await db.update(userSettingsTable).set(updateData).where(eq(userSettingsTable.userId, userId)).returning();
@@ -124,6 +164,8 @@ router.patch("/users/settings", async (req, res): Promise<void> => {
     aiProvider: settings.aiProvider,
     aiApiKey: settings.aiApiKey,
     toleranceMeters: settings.toleranceMeters,
+    instanceMode: (settings as any).instanceMode ?? "builtin",
+    googleMapsApiKey: (settings as any).googleMapsApiKey ?? null,
   });
 });
 

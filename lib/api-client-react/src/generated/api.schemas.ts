@@ -70,21 +70,29 @@ export const UserSettingsParserMode = {
   ai: "ai",
 } as const;
 
+/**
+ * Geocoding instance: builtin=Nominatim/OSM, googlemaps=Google Maps API
+ */
+export type UserSettingsInstanceMode =
+  (typeof UserSettingsInstanceMode)[keyof typeof UserSettingsInstanceMode];
+
+export const UserSettingsInstanceMode = {
+  builtin: "builtin",
+  googlemaps: "googlemaps",
+} as const;
+
 export interface UserSettings {
   /** builtin = embedded parser, ai = AI-powered */
   parserMode: UserSettingsParserMode;
-  /**
-   * AI provider name when parserMode=ai
-   * @nullable
-   */
+  /** @nullable */
   aiProvider?: string | null;
-  /**
-   * API key for AI provider
-   * @nullable
-   */
+  /** @nullable */
   aiApiKey?: string | null;
-  /** Coordinate-to-address match tolerance in meters */
   toleranceMeters: number;
+  /** Geocoding instance: builtin=Nominatim/OSM, googlemaps=Google Maps API */
+  instanceMode: UserSettingsInstanceMode;
+  /** @nullable */
+  googleMapsApiKey?: string | null;
 }
 
 export type UpdateSettingsBodyParserMode =
@@ -95,6 +103,14 @@ export const UpdateSettingsBodyParserMode = {
   ai: "ai",
 } as const;
 
+export type UpdateSettingsBodyInstanceMode =
+  (typeof UpdateSettingsBodyInstanceMode)[keyof typeof UpdateSettingsBodyInstanceMode];
+
+export const UpdateSettingsBodyInstanceMode = {
+  builtin: "builtin",
+  googlemaps: "googlemaps",
+} as const;
+
 export interface UpdateSettingsBody {
   parserMode?: UpdateSettingsBodyParserMode;
   /** @nullable */
@@ -102,6 +118,9 @@ export interface UpdateSettingsBody {
   /** @nullable */
   aiApiKey?: string | null;
   toleranceMeters?: number;
+  instanceMode?: UpdateSettingsBodyInstanceMode;
+  /** @nullable */
+  googleMapsApiKey?: string | null;
 }
 
 export type AnalysisStatus =
@@ -171,7 +190,15 @@ export interface DashboardSummary {
   analysesThisMonth: number;
 }
 
+export type UploadAvatarBody = {
+  avatar: Blob;
+};
+
 export type ListAnalysesParams = {
   page?: number;
   limit?: number;
+};
+
+export type ProcessUploadBody = {
+  arquivo: Blob;
 };

@@ -10,6 +10,8 @@ export const userSettingsTable = pgTable("user_settings", {
   aiProvider: text("ai_provider"),
   aiApiKey: text("ai_api_key"),
   toleranceMeters: integer("tolerance_meters").notNull().default(300),
+  instanceMode: text("instance_mode").notNull().default("builtin"),
+  googleMapsApiKey: text("google_maps_api_key"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

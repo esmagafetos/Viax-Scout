@@ -11,12 +11,18 @@ pnpm workspace monorepo with React+Vite frontend and Express API backend.
 - Auth: session-based (express-session + bcryptjs)
 - Design: warm amber/orange palette (`#d4521a` accent), Poppins font, glassmorphism blur, 14px radius cards
 - UI language: Brazilian Portuguese throughout
-- Features: Login/Register, Dashboard stats, Route Processing (XLSX/CSV upload), History, 3-tab Settings
+- Features: Login/Register, Dashboard stats, Route Processing (XLSX/CSV upload via SSE), History, 4-tab Settings (Perfil + Instâncias + Parser + Tolerância)
+- Mobile-first design: hamburger nav, responsive grids, hide-mobile/show-mobile CSS helpers
+- Profile dropdown in nav: Configurações / Perfil / Sair + avatar picker from device gallery
+- Geocoder: ported from api.php — Nominatim+BrasilAPI+Photon cascade ("builtin") or Google Maps API ("googlemaps")
+- Process: SSE-based XLSX/CSV upload (fetch + ReadableStream), max 500 addresses, 10MB file limit
+- Avatar: stored as base64 data URL in DB, uploaded via multipart POST
 
 ## Artifacts
 
 1. **API Server** (`artifacts/api-server`) — Express 5, port 8080
-   - Routes: `/api/auth/*`, `/api/users/*`, `/api/analyses/*`, `/api/dashboard/*`
+   - Routes: `/api/auth/*`, `/api/users/*`, `/api/analyses/*`, `/api/dashboard/*`, `/api/process/upload`
+   - `lib/geocoder.ts` — full address parser + Nominatim/BrasilAPI/Google Maps geocoding pipeline
 2. **ViaX Scout** (`artifacts/viax-scout`) — React+Vite frontend
    - Proxy: `/api/*` → `http://localhost:8080` (Vite proxy config)
    - Pages: Login, Register, Setup, Dashboard, Process, History, Settings

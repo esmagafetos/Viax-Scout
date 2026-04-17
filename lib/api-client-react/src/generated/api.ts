@@ -28,10 +28,12 @@ import type {
   ListAnalysesParams,
   LoginBody,
   MessageResponse,
+  ProcessUploadBody,
   RegisterBody,
   UpdatePasswordBody,
   UpdateProfileBody,
   UpdateSettingsBody,
+  UploadAvatarBody,
   User,
   UserSettings,
 } from "./api.schemas";
@@ -521,6 +523,94 @@ export const useUpdateProfile = <
   TContext
 > => {
   return useMutation(getUpdateProfileMutationOptions(options));
+};
+
+/**
+ * @summary Upload profile avatar from gallery
+ */
+export const getUploadAvatarUrl = () => {
+  return `/api/users/avatar`;
+};
+
+export const uploadAvatar = async (
+  uploadAvatarBody: UploadAvatarBody,
+  options?: RequestInit,
+): Promise<User> => {
+  const formData = new FormData();
+  formData.append(`avatar`, uploadAvatarBody.avatar);
+
+  return customFetch<User>(getUploadAvatarUrl(), {
+    ...options,
+    method: "POST",
+    body: formData,
+  });
+};
+
+export const getUploadAvatarMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadAvatar>>,
+    TError,
+    { data: BodyType<UploadAvatarBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof uploadAvatar>>,
+  TError,
+  { data: BodyType<UploadAvatarBody> },
+  TContext
+> => {
+  const mutationKey = ["uploadAvatar"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof uploadAvatar>>,
+    { data: BodyType<UploadAvatarBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return uploadAvatar(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UploadAvatarMutationResult = NonNullable<
+  Awaited<ReturnType<typeof uploadAvatar>>
+>;
+export type UploadAvatarMutationBody = BodyType<UploadAvatarBody>;
+export type UploadAvatarMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Upload profile avatar from gallery
+ */
+export const useUploadAvatar = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadAvatar>>,
+    TError,
+    { data: BodyType<UploadAvatarBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof uploadAvatar>>,
+  TError,
+  { data: BodyType<UploadAvatarBody> },
+  TContext
+> => {
+  return useMutation(getUploadAvatarMutationOptions(options));
 };
 
 /**
@@ -1270,3 +1360,91 @@ export function useGetRecentAnalyses<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Upload and process a route file via SSE
+ */
+export const getProcessUploadUrl = () => {
+  return `/api/process/upload`;
+};
+
+export const processUpload = async (
+  processUploadBody: ProcessUploadBody,
+  options?: RequestInit,
+): Promise<string> => {
+  const formData = new FormData();
+  formData.append(`arquivo`, processUploadBody.arquivo);
+
+  return customFetch<string>(getProcessUploadUrl(), {
+    ...options,
+    method: "POST",
+    body: formData,
+  });
+};
+
+export const getProcessUploadMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof processUpload>>,
+    TError,
+    { data: BodyType<ProcessUploadBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof processUpload>>,
+  TError,
+  { data: BodyType<ProcessUploadBody> },
+  TContext
+> => {
+  const mutationKey = ["processUpload"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof processUpload>>,
+    { data: BodyType<ProcessUploadBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return processUpload(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ProcessUploadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof processUpload>>
+>;
+export type ProcessUploadMutationBody = BodyType<ProcessUploadBody>;
+export type ProcessUploadMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Upload and process a route file via SSE
+ */
+export const useProcessUpload = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof processUpload>>,
+    TError,
+    { data: BodyType<ProcessUploadBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof processUpload>>,
+  TError,
+  { data: BodyType<ProcessUploadBody> },
+  TContext
+> => {
+  return useMutation(getProcessUploadMutationOptions(options));
+};

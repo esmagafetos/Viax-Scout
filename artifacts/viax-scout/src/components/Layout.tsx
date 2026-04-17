@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -12,6 +12,18 @@ const SUN_SVG = (
 const MOON_SVG = (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+);
+
+const MENU_SVG = (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+);
+
+const X_SVG = (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
   </svg>
 );
 
@@ -37,14 +49,30 @@ export default function Layout({ children, showNav = true }: LayoutProps) {
   const { user, logout } = useAuth();
   const { dark, toggle } = useTheme();
   const [loc] = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/process", label: "Processar Rota" },
     { href: "/history", label: "Histórico" },
-    { href: "/settings", label: "Configurações" },
   ];
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setProfileMenuOpen(false);
+  }, [loc]);
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)" }}>
@@ -57,15 +85,15 @@ export default function Layout({ children, showNav = true }: LayoutProps) {
           top: 0,
           zIndex: 50,
         }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between", height: 56 }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", height: 56 }}>
             {/* Brand */}
-            <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem" }}>
-              <span style={{ fontFamily: "Poppins", fontSize: "1.2rem", fontWeight: 700, letterSpacing: "-0.01em" }}>ViaX Scout</span>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", flexShrink: 0 }}>
+              <span style={{ fontFamily: "Poppins", fontSize: "1.1rem", fontWeight: 700, letterSpacing: "-0.01em" }}>ViaX Scout</span>
               <span style={{ fontSize: "0.6rem", color: "var(--accent)", background: "var(--accent-dim)", padding: "0.15rem 0.5rem", borderRadius: 4, letterSpacing: "0.06em", fontWeight: 600 }}>v7.0</span>
             </div>
 
-            {/* Nav links */}
-            <nav style={{ display: "flex", gap: "0.15rem", alignItems: "center" }}>
+            {/* Desktop Nav links */}
+            <nav style={{ display: "flex", gap: "0.15rem", alignItems: "center" }} className="hide-mobile">
               {navLinks.map((link) => (
                 <Link key={link.href} href={link.href}>
                   <span style={{
@@ -77,6 +105,7 @@ export default function Layout({ children, showNav = true }: LayoutProps) {
                     transition: "all 200ms",
                     color: loc === link.href ? "var(--accent)" : "var(--text-muted)",
                     background: loc === link.href ? "var(--accent-dim)" : "transparent",
+                    display: "inline-block",
                   }}>
                     {link.label}
                   </span>
@@ -84,10 +113,12 @@ export default function Layout({ children, showNav = true }: LayoutProps) {
               ))}
             </nav>
 
-            {/* Right: theme + user */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            {/* Right: theme + profile */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              {/* Theme toggle - desktop only */}
               <button
                 onClick={toggle}
+                className="hide-mobile"
                 style={{
                   display: "flex", alignItems: "center", gap: "0.4rem",
                   padding: "0.35rem 0.75rem", borderRadius: 99,
@@ -100,40 +131,144 @@ export default function Layout({ children, showNav = true }: LayoutProps) {
                 {dark ? SUN_SVG : MOON_SVG}
                 <span>{dark ? "Claro" : "Escuro"}</span>
               </button>
+
+              {/* Profile dropdown */}
               {user && (
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <div style={{
-                    width: 30, height: 30, borderRadius: "50%",
-                    background: "var(--accent-dim)", border: "1px solid var(--border-strong)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "0.72rem", fontWeight: 700, color: "var(--accent)",
-                    overflow: "hidden",
-                  }}>
+                <div ref={profileRef} style={{ position: "relative" }}>
+                  <button
+                    onClick={() => setProfileMenuOpen((o) => !o)}
+                    style={{
+                      width: 34, height: 34, borderRadius: "50%",
+                      background: "var(--accent-dim)", border: `2px solid ${profileMenuOpen ? "var(--accent)" : "var(--border-strong)"}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "0.75rem", fontWeight: 700, color: "var(--accent)",
+                      overflow: "hidden", cursor: "pointer", transition: "border-color 200ms",
+                      padding: 0,
+                    }}
+                  >
                     {user.avatarUrl ? (
                       <img src={user.avatarUrl} alt={user.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
                       user.name.charAt(0).toUpperCase()
                     )}
-                  </div>
-                  <button
-                    onClick={logout}
-                    style={{
-                      padding: "0.35rem 0.75rem", borderRadius: 99,
-                      border: "1px solid var(--border-strong)",
-                      background: "transparent", color: "var(--text-faint)",
-                      fontSize: "0.72rem", cursor: "pointer",
-                    }}
-                  >
-                    Sair
                   </button>
+
+                  {profileMenuOpen && (
+                    <div style={{
+                      position: "absolute", right: 0, top: "calc(100% + 8px)",
+                      background: "var(--surface)", border: "1px solid var(--border-strong)",
+                      borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                      minWidth: 180, zIndex: 100, overflow: "hidden",
+                      animation: "fadeDown 150ms ease",
+                    }}>
+                      <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid var(--border)" }}>
+                        <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.name}</div>
+                        <div style={{ fontSize: "0.7rem", color: "var(--text-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</div>
+                      </div>
+                      <Link href="/settings">
+                        <div style={{ padding: "0.65rem 1rem", fontSize: "0.82rem", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.6rem", transition: "background 150ms" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+                          Configurações
+                        </div>
+                      </Link>
+                      <Link href="/settings">
+                        <div style={{ padding: "0.65rem 1rem", fontSize: "0.82rem", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.6rem", transition: "background 150ms" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                          Perfil
+                        </div>
+                      </Link>
+                      <div style={{ borderTop: "1px solid var(--border)" }}>
+                        <button
+                          onClick={logout}
+                          style={{
+                            width: "100%", padding: "0.65rem 1rem",
+                            fontSize: "0.82rem", color: "var(--accent)", cursor: "pointer",
+                            background: "none", border: "none", textAlign: "left",
+                            display: "flex", alignItems: "center", gap: "0.6rem",
+                            fontFamily: "Poppins", transition: "background 150ms",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-dim)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                          Sair
+                        </button>
+                      </div>
+
+                      {/* Mobile theme toggle inside dropdown */}
+                      <div className="show-mobile" style={{ borderTop: "1px solid var(--border)" }}>
+                        <button
+                          onClick={toggle}
+                          style={{
+                            width: "100%", padding: "0.65rem 1rem",
+                            fontSize: "0.82rem", color: "var(--text-muted)", cursor: "pointer",
+                            background: "none", border: "none", textAlign: "left",
+                            display: "flex", alignItems: "center", gap: "0.6rem",
+                            fontFamily: "Poppins",
+                          }}
+                        >
+                          {dark ? SUN_SVG : MOON_SVG}
+                          {dark ? "Modo Claro" : "Modo Escuro"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
+
+              {/* Mobile menu toggle */}
+              <button
+                onClick={() => setMobileMenuOpen((o) => !o)}
+                className="show-mobile"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: 36, height: 36, borderRadius: 8,
+                  border: "1px solid var(--border-strong)",
+                  background: "var(--surface)", color: "var(--text-muted)",
+                  cursor: "pointer",
+                }}
+              >
+                {mobileMenuOpen ? X_SVG : MENU_SVG}
+              </button>
             </div>
           </div>
+
+          {/* Mobile Nav */}
+          {mobileMenuOpen && (
+            <div className="show-mobile" style={{
+              borderTop: "1px solid var(--border-strong)",
+              background: "var(--surface)",
+              padding: "0.5rem 1rem 1rem",
+              display: "flex", flexDirection: "column", gap: "0.25rem",
+            }}>
+              {navLinks.map((link) => (
+                <Link key={link.href} href={link.href}>
+                  <div style={{
+                    padding: "0.7rem 1rem",
+                    borderRadius: 10,
+                    fontSize: "0.9rem",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    color: loc === link.href ? "var(--accent)" : "var(--text-muted)",
+                    background: loc === link.href ? "var(--accent-dim)" : "transparent",
+                    transition: "all 150ms",
+                  }}>
+                    {link.label}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </header>
       )}
 
-      <main style={{ maxWidth: 1200, margin: "0 auto", padding: showNav ? "2rem 1.25rem 4rem" : 0 }}>
+      <main style={{ maxWidth: 1200, margin: "0 auto", padding: showNav ? "1.5rem 1rem 4rem" : 0 }}>
         {children}
       </main>
     </div>

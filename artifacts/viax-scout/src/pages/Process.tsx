@@ -1,27 +1,29 @@
 import React, { useState, useRef } from "react";
-import { useCreateAnalysis } from "@workspace/api-client-react";
 import Layout from "@/components/Layout";
 import { useToast } from "@/components/Toast";
 import { formatPct, formatMs } from "@/lib/utils";
 
 interface ResultRow {
-  line: number;
-  original: string;
-  extracted: string;
-  official: string;
-  similarity: number;
-  status: "nuance" | "ok";
-  reason: string;
+  linha: number;
+  endereco_original: string;
+  nome_rua_extraido: string | null;
+  nome_rua_oficial: string | null;
+  similaridade: number | null;
+  is_nuance: boolean;
+  motivo: string;
+  poi_estruturado: string | null;
 }
 
 interface ProcessResult {
-  total: number;
-  nuances: number;
-  geocodeSuccess: number;
-  similarityAvg: number;
-  timeMs: number;
-  rows: ResultRow[];
-  parserMode: string;
+  total_enderecos: number;
+  total_nuances: number;
+  percentual_problema: number;
+  detalhes: ResultRow[];
+  metricas_tecnicas: {
+    tempo_processamento_ms: number;
+    taxa_geocode_sucesso: number;
+    instancia: string;
+  };
 }
 
 export default function Process() {
@@ -33,9 +35,8 @@ export default function Process() {
   const [activeFilter, setActiveFilter] = useState<"all" | "nuance" | "ok">("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { showToast, ToastComponent } = useToast();
-  const createAnalysisMutation = useCreateAnalysis();
 
-  const addStep = (msg: string) => setSteps((prev) => [...prev, msg]);
+  const addStep = (msg: string) => setSteps((prev) => [...prev.slice(-20), msg]);
 
   const handleFile = (f: File) => {
     const ext = f.name.split(".").pop()?.toLowerCase();
@@ -61,107 +62,98 @@ export default function Process() {
     setSteps([]);
     setResult(null);
 
-    const apiBase = import.meta.env.BASE_URL.replace(/\/$/, "");
+    const base = (import.meta as any).env?.BASE_URL?.replace(/\/$/, "") ?? "";
 
     try {
-      addStep("Lendo arquivo...");
-
       const formData = new FormData();
       formData.append("arquivo", file);
 
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      addStep(`Processando ${file.name}...`);
-
-      const es = new EventSource(`${apiBase}/api/process/upload`);
-
-      // For demo: simulate SSE steps
-      const mockSteps = [
-        "Extraindo enderecos da planilha...",
-        "Consultando cache local...",
-        "Geocodificando via Nominatim...",
-        "Calculando similaridade textual...",
-        "Gerando relatorio...",
-      ];
-
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i < mockSteps.length) {
-          addStep(mockSteps[i]);
-          i++;
-        } else {
-          clearInterval(interval);
-        }
-      }, 600);
-
-      await new Promise((resolve) => setTimeout(resolve, mockSteps.length * 600 + 500));
-      clearInterval(interval);
-
-      // Simulate result
-      const mockRows: ResultRow[] = Array.from({ length: 8 }).map((_, idx) => ({
-        line: idx + 1,
-        original: `Rua das Flores, ${100 + idx * 10}, Bairro ${idx + 1}`,
-        extracted: `Rua das Flores`,
-        official: idx % 3 === 0 ? "Rua das Flores e Jardins" : "Rua das Flores",
-        similarity: idx % 3 === 0 ? 0.72 + (idx * 0.01) : 0.92 + (idx * 0.005),
-        status: idx % 3 === 0 ? "nuance" : "ok",
-        reason: idx % 3 === 0 ? "Nome de rua diverge do oficial" : "Endereco validado com sucesso",
-      }));
-
-      const nuances = mockRows.filter((r) => r.status === "nuance").length;
-      const mockResult: ProcessResult = {
-        total: mockRows.length,
-        nuances,
-        geocodeSuccess: mockRows.length - 1,
-        similarityAvg: mockRows.reduce((sum, r) => sum + r.similarity, 0) / mockRows.length,
-        timeMs: 3200,
-        rows: mockRows,
-        parserMode: "builtin",
-      };
-
-      setResult(mockResult);
-      addStep("Analise concluida!");
-
-      // Save to backend
-      createAnalysisMutation.mutate({
-        data: {
-          fileName: file.name,
-          totalAddresses: mockResult.total,
-          nuances: mockResult.nuances,
-          geocodeSuccess: mockResult.geocodeSuccess,
-          similarityAvg: mockResult.similarityAvg,
-          processingTimeMs: mockResult.timeMs,
-          parserMode: mockResult.parserMode,
-          results: JSON.stringify(mockResult.rows),
-        },
+      const response = await fetch(`${base}/api/process/upload`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
       });
-    } catch (err) {
-      showToast("Erro ao processar arquivo.");
+
+      if (!response.ok || !response.body) {
+        const errText = await response.text().catch(() => "");
+        showToast("Erro ao processar arquivo. " + errText);
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() ?? "";
+
+        for (const part of parts) {
+          const lines = part.split("\n");
+          let eventType = "message";
+          let dataStr = "";
+
+          for (const line of lines) {
+            if (line.startsWith("event: ")) eventType = line.slice(7).trim();
+            else if (line.startsWith("data: ")) dataStr = line.slice(6).trim();
+          }
+
+          if (!dataStr) continue;
+
+          try {
+            const parsed = JSON.parse(dataStr);
+
+            if (eventType === "step" && parsed.step) {
+              addStep(parsed.step);
+            } else if (eventType === "result" && parsed.result) {
+              const r = parsed.result as ProcessResult;
+              setResult(r);
+              addStep("✓ Análise concluída!");
+            } else if (eventType === "error" && parsed.error) {
+              showToast(parsed.error);
+            }
+          } catch {
+            // ignore JSON parse errors
+          }
+        }
+      }
+    } catch (err: any) {
+      showToast("Erro de conexão: " + (err.message ?? String(err)));
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const filteredRows = result?.rows.filter((r) =>
-    activeFilter === "all" ? true : r.status === activeFilter
+  const filteredRows = result?.detalhes.filter((r) =>
+    activeFilter === "all" ? true : activeFilter === "nuance" ? r.is_nuance : !r.is_nuance
   ) ?? [];
 
   const exportCsv = () => {
     if (!result) return;
-    const header = ["#", "Endereco Original", "Rua Extraida", "Rua Oficial (OSM)", "Similaridade", "Status", "Motivo"];
-    const rows = result.rows.map((r) => [r.line, r.original, r.extracted, r.official, r.similarity.toFixed(2), r.status, r.reason]);
-    const csv = [header, ...rows].map((r) => r.map((v) => `"${v}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const header = ["#", "Endereço Original", "Rua Extraída", "Rua Oficial", "Similaridade", "Nuance", "Motivo", "POI"];
+    const rows = result.detalhes.map((r) => [
+      r.linha, r.endereco_original, r.nome_rua_extraido ?? "", r.nome_rua_oficial ?? "",
+      r.similaridade !== null ? (r.similaridade * 100).toFixed(1) + "%" : "N/A",
+      r.is_nuance ? "Sim" : "Não", r.motivo, r.poi_estruturado ?? "",
+    ]);
+    const csv = [header, ...rows].map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `viax-${file?.name ?? "resultado"}.csv`;
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
     <Layout>
-      <div style={{ marginBottom: "1.5rem" }}>
-        <h1 style={{ fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: "0.3rem" }}>
+      <div style={{ marginBottom: "1.25rem" }}>
+        <h1 style={{ fontSize: "1.3rem", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>
           Processar Rota
         </h1>
         <p style={{ fontSize: "0.82rem", color: "var(--text-faint)" }}>
@@ -175,7 +167,7 @@ export default function Process() {
         borderRadius: 14, boxShadow: "0 4px 16px rgba(0,0,0,0.07)",
         overflow: "hidden", marginBottom: "1.5rem",
       }}>
-        <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+        <div style={{ padding: "0.75rem 1.25rem", borderBottom: "1px solid var(--border)" }}>
           <span style={{ fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--text-faint)" }}>
             Importar Rota
           </span>
@@ -187,7 +179,7 @@ export default function Process() {
           onDragLeave={() => setIsDragOver(false)}
           onClick={() => fileInputRef.current?.click()}
           style={{
-            padding: "2.5rem 2rem",
+            padding: "2rem 1.5rem",
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             gap: "0.75rem", cursor: "pointer",
             border: `2px dashed ${isDragOver || file ? "var(--accent)" : "transparent"}`,
@@ -197,22 +189,22 @@ export default function Process() {
           }}
         >
           <div style={{
-            width: 56, height: 56, borderRadius: 14,
+            width: 52, height: 52, borderRadius: 12,
             background: "var(--accent-dim)", border: "1px solid var(--border-strong)",
             display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)",
           }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
               <polyline points="14,2 14,8 20,8"/>
               <line x1="12" y1="18" x2="12" y2="12"/>
               <polyline points="9,15 12,12 15,15"/>
             </svg>
           </div>
-          <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--text)" }}>
+          <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--text)", textAlign: "center" }}>
             {file ? file.name : "Arraste o arquivo aqui"}
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--text-faint)", textAlign: "center" }}>
-            {file ? `${(file.size / 1024).toFixed(1)} KB` : "XLSX ou CSV · coluna \"Destination Address\" · max 10MB"}
+            {file ? `${(file.size / 1024).toFixed(1)} KB` : 'XLSX ou CSV · coluna "Destination Address" · máx 10MB'}
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
@@ -235,11 +227,11 @@ export default function Process() {
           />
         </div>
 
-        {/* Analyze button */}
         <div style={{ padding: "0 1rem 1rem" }}>
           <button
             onClick={handleProcess}
             disabled={!file || isProcessing}
+            className="btn-full-mobile"
             style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
               padding: "0.75rem 1.5rem", borderRadius: 99,
@@ -251,20 +243,19 @@ export default function Process() {
             }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            Analisar rota
+            {isProcessing ? "Processando..." : "Analisar rota"}
           </button>
         </div>
 
-        {/* Loading */}
         {isProcessing && (
-          <div style={{ padding: "2rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+          <div style={{ padding: "1.5rem 1.5rem 2rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
             <div style={{ width: 40, height: 40, border: "2px solid var(--border-strong)", borderTopColor: "var(--accent)", borderRadius: "50%" }} className="animate-spin-ring" />
             <div style={{ fontSize: "0.8rem", fontWeight: 500, color: "var(--text-muted)" }}>Processando arquivo...</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", width: "100%", maxWidth: 400 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", width: "100%", maxWidth: 420 }}>
               {steps.map((step, i) => (
-                <div key={i} className="animate-step-in" style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.72rem", color: "var(--text-faint)" }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", flexShrink: 0 }} className="animate-pulse-dot" />
-                  {step}
+                <div key={i} className="animate-step-in" style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", fontSize: "0.72rem", color: "var(--text-faint)" }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", flexShrink: 0, marginTop: 5 }} className="animate-pulse-dot" />
+                  <span>{step}</span>
                 </div>
               ))}
             </div>
@@ -272,36 +263,44 @@ export default function Process() {
         )}
       </div>
 
-      {/* Results */}
       {result && (
         <div className="animate-fade-up">
-          {/* Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
+          {/* Summary stats */}
+          <div className="stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
             {[
-              { value: result.total, label: "Total", accent: false, good: false },
-              { value: result.nuances, label: "Nuances", accent: true, good: false },
-              { value: result.total - result.nuances, label: "OK", accent: false, good: true },
-              { value: formatPct(result.similarityAvg), label: "Similaridade", accent: false, good: true },
-              { value: formatMs(result.timeMs), label: "Tempo", accent: false, good: false },
+              { value: result.total_enderecos, label: "Total", accent: false, good: false },
+              { value: result.total_nuances, label: "Nuances", accent: true, good: false },
+              { value: result.total_enderecos - result.total_nuances, label: "OK", accent: false, good: true },
+              { value: `${result.percentual_problema}%`, label: "Taxa Nuance", accent: result.percentual_problema > 20, good: result.percentual_problema <= 20 },
+              { value: `${result.metricas_tecnicas.taxa_geocode_sucesso}%`, label: "Geocode OK", accent: false, good: true },
+              { value: formatMs(result.metricas_tecnicas.tempo_processamento_ms), label: "Tempo", accent: false, good: false },
             ].map(({ value, label, accent, good }) => (
               <div key={label} style={{
                 background: "var(--surface)", border: "1px solid var(--border-strong)",
-                borderRadius: 14, padding: "1rem 1rem 0.8rem",
+                borderRadius: 14, padding: "1rem 0.9rem 0.8rem",
                 position: "relative", overflow: "hidden",
               }}>
                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: accent ? "var(--accent)" : good ? "var(--ok)" : "var(--border)" }} />
-                <div style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: "0.3rem", color: accent ? "var(--accent)" : good ? "var(--ok)" : "var(--text)" }}>{value}</div>
-                <div style={{ fontSize: "0.66rem", color: "var(--text-faint)", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>{label}</div>
+                <div style={{ fontSize: "1.5rem", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: "0.3rem", color: accent ? "var(--accent)" : good ? "var(--ok)" : "var(--text)" }}>{value}</div>
+                <div style={{ fontSize: "0.65rem", color: "var(--text-faint)", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>{label}</div>
               </div>
             ))}
           </div>
 
-          {/* Table */}
+          {/* Instance badge */}
+          <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ fontSize: "0.72rem", color: "var(--text-faint)", fontWeight: 500 }}>Processado via</span>
+            <span style={{ fontSize: "0.72rem", fontWeight: 700, padding: "0.15rem 0.6rem", borderRadius: 99, background: "var(--surface-2)", border: "1px solid var(--border-strong)", color: "var(--text-muted)" }}>
+              {result.metricas_tecnicas.instancia}
+            </span>
+          </div>
+
+          {/* Results table */}
           <div style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: 14, boxShadow: "0 4px 16px rgba(0,0,0,0.07)", overflow: "hidden" }}>
             <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>Detalhes</span>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                <div style={{ display: "flex", gap: "0.35rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "0.3rem" }}>
                   {(["all", "nuance", "ok"] as const).map((f) => (
                     <button
                       key={f}
@@ -333,11 +332,11 @@ export default function Process() {
                 </button>
               </div>
             </div>
-            <div style={{ overflowX: "auto" }}>
+            <div className="table-scroll">
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.78rem" }}>
                 <thead>
                   <tr style={{ background: "var(--surface-2)" }}>
-                    {["#", "Endereco Original", "Rua Extraida", "Rua Oficial (OSM)", "Similaridade", "Status", "Motivo"].map((h) => (
+                    {["#", "Endereço Original", "Rua Extraída", "Rua Oficial", "Similaridade", "Status", "Motivo"].map((h) => (
                       <th key={h} style={{ padding: "0.65rem 1rem", textAlign: "left", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-faint)", whiteSpace: "nowrap", borderBottom: "1px solid var(--border-strong)" }}>
                         {h}
                       </th>
@@ -346,33 +345,41 @@ export default function Process() {
                 </thead>
                 <tbody>
                   {filteredRows.map((row) => (
-                    <tr key={row.line}>
-                      <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)", color: "var(--text-faint)" }}>{row.line}</td>
-                      <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)", maxWidth: 240 }}>
-                        <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-muted)" }}>{row.original}</span>
+                    <tr key={row.linha}>
+                      <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)", color: "var(--text-faint)" }}>{row.linha}</td>
+                      <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)", maxWidth: 220 }}>
+                        <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-muted)" }} title={row.endereco_original}>{row.endereco_original}</span>
                       </td>
-                      <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.extracted}</td>
-                      <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.official}</td>
+                      <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {row.nome_rua_extraido ?? <span style={{ color: "var(--text-faint)", fontStyle: "italic" }}>não extraída</span>}
+                      </td>
+                      <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {row.nome_rua_oficial ?? <span style={{ color: "var(--text-faint)", fontStyle: "italic" }}>não encontrada</span>}
+                      </td>
                       <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                          <div style={{ height: 4, width: 60, borderRadius: 2, background: "var(--border-strong)", overflow: "hidden" }}>
-                            <div style={{ height: "100%", borderRadius: 2, width: `${row.similarity * 100}%`, background: row.similarity < 0.8 ? "var(--accent)" : "var(--ok)", transition: "width 0.6s ease" }} />
+                        {row.similaridade !== null ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                            <div style={{ height: 4, width: 60, borderRadius: 2, background: "var(--border-strong)", overflow: "hidden" }}>
+                              <div style={{ height: "100%", borderRadius: 2, width: `${row.similaridade * 100}%`, background: row.similaridade < 0.8 ? "var(--accent)" : "var(--ok)", transition: "width 0.6s ease" }} />
+                            </div>
+                            <span style={{ fontSize: "0.7rem", color: "var(--text-faint)", minWidth: 32 }}>{(row.similaridade * 100).toFixed(0)}%</span>
                           </div>
-                          <span style={{ fontSize: "0.7rem", color: "var(--text-faint)", minWidth: 32 }}>{(row.similarity * 100).toFixed(0)}%</span>
-                        </div>
+                        ) : (
+                          <span style={{ fontSize: "0.7rem", color: "var(--text-faint)" }}>N/A</span>
+                        )}
                       </td>
                       <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)" }}>
                         <span style={{
-                          display: "inline-flex", alignItems: "center", gap: "0.3rem",
+                          display: "inline-flex", alignItems: "center",
                           padding: "0.2rem 0.55rem", borderRadius: 99, fontSize: "0.68rem", fontWeight: 500,
-                          background: row.status === "nuance" ? "var(--accent-dim)" : "var(--ok-dim)",
-                          color: row.status === "nuance" ? "var(--accent)" : "var(--ok)",
+                          background: row.is_nuance ? "var(--accent-dim)" : "var(--ok-dim)",
+                          color: row.is_nuance ? "var(--accent)" : "var(--ok)",
                         }}>
-                          {row.status === "nuance" ? "Nuance" : "OK"}
+                          {row.is_nuance ? "Nuance" : "OK"}
                         </span>
                       </td>
-                      <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)", fontSize: "0.72rem", color: "var(--text-faint)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={row.reason}>
-                        {row.reason}
+                      <td style={{ padding: "0.6rem 1rem", borderBottom: "1px solid var(--border)", fontSize: "0.72rem", color: "var(--text-faint)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={row.motivo}>
+                        {row.motivo || "—"}
                       </td>
                     </tr>
                   ))}
@@ -380,7 +387,7 @@ export default function Process() {
               </table>
               {filteredRows.length === 0 && (
                 <div style={{ padding: "3rem 2rem", textAlign: "center", color: "var(--text-faint)", fontSize: "0.82rem" }}>
-                  Nenhum registro encontrado para este filtro.
+                  Nenhum registro para este filtro.
                 </div>
               )}
             </div>

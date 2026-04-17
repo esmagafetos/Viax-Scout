@@ -83,6 +83,22 @@ export const UpdateProfileResponse = zod.object({
 });
 
 /**
+ * @summary Upload profile avatar from gallery
+ */
+export const UploadAvatarBody = zod.object({
+  avatar: zod.instanceof(File),
+});
+
+export const UploadAvatarResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  avatarUrl: zod.string().nullish(),
+  birthDate: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
  * @summary Update password
  */
 export const UpdatePasswordBody = zod.object({
@@ -101,14 +117,15 @@ export const GetSettingsResponse = zod.object({
   parserMode: zod
     .enum(["builtin", "ai"])
     .describe("builtin = embedded parser, ai = AI-powered"),
-  aiProvider: zod
-    .string()
-    .nullish()
-    .describe("AI provider name when parserMode=ai"),
-  aiApiKey: zod.string().nullish().describe("API key for AI provider"),
-  toleranceMeters: zod
-    .number()
-    .describe("Coordinate-to-address match tolerance in meters"),
+  aiProvider: zod.string().nullish(),
+  aiApiKey: zod.string().nullish(),
+  toleranceMeters: zod.number(),
+  instanceMode: zod
+    .enum(["builtin", "googlemaps"])
+    .describe(
+      "Geocoding instance: builtin=Nominatim\/OSM, googlemaps=Google Maps API",
+    ),
+  googleMapsApiKey: zod.string().nullish(),
 });
 
 /**
@@ -119,20 +136,23 @@ export const UpdateSettingsBody = zod.object({
   aiProvider: zod.string().nullish(),
   aiApiKey: zod.string().nullish(),
   toleranceMeters: zod.number().optional(),
+  instanceMode: zod.enum(["builtin", "googlemaps"]).optional(),
+  googleMapsApiKey: zod.string().nullish(),
 });
 
 export const UpdateSettingsResponse = zod.object({
   parserMode: zod
     .enum(["builtin", "ai"])
     .describe("builtin = embedded parser, ai = AI-powered"),
-  aiProvider: zod
-    .string()
-    .nullish()
-    .describe("AI provider name when parserMode=ai"),
-  aiApiKey: zod.string().nullish().describe("API key for AI provider"),
-  toleranceMeters: zod
-    .number()
-    .describe("Coordinate-to-address match tolerance in meters"),
+  aiProvider: zod.string().nullish(),
+  aiApiKey: zod.string().nullish(),
+  toleranceMeters: zod.number(),
+  instanceMode: zod
+    .enum(["builtin", "googlemaps"])
+    .describe(
+      "Geocoding instance: builtin=Nominatim\/OSM, googlemaps=Google Maps API",
+    ),
+  googleMapsApiKey: zod.string().nullish(),
 });
 
 /**
@@ -242,3 +262,10 @@ export const GetRecentAnalysesResponseItem = zod.object({
 export const GetRecentAnalysesResponse = zod.array(
   GetRecentAnalysesResponseItem,
 );
+
+/**
+ * @summary Upload and process a route file via SSE
+ */
+export const ProcessUploadBody = zod.object({
+  arquivo: zod.instanceof(File),
+});

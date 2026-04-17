@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   useGetSettings,
   useUpdateProfile,
@@ -12,25 +12,24 @@ import Layout from "@/components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/Toast";
 
-type Tab = "perfil" | "parser" | "tolerancia";
+type Tab = "perfil" | "parser" | "tolerancia" | "instancias";
 
 export default function Settings() {
   const { user, setUser } = useAuth();
   const queryClient = useQueryClient();
   const { showToast, ToastComponent } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>("perfil");
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
-  // Profile state
   const [name, setName] = useState(user?.name ?? "");
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl ?? "");
   const [birthDate, setBirthDate] = useState(user?.birthDate ?? "");
 
-  // Password state
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Settings state
   const { data: settingsData, isLoading: settingsLoading } = useGetSettings({
     query: { queryKey: getGetSettingsQueryKey() },
   });
@@ -40,6 +39,8 @@ export default function Settings() {
   const [aiProvider, setAiProvider] = useState("");
   const [aiApiKey, setAiApiKey] = useState("");
   const [toleranceMeters, setToleranceMeters] = useState(300);
+  const [instanceMode, setInstanceMode] = useState<"builtin" | "googlemaps">("builtin");
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState("");
 
   useEffect(() => {
     if (settings) {
@@ -47,6 +48,8 @@ export default function Settings() {
       setAiProvider(settings.aiProvider ?? "");
       setAiApiKey(settings.aiApiKey ?? "");
       setToleranceMeters(settings.toleranceMeters ?? 300);
+      setInstanceMode(settings.instanceMode ?? "builtin");
+      setGoogleMapsApiKey(settings.googleMapsApiKey ?? "");
     }
   }, [settings]);
 
@@ -62,7 +65,7 @@ export default function Settings() {
 
   const handleProfileSave = () => {
     updateProfileMutation.mutate(
-      { data: { name, avatarUrl: avatarUrl || null, birthDate: birthDate || null } },
+      { data: { name, birthDate: birthDate || null } },
       {
         onSuccess: (data: any) => {
           setUser(data);
@@ -74,22 +77,58 @@ export default function Settings() {
     );
   };
 
+  const handleAvatarGallery = async (file: File) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      showToast("Formato inválido. Use JPG, PNG, WEBP ou GIF.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast("Imagem muito grande. Máximo 2MB.");
+      return;
+    }
+
+    setAvatarUploading(true);
+    try {
+      const base = (import.meta as any).env?.BASE_URL?.replace(/\/$/, "") ?? "";
+      const formData = new FormData();
+      formData.append("avatar", file);
+      const resp = await fetch(`${base}/api/users/avatar`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        showToast(err.error ?? "Erro ao enviar foto.");
+        return;
+      }
+      const userData = await resp.json();
+      setUser(userData);
+      setAvatarUrl(userData.avatarUrl ?? "");
+      queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+      showToast("Foto atualizada!", "success");
+    } catch {
+      showToast("Erro ao enviar foto.");
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
   const handlePasswordSave = () => {
     if (newPassword !== confirmPassword) {
-      showToast("As senhas novas nao coincidem.");
+      showToast("As senhas novas não coincidem.");
       return;
     }
     if (newPassword.length < 6) {
-      showToast("A nova senha deve ter no minimo 6 caracteres.");
+      showToast("A nova senha deve ter no mínimo 6 caracteres.");
       return;
     }
     updatePasswordMutation.mutate(
       { data: { currentPassword, newPassword } },
       {
         onSuccess: () => {
-          setCurrentPassword("");
-          setNewPassword("");
-          setConfirmPassword("");
+          setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
           showToast("Senha alterada com sucesso!", "success");
         },
         onError: (err: any) => showToast(err?.data?.error ?? "Erro ao alterar senha."),
@@ -99,21 +138,22 @@ export default function Settings() {
 
   const handleSettingsSave = () => {
     updateSettingsMutation.mutate(
-      { data: { parserMode, aiProvider: aiProvider || null, aiApiKey: aiApiKey || null, toleranceMeters } },
+      { data: { parserMode, aiProvider: aiProvider || null, aiApiKey: aiApiKey || null, toleranceMeters, instanceMode, googleMapsApiKey: googleMapsApiKey || null } as any },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetSettingsQueryKey() });
-          showToast("Configuracoes salvas!", "success");
+          showToast("Configurações salvas!", "success");
         },
-        onError: () => showToast("Erro ao salvar configuracoes."),
+        onError: () => showToast("Erro ao salvar configurações."),
       }
     );
   };
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "perfil", label: "Perfil" },
+    { id: "instancias", label: "Instâncias" },
     { id: "parser", label: "Parser" },
-    { id: "tolerancia", label: "Tolerancia" },
+    { id: "tolerancia", label: "Tolerância" },
   ];
 
   const inputStyle: React.CSSProperties = {
@@ -140,37 +180,39 @@ export default function Settings() {
   };
 
   const sectionBodyStyle: React.CSSProperties = {
-    padding: "1.5rem 1.25rem",
+    padding: "1.25rem 1.25rem",
   };
 
   return (
     <Layout>
-      <div style={{ marginBottom: "1.5rem" }}>
-        <h1 style={{ fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: "0.3rem" }}>
-          Configuracoes
+      <div style={{ marginBottom: "1.25rem" }}>
+        <h1 style={{ fontSize: "1.3rem", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>
+          Configurações
         </h1>
         <p style={{ fontSize: "0.82rem", color: "var(--text-faint)" }}>
-          Gerencie seu perfil, modo de parser e tolerancia de coordenadas.
+          Gerencie seu perfil, instâncias de geocodificação, parser e tolerância.
         </p>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: "0.35rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--border-strong)", paddingBottom: "0" }}>
+      <div className="tabs-row" style={{ display: "flex", gap: "0.25rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--border-strong)" }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             style={{
-              padding: "0.6rem 1.25rem",
+              padding: "0.6rem 1rem",
               border: "none",
               background: "transparent",
               cursor: "pointer",
-              fontSize: "0.82rem",
+              fontSize: "0.8rem",
               fontWeight: activeTab === tab.id ? 600 : 400,
               color: activeTab === tab.id ? "var(--accent)" : "var(--text-muted)",
               borderBottom: activeTab === tab.id ? "2px solid var(--accent)" : "2px solid transparent",
               transition: "all 200ms",
               marginBottom: -1,
+              whiteSpace: "nowrap",
+              flexShrink: 0,
             }}
           >
             {tab.label}
@@ -181,42 +223,69 @@ export default function Settings() {
       {/* Tab: Perfil */}
       {activeTab === "perfil" && (
         <div className="animate-fade-up">
-          {/* Profile info */}
           <div style={sectionStyle}>
             <div style={sectionHeadStyle}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>
-                Informacoes do Perfil
+                Foto e Informações
               </span>
             </div>
             <div style={sectionBodyStyle}>
-              {/* Avatar */}
-              <div style={{ marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "1.25rem" }}>
-                <div style={{
-                  width: 64, height: 64, borderRadius: "50%",
-                  background: "var(--accent-dim)", border: "2px solid var(--border-strong)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "1.4rem", fontWeight: 700, color: "var(--accent)",
-                  overflow: "hidden", flexShrink: 0,
-                }}>
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={() => setAvatarUrl("")} />
-                  ) : (
-                    (user?.name ?? "U").charAt(0).toUpperCase()
+              {/* Avatar picker */}
+              <div className="avatar-row" style={{ marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "1.25rem" }}>
+                <div style={{ position: "relative", flexShrink: 0 }}>
+                  <div style={{
+                    width: 72, height: 72, borderRadius: "50%",
+                    background: "var(--accent-dim)", border: "2px solid var(--border-strong)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "1.5rem", fontWeight: 700, color: "var(--accent)",
+                    overflow: "hidden",
+                  }}>
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={() => setAvatarUrl("")} />
+                    ) : (
+                      (user?.name ?? "U").charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  {avatarUploading && (
+                    <div style={{
+                      position: "absolute", inset: 0, borderRadius: "50%",
+                      background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <div style={{ width: 20, height: 20, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%" }} className="animate-spin-ring" />
+                    </div>
                   )}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>URL da Foto de Perfil</label>
+                  <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.5rem", color: "var(--text)" }}>Foto de Perfil</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-faint)", marginBottom: "0.75rem" }}>
+                    JPG, PNG, WEBP ou GIF · máximo 2 MB
+                  </div>
                   <input
-                    type="url"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="https://exemplo.com/foto.jpg"
-                    style={inputStyle}
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    style={{ display: "none" }}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarGallery(f); e.target.value = ""; }}
                   />
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={avatarUploading}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: "0.45rem",
+                      padding: "0.55rem 1.1rem", borderRadius: 99,
+                      background: "var(--surface-2)", color: "var(--text-muted)",
+                      border: "1px solid var(--border-strong)",
+                      fontSize: "0.78rem", fontWeight: 500, cursor: "pointer",
+                      opacity: avatarUploading ? 0.6 : 1,
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+                    {avatarUploading ? "Enviando..." : "Escolher da galeria"}
+                  </button>
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+              <div className="form-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
                 <div>
                   <label style={labelStyle}>Nome</label>
                   <input type="text" value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
@@ -236,7 +305,9 @@ export default function Settings() {
                 <button
                   onClick={handleProfileSave}
                   disabled={updateProfileMutation.isPending}
+                  className="btn-full-mobile"
                   style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
                     padding: "0.65rem 1.5rem", borderRadius: 99,
                     background: "var(--accent)", color: "#fff",
                     border: "none", fontSize: "0.82rem", fontWeight: 600,
@@ -249,7 +320,6 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Password change */}
           <div style={sectionStyle}>
             <div style={sectionHeadStyle}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>
@@ -274,7 +344,9 @@ export default function Settings() {
                   <button
                     onClick={handlePasswordSave}
                     disabled={updatePasswordMutation.isPending}
+                    className="btn-full-mobile"
                     style={{
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
                       padding: "0.65rem 1.5rem", borderRadius: 99,
                       background: "var(--text)", color: "var(--bg)",
                       border: "none", fontSize: "0.82rem", fontWeight: 600,
@@ -290,13 +362,120 @@ export default function Settings() {
         </div>
       )}
 
+      {/* Tab: Instâncias */}
+      {activeTab === "instancias" && (
+        <div className="animate-fade-up">
+          <div style={sectionStyle}>
+            <div style={sectionHeadStyle}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>
+                Instância de Geocodificação
+              </span>
+            </div>
+            <div style={sectionBodyStyle}>
+              {settingsLoading ? (
+                <div style={{ display: "flex", justifyContent: "center", padding: "2rem" }}>
+                  <div style={{ width: 32, height: 32, border: "2px solid var(--border-strong)", borderTopColor: "var(--accent)", borderRadius: "50%" }} className="animate-spin-ring" />
+                </div>
+              ) : (
+                <>
+                  <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "1.25rem", lineHeight: 1.6 }}>
+                    Escolha o serviço usado para validar os endereços das rotas. A instância afeta a precisão e o custo do processamento.
+                  </p>
+
+                  <div className="instance-cards" style={{ display: "flex", gap: "0.75rem", marginBottom: "1.75rem" }}>
+                    {[
+                      {
+                        value: "builtin",
+                        label: "Padrão Gratuito",
+                        badge: "Grátis",
+                        badgeColor: "var(--ok)",
+                        badgeBg: "var(--ok-dim)",
+                        desc: "Usa o método convencional do projeto: Nominatim/OSM + BrasilAPI + Photon. Zero custo adicional, sujeito ao rate limit de 1 req/s.",
+                        icon: (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        ),
+                      },
+                      {
+                        value: "googlemaps",
+                        label: "Google Maps",
+                        badge: "Pay-per-use",
+                        badgeColor: "#1565c0",
+                        badgeBg: "rgba(21,101,192,0.1)",
+                        desc: "Substitui o OSM pelo Google Maps Geocoding API. Maior precisão para endereços brasileiros. Requer chave de API com cobrança por requisição.",
+                        icon: (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        ),
+                      },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setInstanceMode(opt.value as "builtin" | "googlemaps")}
+                        style={{
+                          flex: 1, padding: "1.1rem 1rem", borderRadius: 12, textAlign: "left",
+                          border: `2px solid ${instanceMode === opt.value ? "var(--accent)" : "var(--border-strong)"}`,
+                          background: instanceMode === opt.value ? "var(--accent-dim)" : "var(--surface-2)",
+                          cursor: "pointer", transition: "all 200ms",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "0.6rem" }}>
+                          <div style={{ color: instanceMode === opt.value ? "var(--accent)" : "var(--text-muted)" }}>{opt.icon}</div>
+                          <span style={{ fontSize: "0.65rem", fontWeight: 700, padding: "0.15rem 0.5rem", borderRadius: 99, background: opt.badgeBg, color: opt.badgeColor, letterSpacing: "0.05em" }}>
+                            {opt.badge}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: "0.85rem", fontWeight: 700, marginBottom: "0.35rem", color: instanceMode === opt.value ? "var(--accent)" : "var(--text)" }}>
+                          {opt.label}
+                        </div>
+                        <div style={{ fontSize: "0.72rem", color: "var(--text-faint)", lineHeight: 1.5 }}>{opt.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {instanceMode === "googlemaps" && (
+                    <div style={{ marginBottom: "1.5rem", padding: "1.25rem", borderRadius: 10, background: "var(--surface-2)", border: "1px solid var(--border-strong)" }}>
+                      <label style={labelStyle}>Chave de API do Google Maps</label>
+                      <input
+                        type="password"
+                        value={googleMapsApiKey}
+                        onChange={(e) => setGoogleMapsApiKey(e.target.value)}
+                        placeholder="AIzaSy..."
+                        style={inputStyle}
+                      />
+                      <p style={{ fontSize: "0.7rem", color: "var(--text-faint)", marginTop: "0.5rem", lineHeight: 1.5 }}>
+                        A chave é armazenada de forma segura e usada somente para geocodificar seus arquivos.
+                        Habilite a <strong>Geocoding API</strong> no Google Cloud Console e certifique-se de que a chave tem permissão para essa API.
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleSettingsSave}
+                    disabled={updateSettingsMutation.isPending}
+                    className="btn-full-mobile"
+                    style={{
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      padding: "0.65rem 1.5rem", borderRadius: 99,
+                      background: "var(--accent)", color: "#fff",
+                      border: "none", fontSize: "0.82rem", fontWeight: 600,
+                      cursor: "pointer", opacity: updateSettingsMutation.isPending ? 0.7 : 1,
+                    }}
+                  >
+                    {updateSettingsMutation.isPending ? "Salvando..." : "Salvar Instância"}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tab: Parser */}
       {activeTab === "parser" && (
         <div className="animate-fade-up">
           <div style={sectionStyle}>
             <div style={sectionHeadStyle}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>
-                Configuracao do Parser
+                Configuração do Parser
               </span>
             </div>
             <div style={sectionBodyStyle}>
@@ -308,10 +487,10 @@ export default function Settings() {
                 <>
                   <div style={{ marginBottom: "1.75rem" }}>
                     <label style={{ ...labelStyle, marginBottom: "0.75rem" }}>Modo de Processamento</label>
-                    <div style={{ display: "flex", gap: "0.75rem" }}>
+                    <div className="parser-cards" style={{ display: "flex", gap: "0.75rem" }}>
                       {[
-                        { value: "builtin", label: "Parser Embutido", desc: "Algoritmo proprio, offline, zero custo adicional" },
-                        { value: "ai", label: "Inteligencia Artificial", desc: "Maior precisao usando IA externa via API" },
+                        { value: "builtin", label: "Parser Embutido", desc: "Algoritmo próprio, offline, zero custo adicional" },
+                        { value: "ai", label: "Inteligência Artificial", desc: "Maior precisão usando IA externa via API" },
                       ].map((opt) => (
                         <button
                           key={opt.value}
@@ -323,10 +502,7 @@ export default function Settings() {
                             cursor: "pointer", transition: "all 200ms",
                           }}
                         >
-                          <div style={{
-                            fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.3rem",
-                            color: parserMode === opt.value ? "var(--accent)" : "var(--text)",
-                          }}>{opt.label}</div>
+                          <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.3rem", color: parserMode === opt.value ? "var(--accent)" : "var(--text)" }}>{opt.label}</div>
                           <div style={{ fontSize: "0.72rem", color: "var(--text-faint)" }}>{opt.desc}</div>
                         </button>
                       ))}
@@ -337,11 +513,7 @@ export default function Settings() {
                     <div style={{ marginBottom: "1.5rem", padding: "1.25rem", borderRadius: 10, background: "var(--surface-2)", border: "1px solid var(--border-strong)" }}>
                       <div style={{ marginBottom: "1rem" }}>
                         <label style={labelStyle}>Provedor de IA</label>
-                        <select
-                          value={aiProvider}
-                          onChange={(e) => setAiProvider(e.target.value)}
-                          style={{ ...inputStyle, cursor: "pointer" }}
-                        >
+                        <select value={aiProvider} onChange={(e) => setAiProvider(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
                           <option value="">Selecione um provedor</option>
                           <option value="openai">OpenAI (GPT-4)</option>
                           <option value="anthropic">Anthropic (Claude)</option>
@@ -350,15 +522,9 @@ export default function Settings() {
                       </div>
                       <div>
                         <label style={labelStyle}>Chave de API</label>
-                        <input
-                          type="password"
-                          value={aiApiKey}
-                          onChange={(e) => setAiApiKey(e.target.value)}
-                          placeholder="sk-... ou AIza..."
-                          style={inputStyle}
-                        />
+                        <input type="password" value={aiApiKey} onChange={(e) => setAiApiKey(e.target.value)} placeholder="sk-... ou AIza..." style={inputStyle} />
                         <p style={{ fontSize: "0.7rem", color: "var(--text-faint)", marginTop: "0.4rem" }}>
-                          A chave e armazenada de forma segura e usada somente para processar seus arquivos.
+                          A chave é armazenada de forma segura e usada somente para processar seus arquivos.
                         </p>
                       </div>
                     </div>
@@ -367,14 +533,16 @@ export default function Settings() {
                   <button
                     onClick={handleSettingsSave}
                     disabled={updateSettingsMutation.isPending}
+                    className="btn-full-mobile"
                     style={{
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
                       padding: "0.65rem 1.5rem", borderRadius: 99,
                       background: "var(--accent)", color: "#fff",
                       border: "none", fontSize: "0.82rem", fontWeight: 600,
                       cursor: "pointer", opacity: updateSettingsMutation.isPending ? 0.7 : 1,
                     }}
                   >
-                    {updateSettingsMutation.isPending ? "Salvando..." : "Salvar Configuracoes"}
+                    {updateSettingsMutation.isPending ? "Salvando..." : "Salvar Configurações"}
                   </button>
                 </>
               )}
@@ -383,13 +551,13 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Tab: Tolerancia */}
+      {/* Tab: Tolerância */}
       {activeTab === "tolerancia" && (
         <div className="animate-fade-up">
           <div style={sectionStyle}>
             <div style={sectionHeadStyle}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>
-                Tolerancia de Coordenadas
+                Tolerância de Coordenadas
               </span>
             </div>
             <div style={sectionBodyStyle}>
@@ -401,61 +569,47 @@ export default function Settings() {
                 <>
                   <div style={{ maxWidth: 540 }}>
                     <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "1.75rem", lineHeight: 1.6 }}>
-                      Define a distancia maxima (em metros) entre a coordenada GPS e o endereco oficial aceito como correto.
-                      Valores menores sao mais rigorosos; valores maiores aceitam maiores divergencias geograficas.
+                      Define a distância máxima (em metros) entre a coordenada GPS e o endereço oficial aceito como correto.
                     </p>
-
                     <div style={{ marginBottom: "2rem" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
-                        <label style={labelStyle}>Distancia de Tolerancia</label>
-                        <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--accent)", letterSpacing: "-0.01em" }}>
-                          {toleranceMeters}m
-                        </span>
+                        <label style={labelStyle}>Distância de Tolerância</label>
+                        <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--accent)" }}>{toleranceMeters}m</span>
                       </div>
-
                       <input
-                        type="range"
-                        min={100}
-                        max={5000}
-                        step={100}
-                        value={toleranceMeters}
+                        type="range" min={100} max={5000} step={100} value={toleranceMeters}
                         onChange={(e) => setToleranceMeters(Number(e.target.value))}
                         style={{ width: "100%", accentColor: "var(--accent)", cursor: "pointer" }}
                       />
-
                       <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.4rem" }}>
-                        <span style={{ fontSize: "0.7rem", color: "var(--text-faint)" }}>100m — Muito rigoroso</span>
-                        <span style={{ fontSize: "0.7rem", color: "var(--text-faint)" }}>5000m — Muito flexivel</span>
+                        <span style={{ fontSize: "0.7rem", color: "var(--text-faint)" }}>100m — Rigoroso</span>
+                        <span style={{ fontSize: "0.7rem", color: "var(--text-faint)" }}>5000m — Flexível</span>
                       </div>
                     </div>
-
-                    {/* Visual hint */}
                     <div style={{ padding: "1rem 1.25rem", borderRadius: 10, background: "var(--surface-2)", border: "1px solid var(--border-strong)", marginBottom: "1.5rem" }}>
                       <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.4rem", fontWeight: 600 }}>
-                        {toleranceMeters <= 200 ? "Rigoroso" : toleranceMeters <= 800 ? "Moderado" : toleranceMeters <= 2000 ? "Flexivel" : "Muito Flexivel"}
+                        {toleranceMeters <= 200 ? "Rigoroso" : toleranceMeters <= 800 ? "Moderado" : toleranceMeters <= 2000 ? "Flexível" : "Muito Flexível"}
                       </div>
                       <div style={{ fontSize: "0.72rem", color: "var(--text-faint)" }}>
-                        {toleranceMeters <= 200
-                          ? "Apenas enderecos muito proximos da coordenada sao aceitos. Mais nuances detectadas."
-                          : toleranceMeters <= 800
-                          ? "Configuracao balanceada para uso geral em areas urbanas."
-                          : toleranceMeters <= 2000
-                          ? "Aceita divergencias maiores. Util em areas rurais ou com GPS impreciso."
-                          : "Muito permissivo. Pode reduzir a qualidade da validacao."}
+                        {toleranceMeters <= 200 ? "Apenas endereços muito próximos da coordenada são aceitos. Mais nuances detectadas."
+                          : toleranceMeters <= 800 ? "Configuração balanceada para uso geral em áreas urbanas."
+                          : toleranceMeters <= 2000 ? "Aceita divergências maiores. Útil em áreas rurais ou com GPS impreciso."
+                          : "Muito permissivo. Pode reduzir a qualidade da validação."}
                       </div>
                     </div>
-
                     <button
                       onClick={handleSettingsSave}
                       disabled={updateSettingsMutation.isPending}
+                      className="btn-full-mobile"
                       style={{
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
                         padding: "0.65rem 1.5rem", borderRadius: 99,
                         background: "var(--accent)", color: "#fff",
                         border: "none", fontSize: "0.82rem", fontWeight: 600,
                         cursor: "pointer", opacity: updateSettingsMutation.isPending ? 0.7 : 1,
                       }}
                     >
-                      {updateSettingsMutation.isPending ? "Salvando..." : "Salvar Tolerancia"}
+                      {updateSettingsMutation.isPending ? "Salvando..." : "Salvar Tolerância"}
                     </button>
                   </div>
                 </>

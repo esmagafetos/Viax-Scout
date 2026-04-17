@@ -18,6 +18,8 @@ tags:
     description: Route analysis operations
   - name: dashboard
     description: Dashboard and metrics
+  - name: process
+    description: Route processing
 paths:
   /healthz:
     get:
@@ -135,6 +137,37 @@ paths:
       responses:
         "200":
           description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/avatar:
+    post:
+      operationId: uploadAvatar
+      tags: [users]
+      summary: Upload profile avatar from gallery
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+              required:
+                - avatar
+      responses:
+        "200":
+          description: Avatar uploaded
           content:
             application/json:
               schema:
@@ -308,6 +341,31 @@ paths:
                 items:
                   $ref: "#/components/schemas/AnalysisSummary"
 
+  /process/upload:
+    post:
+      operationId: processUpload
+      tags: [process]
+      summary: Upload and process a route file via SSE
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                arquivo:
+                  type: string
+                  format: binary
+              required:
+                - arquivo
+      responses:
+        "200":
+          description: SSE stream with step and result events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
 components:
   schemas:
     HealthStatus:
@@ -423,16 +481,20 @@ components:
           description: "builtin = embedded parser, ai = AI-powered"
         aiProvider:
           type: ["string", "null"]
-          description: "AI provider name when parserMode=ai"
         aiApiKey:
           type: ["string", "null"]
-          description: "API key for AI provider"
         toleranceMeters:
           type: integer
-          description: "Coordinate-to-address match tolerance in meters"
+        instanceMode:
+          type: string
+          enum: [builtin, googlemaps]
+          description: "Geocoding instance: builtin=Nominatim/OSM, googlemaps=Google Maps API"
+        googleMapsApiKey:
+          type: ["string", "null"]
       required:
         - parserMode
         - toleranceMeters
+        - instanceMode
 
     UpdateSettingsBody:
       type: object
@@ -446,6 +508,11 @@ components:
           type: ["string", "null"]
         toleranceMeters:
           type: integer
+        instanceMode:
+          type: string
+          enum: [builtin, googlemaps]
+        googleMapsApiKey:
+          type: ["string", "null"]
 
     Analysis:
       type: object
