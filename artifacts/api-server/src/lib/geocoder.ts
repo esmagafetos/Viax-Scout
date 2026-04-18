@@ -1,12 +1,23 @@
 import { logger } from "./logger.js";
 
-const USER_AGENT = "ViaX-Scout/7.0 (viax-scout-br)";
+const USER_AGENT = "ViaX-Scout/8.0 (viax-system-br)";
 const NOMINATIM_INSTANCES = [
   "https://nominatim.openstreetmap.org",
   "https://nominatim.geocoding.ai",
 ];
+const OVERPASS_ENDPOINTS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.openstreetmap.ru/api/interpreter",
+];
 const SIMILARITY_THRESHOLD_DEFAULT = 0.68;
 const SIMILARITY_THRESHOLD_AVENIDA = 0.92;
+
+const OSM_HIGHWAY_PRIORITIES = [
+  "trunk", "primary", "secondary", "tertiary",
+  "residential", "living_street", "service", "unclassified",
+  "pedestrian", "path", "footway", "cycleway", "track",
+];
 
 // Padrões de avenidas extensas que exigem alta precisão
 const AVENIDAS_EXTENSAS_REGEX = /\b(beira[\s-]?mar|beira[\s-]?rio|beira[\s-]?lago|independ[eê]ncia|presidente|marechal|general|brasil|rep[uú]blica|get[uú]lio\s+vargas|jo[aã]o\s+pessoa|santos\s+dumont|dom\s+pedro|princesa\s+isabel|sete\s+de\s+setembro)\b/i;
@@ -371,9 +382,17 @@ export async function geocodeForwardNominatim(
   ultimaReq: number
 ): Promise<{ result: GeoResult | null; ultimaReq: number }> {
   let newUltimaReq = ultimaReq;
-  const viewbox = "-74.0,-34.8,-34.8,5.3";
-  logger.debug({ query }, "geocodeForwardNominatim");
+  logger.debug({ query }, "geocodeForward: Photon primary");
 
+  // 1. Photon (primary — no rate limit, updated OSM data)
+  const photonResult = await geocodeForwardPhoton(query);
+  if (photonResult) {
+    logger.debug({ query, found: photonResult.rua }, "Photon forward hit");
+    return { result: photonResult, ultimaReq: newUltimaReq };
+  }
+
+  // 2. Nominatim (fallback — rate limited, use only when Photon fails)
+  const viewbox = "-74.0,-34.8,-34.8,5.3";
   for (const base of NOMINATIM_INSTANCES) {
     newUltimaReq = await aguardarRateLimit(newUltimaReq);
     const url = `${base}/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&viewbox=${viewbox}&bounded=1&countrycodes=br&accept-language=pt-BR`;
@@ -382,28 +401,13 @@ export async function geocodeForwardNominatim(
     for (const item of data) {
       const result = extrairDadosNominatim(item);
       if (result && result.rua.length > 3) {
-        logger.debug({ query, found: result.rua, lat: result.lat, lon: result.lon }, "Nominatim forward hit");
+        logger.debug({ query, found: result.rua }, "Nominatim forward fallback hit");
         return { result: { ...result, fonte: "forward", confianca: "rua" }, ultimaReq: newUltimaReq };
       }
     }
   }
 
-  // Fallback Photon
-  const photon = await httpGet(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=pt&osm_tag=highway`);
-  if (photon?.features?.length > 0) {
-    for (const f of photon.features) {
-      const rua = f.properties?.street ?? f.properties?.name;
-      if (rua && rua.length > 3) {
-        logger.debug({ query, found: rua }, "Photon fallback hit");
-        return {
-          result: { rua, lat: f.geometry?.coordinates?.[1], lon: f.geometry?.coordinates?.[0], fonte: "photon", confianca: "rua" },
-          ultimaReq: newUltimaReq,
-        };
-      }
-    }
-  }
-
-  logger.debug({ query }, "Forward geocode: no result");
+  logger.debug({ query }, "Forward geocode: no result from any provider");
   return { result: null, ultimaReq: newUltimaReq };
 }
 
@@ -415,16 +419,25 @@ export async function geocodeForwardPOI(
 ): Promise<{ result: GeoResult | null; ultimaReq: number }> {
   const query = [poi, rua, cidade, "Brasil"].filter(Boolean).join(", ");
   logger.debug({ poi, rua, cidade }, "geocodeForwardPOI");
-  let newUltimaReq = await aguardarRateLimit(ultimaReq);
-  const viewbox = "-74.0,-34.8,-34.8,5.3";
+  let newUltimaReq = ultimaReq;
 
+  // 1. Try Photon first (no rate limit)
+  const photonResult = await geocodeForwardPhoton(query);
+  if (photonResult) {
+    logger.debug({ poi, found: photonResult.rua }, "POI geocode via Photon");
+    return { result: photonResult, ultimaReq: newUltimaReq };
+  }
+
+  // 2. Nominatim fallback
+  const viewbox = "-74.0,-34.8,-34.8,5.3";
   for (const base of NOMINATIM_INSTANCES) {
+    newUltimaReq = await aguardarRateLimit(newUltimaReq);
     const url = `${base}/search?format=json&q=${encodeURIComponent(query)}&limit=3&addressdetails=1&viewbox=${viewbox}&bounded=1&accept-language=pt-BR`;
     const data = await httpGet(url);
     if (!data || !Array.isArray(data)) continue;
     for (const item of data) {
       if (item.lat && item.lon) {
-        logger.debug({ poi, found: item.display_name }, "POI geocode hit");
+        logger.debug({ poi, found: item.display_name }, "POI geocode via Nominatim fallback");
         return {
           result: {
             rua: (item.address?.road ?? item.address?.name ?? item.display_name?.split(",")[0] ?? poi).trim(),
@@ -437,7 +450,6 @@ export async function geocodeForwardPOI(
         };
       }
     }
-    newUltimaReq = await aguardarRateLimit(newUltimaReq);
   }
 
   return { result: null, ultimaReq: newUltimaReq };
@@ -470,11 +482,17 @@ export async function geocodeReverseNominatim(
 }
 
 export async function geocodeReversePhoton(lat: number, lon: number): Promise<GeoResult | null> {
-  const data = await httpGet(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&radius=0.15&lang=pt`);
+  const data = await httpGet(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&radius=0.15&lang=en`);
   const features = Array.isArray(data?.features) ? data.features : [];
   for (const f of features) {
     const props = f.properties ?? {};
-    const rua = props.street;
+    const osmKey = String(props.osm_key ?? "").toLowerCase();
+    const featureType = String(props.type ?? "").toLowerCase();
+    // Photon /reverse: street name is in props.name when type=="street" or osm_key=="highway"
+    // props.street is used in /api (forward) responses but NOT in /reverse
+    const rua = (osmKey === "highway" || featureType === "street")
+      ? (props.street ?? props.name)
+      : props.street;
     if (rua && String(rua).trim().length > 3) {
       return {
         rua: String(rua).trim(),
@@ -488,36 +506,105 @@ export async function geocodeReversePhoton(lat: number, lon: number): Promise<Ge
   return null;
 }
 
-export async function geocodeNearbyOsmRoad(lat: number, lon: number, radiusMeters = 90): Promise<GeoResult | null> {
-  const query = `[out:json][timeout:8];way(around:${radiusMeters},${lat},${lon})["highway"]["name"];out geom;`;
-  const data = await httpGet(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`, 12000);
-  const elements = Array.isArray(data?.elements) ? data.elements : [];
-  let best: GeoResult | null = null;
-  let bestDistance = Infinity;
+export async function geocodeNearbyOsmRoad(lat: number, lon: number, radiusMeters = 40): Promise<GeoResult | null> {
+  // Two-pass: first with tight radius (40m), then wider (90m) if needed
+  for (const radius of radiusMeters === 40 ? [40, 90] : [radiusMeters]) {
+    // Use tags-only output (faster than geom) for the first pass, then geom for distance calc
+    const query = `[out:json][timeout:10];way(around:${radius},${lat},${lon})["highway"]["name"];out geom;`;
 
-  for (const element of elements) {
-    const name = String(element.tags?.name ?? "").trim();
-    const geometry = Array.isArray(element.geometry) ? element.geometry : [];
-    if (!name || geometry.length === 0) continue;
+    let data: any = null;
+    for (const endpoint of OVERPASS_ENDPOINTS) {
+      data = await httpGet(`${endpoint}?data=${encodeURIComponent(query)}`, 14000);
+      if (data?.elements) break;
+    }
 
-    for (const point of geometry) {
-      if (typeof point.lat !== "number" || typeof point.lon !== "number") continue;
-      const dist = haversineMetros(lat, lon, point.lat, point.lon);
-      if (dist < bestDistance) {
-        bestDistance = dist;
-        best = {
-          rua: name,
-          lat: point.lat,
-          lon: point.lon,
-          fonte: "overpass",
-          confianca: "rua",
-        };
+    const elements = Array.isArray(data?.elements) ? data.elements : [];
+    if (elements.length === 0) continue;
+
+    // Sort candidates: prefer primary/secondary/residential over paths/tracks
+    const scored: Array<{ name: string; dist: number; lat: number; lon: number; hwType: string }> = [];
+
+    for (const element of elements) {
+      const name = String(element.tags?.name ?? "").trim();
+      const hwType = String(element.tags?.highway ?? "").toLowerCase();
+      const geometry = Array.isArray(element.geometry) ? element.geometry : [];
+      if (!name || geometry.length === 0) continue;
+
+      for (const point of geometry) {
+        if (typeof point.lat !== "number" || typeof point.lon !== "number") continue;
+        const dist = haversineMetros(lat, lon, point.lat, point.lon);
+        scored.push({ name, dist, lat: point.lat, lon: point.lon, hwType });
       }
+    }
+
+    if (scored.length === 0) continue;
+
+    // Sort: primary criteria = OSM highway priority index, secondary = distance
+    scored.sort((a, b) => {
+      const pa = OSM_HIGHWAY_PRIORITIES.indexOf(a.hwType);
+      const pb = OSM_HIGHWAY_PRIORITIES.indexOf(b.hwType);
+      const prioA = pa === -1 ? 99 : pa;
+      const prioB = pb === -1 ? 99 : pb;
+      if (prioA !== prioB) return prioA - prioB;
+      return a.dist - b.dist;
+    });
+
+    const best = scored[0];
+    logger.debug({ lat, lon, found: best.name, distance: Math.round(best.dist), hw: best.hwType, radius }, "Overpass road hit");
+    return {
+      rua: best.name,
+      lat: best.lat,
+      lon: best.lon,
+      fonte: "overpass",
+      confianca: "rua",
+    };
+  }
+
+  return null;
+}
+
+export async function geocodeForwardPhoton(query: string): Promise<GeoResult | null> {
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8&lang=en&bbox=-74.0,-34.8,-34.8,5.3`;
+  logger.debug({ query }, "geocodeForwardPhoton");
+  const data = await httpGet(url, 10000);
+  if (!Array.isArray(data?.features)) return null;
+
+  const priorityTypes = ["residential", "primary", "secondary", "tertiary", "living_street", "service", "unclassified"];
+
+  // First pass: prefer highway features with recognized types
+  for (const f of data.features) {
+    const props = f.properties ?? {};
+    const rua = props.street ?? props.name;
+    const osmValue = String(props.osm_value ?? "").toLowerCase();
+    const osmKey = String(props.osm_key ?? "").toLowerCase();
+    if (!rua || String(rua).trim().length < 4) continue;
+    if (osmKey === "highway" && priorityTypes.includes(osmValue)) {
+      return {
+        rua: String(rua).trim(),
+        lat: f.geometry?.coordinates?.[1],
+        lon: f.geometry?.coordinates?.[0],
+        fonte: "photon",
+        confianca: "rua",
+      };
     }
   }
 
-  if (best) logger.debug({ lat, lon, found: best.rua, distance: Math.round(bestDistance) }, "Overpass nearby road hit");
-  return best;
+  // Second pass: any result with a street name
+  for (const f of data.features) {
+    const props = f.properties ?? {};
+    const rua = props.street ?? (props.osm_key === "highway" ? props.name : null);
+    if (rua && String(rua).trim().length > 3) {
+      return {
+        rua: String(rua).trim(),
+        lat: f.geometry?.coordinates?.[1],
+        lon: f.geometry?.coordinates?.[0],
+        fonte: "photon",
+        confianca: "rua",
+      };
+    }
+  }
+
+  return null;
 }
 
 export async function geocodeGoogleMaps(query: string, apiKey: string): Promise<GeoResult | null> {
@@ -817,14 +904,23 @@ export async function processarEndereco(
       if (cached && Date.now() - cached.ts < 2 * 3600 * 1000) {
         reverseGeoResult = cached.data;
       } else {
-        const rev = await geocodeReverseNominatim(item.lat, item.lon, newUltimaReq);
-        reverseGeoResult = rev.result;
-        newUltimaReq = rev.ultimaReq;
-        if (!reverseGeoResult) reverseGeoResult = await geocodeReversePhoton(item.lat, item.lon);
+        // 1. Photon reverse (primary: no rate limit, reliable, updated OSM data, correct lang)
+        const photonRev = await geocodeReversePhoton(item.lat, item.lon);
+        if (photonRev) reverseGeoResult = photonRev;
+
+        // 2. Overpass (secondary: direct OSM road geometry query — more precise, but often busy)
         if (!isRuaConfiavel(reverseGeoResult)) {
-          const nearbyRoad = await geocodeNearbyOsmRoad(item.lat, item.lon);
-          if (nearbyRoad) reverseGeoResult = nearbyRoad;
+          const overpassRoad = await geocodeNearbyOsmRoad(item.lat, item.lon);
+          if (overpassRoad) reverseGeoResult = overpassRoad;
         }
+
+        // 3. Nominatim reverse (last resort: rate-limited ~1 req/s, older index)
+        if (!isRuaConfiavel(reverseGeoResult)) {
+          const rev = await geocodeReverseNominatim(item.lat, item.lon, newUltimaReq);
+          newUltimaReq = rev.ultimaReq;
+          if (rev.result) reverseGeoResult = rev.result;
+        }
+
         cache.set(cacheKey, { data: reverseGeoResult, ts: Date.now() });
       }
       geoResult = reverseGeoResult;

@@ -53,7 +53,7 @@ export default function Setup() {
             Bem-vindo, {user?.name?.split(" ")[0] ?? "usuario"}!
           </h1>
           <p style={{ fontSize: "0.82rem", color: "var(--text-faint)" }}>
-            Configure como o ViaX Scout deve processar seus enderecos.
+            Configure como o ViaX: System deve processar seus enderecos.
           </p>
         </div>
 

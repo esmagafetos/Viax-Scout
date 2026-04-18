@@ -24,13 +24,13 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash -lc 'PORT=8080 pnpm --filter @workspace/api-server run dev & API_PID=$!; PORT=5173 BASE_PATH=/ pnpm --filter @workspace/viax-scout run dev & WEB_PID=$!; trap \"kill $API_PID $WEB_PID 2>/dev/null\" EXIT; wait -n $API_PID $WEB_PID'"
 waitForPort = 5173
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [agent]
 stack = "PNPM_WORKSPACE"

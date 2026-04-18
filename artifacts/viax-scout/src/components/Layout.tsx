@@ -98,11 +98,27 @@ export default function Layout({ children, showNav = true }: LayoutProps) {
             <div className="header-top-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
               {/* Brand */}
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 70%, #6d28d9) 100%)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", boxShadow: "0 2px 8px color-mix(in srgb, var(--accent) 40%, transparent)" }}>
+                  {/* ViaX System — Route Validation Network Icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                    {/* Waypoint: origin (bottom-left) */}
+                    <circle cx="4.5" cy="18.5" r="2" fill="currentColor" strokeWidth="0"/>
+                    {/* Waypoint: destination (top-right) */}
+                    <circle cx="19.5" cy="5.5" r="2" fill="currentColor" strokeWidth="0"/>
+                    {/* Route lines */}
+                    <line x1="6.2" y1="17" x2="10.4" y2="12.9" strokeWidth="2"/>
+                    <line x1="13.6" y1="11.1" x2="17.8" y2="7" strokeWidth="2"/>
+                    {/* Center checkpoint: hollow ring */}
+                    <circle cx="12" cy="12" r="2.8" strokeWidth="2"/>
+                    {/* Crosshair/scan lines through checkpoint (system indicator) */}
+                    <line x1="12" y1="8" x2="12" y2="9.2" strokeWidth="1.5"/>
+                    <line x1="12" y1="14.8" x2="12" y2="16" strokeWidth="1.5"/>
+                    <line x1="8" y1="12" x2="9.2" y2="12" strokeWidth="1.5"/>
+                    <line x1="14.8" y1="12" x2="16" y2="12" strokeWidth="1.5"/>
+                  </svg>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontFamily: "var(--font-display)", fontSize: "1.05rem", fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.1 }}>ViaX Scout</span>
+                  <span style={{ fontFamily: "var(--font-display)", fontSize: "1.05rem", fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.1 }}>ViaX<span style={{ opacity: 0.7, fontWeight: 400 }}>:</span> System</span>
                   <span style={{ fontSize: "0.65rem", color: "var(--text-muted)", fontWeight: 500 }}>Validação de Rotas</span>
                 </div>
               </div>

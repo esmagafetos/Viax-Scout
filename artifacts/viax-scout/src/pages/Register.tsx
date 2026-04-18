@@ -63,8 +63,8 @@ export default function Register() {
       }}>
         <div style={{ padding: "2rem 2rem 1.5rem", borderBottom: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", marginBottom: "0.75rem" }}>
-            <span style={{ fontFamily: "Poppins", fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.02em" }}>ViaX Scout</span>
-            <span style={{ fontSize: "0.6rem", color: "var(--accent)", background: "var(--accent-dim)", padding: "0.15rem 0.5rem", borderRadius: 4, letterSpacing: "0.06em", fontWeight: 600 }}>v7.0</span>
+            <span style={{ fontFamily: "Poppins", fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.02em" }}>ViaX<span style={{ opacity: 0.5, fontWeight: 400 }}>:</span> System</span>
+            <span style={{ fontSize: "0.6rem", color: "var(--accent)", background: "var(--accent-dim)", padding: "0.15rem 0.5rem", borderRadius: 4, letterSpacing: "0.06em", fontWeight: 600 }}>v8.0</span>
           </div>
           <p style={{ fontSize: "0.82rem", color: "var(--text-faint)" }}>Crie sua conta gratuita</p>
         </div>

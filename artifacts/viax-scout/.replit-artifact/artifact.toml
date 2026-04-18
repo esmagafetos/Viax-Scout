@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "ViaX Scout"
+title = "ViaX: System"
 version = "1.0.0"
 id = "artifacts/viax-scout"
 router = "path"
@@ -12,7 +12,7 @@ version = "1.0.0"
 [[services]]
 name = "web"
 paths = [ "/" ]
-localPort = 19753
+localPort = 5173
 
 [services.development]
 run = "pnpm --filter @workspace/viax-scout run dev"
@@ -27,5 +27,5 @@ from = "/*"
 to = "/index.html"
 
 [services.env]
-PORT = "19753"
+PORT = "5173"
 BASE_PATH = "/"
