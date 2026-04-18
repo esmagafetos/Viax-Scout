@@ -29,7 +29,7 @@ export interface GeoResult {
   rua: string;
   lat?: number;
   lon?: number;
-  fonte?: "reverse" | "forward" | "photon" | "overpass" | "brasilapi" | "google";
+  fonte?: "reverse" | "forward" | "photon" | "overpass" | "brasilapi" | "awesomeapi" | "google";
   confianca?: "rua" | "localidade" | "estimado";
   localidade?: string;
 }
@@ -364,17 +364,73 @@ export function haversineMetros(lat1: number, lon1: number, lat2: number, lon2: 
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export async function geocodeBrasilAPI(cep: string): Promise<{ rua: string; cidade: string; bairro: string } | null> {
+export async function geocodeBrasilAPI(cep: string): Promise<{ rua: string; cidade: string; bairro: string; lat?: number; lon?: number } | null> {
   const limpo = cep.replace(/\D/g, "");
   if (limpo.length !== 8) return null;
-  logger.debug({ cep: limpo }, "geocodeBrasilAPI call");
-  const data = await httpGet(`https://brasilapi.com.br/api/cep/v1/${limpo}`);
+  logger.debug({ cep: limpo }, "geocodeBrasilAPI v2 call");
+  // v2 returns location.coordinates with lat/lon — primary Brazilian geocoder
+  const data = await httpGet(`https://brasilapi.com.br/api/cep/v2/${limpo}`);
   if (!data?.street) return null;
+  const lat = data.location?.coordinates?.latitude != null ? parseFloat(String(data.location.coordinates.latitude)) : undefined;
+  const lon = data.location?.coordinates?.longitude != null ? parseFloat(String(data.location.coordinates.longitude)) : undefined;
   return {
     rua: data.street.replace(/\b\w/g, (c: string) => c.toUpperCase()),
     cidade: data.city ?? "",
     bairro: data.neighborhood ?? "",
+    lat: lat && !isNaN(lat) ? lat : undefined,
+    lon: lon && !isNaN(lon) ? lon : undefined,
   };
+}
+
+export async function geocodeAwesomeCEP(cep: string): Promise<{ rua: string; cidade: string; bairro: string; lat?: number; lon?: number } | null> {
+  const limpo = cep.replace(/\D/g, "");
+  if (limpo.length !== 8) return null;
+  logger.debug({ cep: limpo }, "geocodeAwesomeCEP call");
+  const data = await httpGet(`https://cep.awesomeapi.com.br/json/${limpo}`);
+  if (!data?.address) return null;
+  const lat = data.lat != null ? parseFloat(String(data.lat)) : undefined;
+  const lon = data.lng != null ? parseFloat(String(data.lng)) : undefined;
+  const rua = [data.address_type, data.address_name].filter(Boolean).join(" ") || data.address;
+  return {
+    rua: String(rua ?? "").replace(/\b\w/g, (c: string) => c.toUpperCase()),
+    cidade: data.city ?? "",
+    bairro: data.district ?? data.neighborhood ?? "",
+    lat: lat && !isNaN(lat) ? lat : undefined,
+    lon: lon && !isNaN(lon) ? lon : undefined,
+  };
+}
+
+// Geocodificador CEP brasileiro: tenta BrasilAPI v2 (IBGE/Correios) primeiro,
+// depois AwesomeAPI como fallback. Ambos retornam lat/lon e são gratuitos sem auth.
+export async function geocodeCEPBrasileiro(cep: string): Promise<GeoResult | null> {
+  const limpo = cep.replace(/\D/g, "");
+  if (limpo.length !== 8) return null;
+
+  const brasilResult = await geocodeBrasilAPI(limpo);
+  if (brasilResult?.rua) {
+    logger.debug({ cep: limpo, rua: brasilResult.rua, lat: brasilResult.lat }, "BrasilAPI v2 CEP hit");
+    return {
+      rua: brasilResult.rua,
+      lat: brasilResult.lat,
+      lon: brasilResult.lon,
+      fonte: "brasilapi",
+      confianca: brasilResult.lat ? "rua" : "localidade",
+    };
+  }
+
+  const awesomeResult = await geocodeAwesomeCEP(limpo);
+  if (awesomeResult?.rua) {
+    logger.debug({ cep: limpo, rua: awesomeResult.rua, lat: awesomeResult.lat }, "AwesomeAPI CEP fallback hit");
+    return {
+      rua: awesomeResult.rua,
+      lat: awesomeResult.lat,
+      lon: awesomeResult.lon,
+      fonte: "awesomeapi",
+      confianca: awesomeResult.lat ? "rua" : "localidade",
+    };
+  }
+
+  return null;
 }
 
 export async function geocodeForwardNominatim(
@@ -930,12 +986,33 @@ export async function processarEndereco(
       }
     }
 
+    // CEP detectado: usar geocodificação brasileira (BrasilAPI v2 → AwesomeAPI)
+    // como fonte primária para endereços brasileiros — substitui Photon/Nominatim para ruas
     if (cep) {
-      const brasilApiData = await geocodeBrasilAPI(cep);
-      if (brasilApiData) {
-        if (!parsed.rua_principal) parsed.rua_principal = brasilApiData.rua;
-        if (!parsed.cidade) parsed.cidade = brasilApiData.cidade;
-        if (!parsed.bairro) parsed.bairro = brasilApiData.bairro;
+      const cepGeo = await geocodeCEPBrasileiro(cep);
+      if (cepGeo) {
+        if (!parsed.rua_principal) parsed.rua_principal = cepGeo.rua;
+        // Preencher campos de localidade vazios
+        if (!parsed.cidade) {
+          const raw = await geocodeBrasilAPI(cep);
+          if (raw?.cidade) parsed.cidade = raw.cidade;
+          if (raw?.bairro && !parsed.bairro) parsed.bairro = raw.bairro;
+        }
+        // Se o geocodificador de CEP retornou coordenadas E o reverso não é confiável,
+        // usar as coordenadas do CEP como ponto de partida
+        if (cepGeo.lat && cepGeo.lon && !isRuaConfiavel(reverseGeoResult)) {
+          logger.debug({ cep, rua: cepGeo.rua, lat: cepGeo.lat, fonte: cepGeo.fonte }, "CEP geo coordinates used as forward anchor");
+          if (!forwardGeoResult) {
+            forwardGeoResult = cepGeo;
+            geoResult = cepGeo;
+            geocodeLat = cepGeo.lat;
+            geocodeLon = cepGeo.lon;
+          }
+        }
+        // Se o reverso é confiável mas não tem rua válida, usar a rua do CEP
+        if (!isRuaConfiavel(reverseGeoResult) && !geoResult) {
+          geoResult = cepGeo;
+        }
       }
     }
 

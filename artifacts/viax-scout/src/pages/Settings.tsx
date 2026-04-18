@@ -495,15 +495,13 @@ export default function Settings() {
                   boxShadow: "0 4px 18px rgba(212,82,26,0.35)",
                 }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 22 22" fill="none">
-                    <circle cx="4" cy="4" r="2.2" fill="white"/>
-                    <circle cx="18" cy="4" r="2.2" fill="white"/>
-                    <line x1="4" y1="4" x2="11" y2="17" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
-                    <line x1="18" y1="4" x2="11" y2="17" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
-                    <circle cx="11" cy="17" r="3.2" stroke="white" strokeWidth="1.6" fill="none"/>
-                    <line x1="11" y1="13" x2="11" y2="14.2" stroke="white" strokeWidth="1.4" strokeLinecap="round"/>
-                    <line x1="11" y1="19.8" x2="11" y2="21" stroke="white" strokeWidth="1.4" strokeLinecap="round"/>
-                    <line x1="7" y1="17" x2="8.2" y2="17" stroke="white" strokeWidth="1.4" strokeLinecap="round"/>
-                    <line x1="13.8" y1="17" x2="15" y2="17" stroke="white" strokeWidth="1.4" strokeLinecap="round"/>
+                    <circle cx="4.5" cy="4.5" r="2" fill="white"/>
+                    <circle cx="17.5" cy="4.5" r="2" fill="white"/>
+                    <line x1="4.5" y1="4.5" x2="11" y2="13.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="17.5" y1="4.5" x2="11" y2="13.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    <circle cx="11" cy="13.5" r="3.4" fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="1.5"/>
+                    <polyline points="9.1,13.5 10.5,15.1 13.2,11.8" stroke="white" strokeWidth="1.55" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                    <line x1="11" y1="16.9" x2="11" y2="20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                 </div>
                 <div>
@@ -597,9 +595,10 @@ export default function Settings() {
                   { layer: "Backend", tech: "Express 5", detail: "TypeScript, REST API, pino logger" },
                   { layer: "Banco de Dados", tech: "PostgreSQL", detail: "Drizzle ORM, migrações automáticas" },
                   { layer: "Monorepo", tech: "pnpm workspaces", detail: "Libs compartilhadas, builds isolados" },
-                  { layer: "Geocodificação", tech: "Photon (Komoot)", detail: "Primário — sem rate limit" },
-                  { layer: "Geocodificação", tech: "Overpass API", detail: "Secundário — multi-mirror" },
-                  { layer: "Geocodificação", tech: "Nominatim / OSM", detail: "Fallback — 1 req/s" },
+                  { layer: "Geocod. Brasil (CEP)", tech: "BrasilAPI v2", detail: "Primário BR — IBGE/Correios, lat/lon" },
+                  { layer: "Geocod. Brasil (CEP)", tech: "AwesomeAPI CEP", detail: "Fallback BR — lat/lon gratuito" },
+                  { layer: "Geocod. Global", tech: "Photon (Komoot)", detail: "Sem rate limit, dados OSM" },
+                  { layer: "Geocod. Global", tech: "Overpass + Nominatim", detail: "Fallback — geometria OSM precisa" },
                   { layer: "Premium opcional", tech: "Google Maps API", detail: "Máxima precisão, pay-per-use" },
                 ].map((item, i) => (
                   <div key={i} style={{ padding: "0.75rem 0.9rem", borderRadius: 10, background: "var(--surface-2)", border: "1px solid var(--border)" }}>
@@ -621,13 +620,38 @@ export default function Settings() {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {[
-                  { platform: "Linux / macOS", cmd: "curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install.sh | bash", icon: "🐧" },
-                  { platform: "Windows (PowerShell)", cmd: "iwr -useb https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install.ps1 | iex", icon: "🪟" },
-                  { platform: "Android — Termux", cmd: "curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install-termux.sh | bash", icon: "📱" },
+                  {
+                    platform: "Linux / macOS",
+                    cmd: "curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install.sh | bash",
+                    icon: (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8,21 12,17 16,21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                      </svg>
+                    ),
+                  },
+                  {
+                    platform: "Windows (PowerShell)",
+                    cmd: "iwr -useb https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install.ps1 | iex",
+                    icon: (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                        <polyline points="9,9 12,12 9,15"/><line x1="13" y1="15" x2="15" y2="15"/>
+                      </svg>
+                    ),
+                  },
+                  {
+                    platform: "Android — Termux",
+                    cmd: "curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install-termux.sh | bash",
+                    icon: (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+                      </svg>
+                    ),
+                  },
                 ].map((item) => (
                   <div key={item.platform} style={{ padding: "0.85rem 1rem", borderRadius: 10, background: "var(--surface-2)", border: "1px solid var(--border)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem" }}>
-                      <span style={{ fontSize: "0.9rem" }}>{item.icon}</span>
+                      <span style={{ color: "var(--text-muted)" }}>{item.icon}</span>
                       <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text)" }}>{item.platform}</span>
                     </div>
                     <div style={{ fontFamily: "monospace", fontSize: "0.7rem", color: "var(--text-muted)", background: "var(--bg)", padding: "0.45rem 0.7rem", borderRadius: 6, border: "1px solid var(--border)", overflowX: "auto", wordBreak: "break-all" }}>
@@ -654,7 +678,7 @@ export default function Settings() {
               <div>
                 <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.3rem" }}>Versão Atual</div>
                 <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--accent)" }}>v8.0 — estável</div>
-                <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.15rem" }}>Geocodificador Photon-first</div>
+                <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.15rem" }}>BrasilAPI v2 + Photon global</div>
               </div>
               <div>
                 <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.3rem" }}>Ambiente</div>
