@@ -1,0 +1,294 @@
+Subscribing to additional repositories:
+
+ - Root:    pkg install root-repo
+ - X11:     pkg install x11-repo
+
+For fixing any repository issues,
+try 'termux-change-repo' command.
+
+Report issues at https://termux.dev/issues
+~ $ curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install-termux.sh | bash
+
+==> ViaX: System v8.0 — Instalador Termux (Android)
+  Repositório : https://github.com/esmagafetos/Viax-Scout.git
+  Diretório   : /data/data/com.termux/files/home/viax-system
+
+[aviso] Este processo pode demorar 5-15 minutos dependendo da sua conexão.
+
+
+==> Atualizando Termux
+No mirror or mirror group selected. You might want to select one by running 'termux-change-repo'
+Testing the available mirrors:
+[*] (10) https://packages-cf.termux.dev/apt/termux-main: ok
+[*] (1) https://linux.domainesia.com/applications/termux/termux-main: ok
+[*] (1) https://termux.niranjan.co/termux-main: ok
+[*] (1) https://mirror.bardia.tech/termux/termux-main: bad
+[*] (1) https://mirrors.saswata.cc/termux/termux-main: bad
+[*] (1) https://mirrors.ravidwivedi.in/termux/termux-main: ok
+[*] (1) https://mirror.textcord.xyz/termux/termux-main: bad
+[*] (1) https://mirrors.krnk.org/apt/termux/termux-main: ok
+[*] (1) https://mirror.rinarin.dev/termux/termux-main: ok
+[*] (1) https://mirror.jeonnam.school/termux/termux-main: ok
+[*] (1) https://mirrors.nguyenhoang.cloud/termux/termux-main: ok
+[*] (1) https://mirrors.cbrx.io/apt/termux/termux-main: ok
+[*] (1) https://tmx.xvx.my.id/apt/termux-main: ok
+[*] (1) https://mirror.albony.in/termux/termux-main: ok
+[*] (1) https://mirror.twds.com.tw/termux/termux-main: ok
+[*] (1) https://mirror.nevacloud.com/applications/termux/termux-main: ok
+[*] (1) https://mirror.meowsmp.net/termux/termux-main: bad
+[*] (1) https://mirror.freedif.org/termux/termux-main: ok
+[*] (1) https://mirrors.in.sahilister.net/termux/termux-main/: ok
+[*] (1) https://mirror.iscas.ac.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.sau.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.sdu.edu.cn/termux/termux-main: ok
+[*] (1) https://mirrors.aliyun.com/termux/termux-main: ok
+[*] (1) https://mirrors.cernet.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.cqupt.edu.cn/termux/termux-main: ok
+[*] (1) https://mirrors.sustech.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.bfsu.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.pku.edu.cn/termux/termux-main/: ok
+[*] (1) https://mirrors.hust.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.tuna.tsinghua.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirror.sjtu.edu.cn/termux/termux-main/: ok
+[*] (1) https://mirror.nyist.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.ustc.edu.cn/termux/termux-main: ok
+[*] (1) https://mirrors.zju.edu.cn/termux/apt/termux-main: bad
+[*] (1) https://mirrors.nju.edu.cn/termux/apt/termux-main: ok
+[*] (4) https://grimler.se/termux/termux-main: bad
+[*] (1) https://mirror.polido.pt/termux/termux-main: bad
+[*] (1) https://termux.3san.dev/termux/termux-main: ok
+[*] (1) https://mirrors.medzik.dev/termux/termux-main: ok
+[*] (1) https://mirror.accum.se/mirror/termux.dev/termux-main: ok
+[*] (1) https://mirror.mwt.me/termux/main: ok
+[*] (1) https://ro.mirror.flokinet.net/termux/termux-main: ok
+[*] (1) https://md.mirrors.hacktegic.com/termux/termux-main: bad
+[*] (1) https://is.mirror.flokinet.net/termux/termux-main: ok
+[*] (1) https://mirror.termux.dev/termux-main: bad
+[*] (1) https://termux.mentality.rip/termux-main: ok
+[*] (1) https://nl.mirror.flokinet.net/termux/termux-main: ok
+[*] (1) https://termux.cdn.lumito.net/termux-main: ok
+[*] (1) https://mirror.leitecastro.com/termux/termux-main: bad
+[*] (1) https://mirror.bouwhuis.network/termux/termux-main: ok
+[*] (1) https://termux.librehat.com/apt/termux-main: ok
+[*] (1) https://mirror.autkin.net/termux/termux-main: ok
+[*] (1) https://mirror.sunred.org/termux/termux-main: bad
+[*] (1) https://packages.termux.dev/apt/termux-main: ok
+[*] (1) https://ftp.agdsn.de/termux/termux-main: bad
+[*] (1) https://ftp.fau.de/termux/termux-main: ok
+[*] (1) https://mirrors.cfe.re/termux/termux-main: bad
+[*] (1) https://mirrors.de.sahilister.net/termux/termux-main: ok
+[*] (1) https://gnlug.org/pub/termux/termux-main: ok
+[*] (1) https://mirror.mwt.me/termux/main: ok
+[*] (1) https://mirror.quantum5.ca/termux/termux-main: ok
+[*] (1) https://mirrors.utermux.dev/termux/termux-main: ok
+[*] (1) https://plug-mirror.rcac.purdue.edu/termux/termux-main: ok
+[*] (1) https://mirror.vern.cc/termux/termux-main: ok
+[*] (1) https://dl.kcubeterm.com/termux-main: bad
+[*] (1) https://termux.danyael.xyz/termux/termux-main: ok
+[*] (1) https://mirror.csclub.uwaterloo.ca/termux/termux-main: ok
+[*] (1) https://mirror.fcix.net/termux/termux-main: ok
+[*] (1) https://mirrors.middlendian.com/termux/termux-main: ok
+[*] (1) https://repository.su/termux/termux-main/: ok
+[*] (1) http://mirror.mephi.ru/termux/termux-main: ok
+Picking mirror: (5) /data/data/com.termux/files/usr/etc/termux/mirrors/default
+Get:1 https://packages-cf.termux.dev/apt/termux-main stable InRelease [14.0 kB]
+Get:2 https://packages-cf.termux.dev/apt/termux-main stable/main aarch64 Packages [547 kB]
+Fetched 561 kB in 3s (181 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+9 packages can be upgraded. Run 'apt list --upgradable' to see them.
+No mirror or mirror group selected. You might want to select one by running 'termux-change-repo'
+Checking availability of current mirror:
+[*] https://packages-cf.termux.dev/apt/termux-main: ok
+Hit:1 https://packages-cf.termux.dev/apt/termux-main stable InRelease
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+9 packages can be upgraded. Run 'apt list --upgradable' to see them.
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Calculating upgrade... Done
+The following packages will be upgraded:
+  command-not-found composer libcap-ng libngtcp2 libsqlite
+  libxml2 openssl python python-ensurepip-wheels
+9 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+Need to get 10.8 MB of archives.
+After this operation, 115 kB of additional disk space will be used.
+Get:1 https://packages-cf.termux.dev/apt/termux-main stable/main aarch64 libcap-ng aarch64 2:0.9.3 [38.9 kB]
+Get:2 https://packages-cf.termux.dev/apt/termux-main stable/main aarch64 openssl aarch64 1:3.6.2 [2478 kB]
+Get:3 https://packages-cf.termux.dev/apt/termux-main stable/main aarch64 libngtcp2 aarch64 1.22.1 [167 kB]
+Get:4 https://packages-cf.termux.dev/apt/termux-main stable/main aarch64 command-not-found aarch64 3.4.1-5 [109 kB]
+Get:5 https://packages-cf.termux.dev/apt/termux-main stable/main aarch64 composer all 2.9.7 [588 kB]
+Get:6 https://packages-cf.termux.dev/apt/termux-main stable/main aarch64 libsqlite aarch64 3.53.0 [756 kB]
+Get:7 https://packages-cf.termux.dev/apt/termux-main stable/main aarch64 libxml2 aarch64 2.15.3 [443 kB]
+Get:8 https://packages-cf.termux.dev/apt/termux-main stable/main aarch64 python-ensurepip-wheels all 3.13.13-1 [1713 kB]
+Get:9 https://packages-cf.termux.dev/apt/termux-main stable/main aarch64 python aarch64 3.13.13-1 [4549 kB]
+Fetched 10.8 MB in 18s (592 kB/s)
+(Reading database ... 29902 files and directories currently installed.)
+Preparing to unpack .../libcap-ng_2%3a0.9.3_aarch64.deb ...
+Unpacking libcap-ng (2:0.9.3) over (2:0.9.2) ...
+Setting up libcap-ng (2:0.9.3) ...
+(Reading database ... 29903 files and directories currently installed.)
+Preparing to unpack .../openssl_1%3a3.6.2_aarch64.deb ...
+Unpacking openssl (1:3.6.2) over (1:3.6.1) ...
+Setting up openssl (1:3.6.2) ...
+(Reading database ... 29903 files and directories currently installed.)
+Preparing to unpack .../libngtcp2_1.22.1_aarch64.deb ...
+Unpacking libngtcp2 (1.22.1) over (1.22.0) ...
+Setting up libngtcp2 (1.22.1) ...
+(Reading database ... 29903 files and directories currently installed.)
+Preparing to unpack .../0-command-not-found_3.4.1-5_aarch64.deb ...
+Unpacking command-not-found (3.4.1-5) over (3.4.1-4) ...
+Preparing to unpack .../1-composer_2.9.7_all.deb ...
+Unpacking composer (2.9.7) over (2.9.5) ...
+Preparing to unpack .../2-libsqlite_3.53.0_aarch64.deb ...
+Unpacking libsqlite (3.53.0) over (3.52.0-1) ...
+Preparing to unpack .../3-libxml2_2.15.3_aarch64.deb ...
+Unpacking libxml2 (2.15.3) over (2.15.2-2) ...
+Preparing to unpack .../4-python-ensurepip-wheels_3.13.13-1_all.deb ...
+Unpacking python-ensurepip-wheels (3.13.13-1) over (3.13.13) ...
+Preparing to unpack .../5-python_3.13.13-1_aarch64.deb ...
+Unpacking python (3.13.13-1) over (3.13.13) ...
+Setting up libsqlite (3.53.0) ...
+Setting up command-not-found (3.4.1-5) ...
+Setting up composer (2.9.7) ...
+Setting up python (3.13.13-1) ...
+Setting up libxml2 (2.15.3) ...
+Setting up python-ensurepip-wheels (3.13.13-1) ...
+[ok] Termux atualizado
+
+==> Instalando pacotes necessários
+[info] nodejs-lts já instalado
+[info] postgresql já instalado
+[info] git já instalado
+[info] curl já instalado
+[info] openssl já instalado
+[ok] Pacotes instalados
+[ok] pnpm 10.33.0
+
+==> Configurando PostgreSQL
+[info] Iniciando PostgreSQL...
+pg_ctl: another server might be running; trying to start server anyway
+waiting for server to start.... done
+server started
+[ok] PostgreSQL rodando
+[info] Criando banco 'viax_system'...
+[ok] Banco 'viax_system' pronto
+
+==> Clonando repositório
+Cloning into '/data/data/com.termux/files/home/viax-system'...
+remote: Enumerating objects: 429, done.
+remote: Counting objects: 100% (429/429), done.
+remote: Compressing objects: 100% (255/255), done.
+remote: Total 429 (delta 168), reused 412 (delta 153), pack-reused 0 (from 0)
+Receiving objects: 100% (429/429), 531.39 KiB | 699.00 KiB/s, done.
+Resolving deltas: 100% (168/168), done.
+[ok] Código em: /data/data/com.termux/files/home/viax-system
+
+==> Criando .env
+[ok] .env criado
+
+==> Instalando dependências
+Scope: all 9 workspace projects
+Lockfile is up to date, resolution step is skipped
+Packages: +516
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 516, reused 516, downloaded 0, added 516, done
+
+devDependencies:
++ prettier 3.8.1
++ typescript 5.9.3
+
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; cas…
+└─ Done in 235ms
+Done in 37.6s using pnpm v10.33.0
+[ok] Dependências instaladas
+
+==> Aplicando schema
+
+> @workspace/db@0.0.0 push /data/data/com.termux/files/home/viax-system/lib/db
+> drizzle-kit push --config ./drizzle.config.ts
+
+Reading config file '/data/data/com.termux/files/home/viax-system/lib/db/drizzle.config.ts'
+/data/data/com.termux/files/home/viax-system/lib/db:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @workspace/db@0.0.0 push: `drizzle-kit push --config ./drizzle.config.ts`
+Exit status 1
+[aviso] Verifique DATABASE_URL se houver erro
+[ok] Schema aplicado
+
+==> Compilando API
+
+> @workspace/api-server@0.0.0 build /data/data/com.termux/files/home/viax-system/artifacts/api-server
+> node ./build.mjs
+
+
+  dist/index.mjs                       4.5mb ⚠️
+  dist/pino-worker.mjs               153.4kb
+  dist/pino-file.mjs                 142.1kb
+  dist/pino-pretty.mjs               114.6kb
+  dist/thread-stream-worker.mjs        7.3kb
+  dist/index.mjs.map                   7.1mb
+  dist/pino-worker.mjs.map           256.9kb
+  dist/pino-file.mjs.map             229.1kb
+  dist/pino-pretty.mjs.map           203.9kb
+  dist/thread-stream-worker.mjs.map   12.0kb
+
+⚡ Done in 1784ms
+[ok] Build concluído
+
+==> Criando scripts de controle
+[ok] Scripts criados
+
+╔══════════════════════════════════════════════╗
+║  ViaX: System instalado com sucesso! (Termux)║
+╚══════════════════════════════════════════════╝
+
+  Para iniciar:
+  bash ~/viax-system/start.sh
+
+  Para parar:
+  bash ~/viax-system/stop.sh
+
+  Acesse no navegador do Android:
+  http://127.0.0.1:5173
+
+  Dica: Instale o app Termux:Widget para iniciar com um toque!
+
+~ $ bash ~/viax-system/start.sh
+Iniciando PostgreSQL...
+waiting for server to start.... stopped waiting
+Iniciando API...
+Iniciando Frontend...
+
+✅ ViaX: System rodando!
+   Frontend : http://localhost:5173
+   API      : http://localhost:8080
+
+Acesse pelo navegador: http://127.0.0.1:5173
+Ctrl+C para parar
+node:internal/modules/cjs/loader:1478
+  throw err;
+  ^
+
+Error: Cannot find module '/data/data/com.termux/files/home/viax-system/dist/index.mjs'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+    at Module._load (node:internal/modules/cjs/loader:1261:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v25.8.2
+npm warn Unknown project config "auto-install-peers". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "strict-peer-dependencies". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+/data/data/com.termux/files/home/viax-system/start.sh: line 27: 25159 Illegal instruction        PORT=5173 BASE_PATH=/ npx --yes vite --host 0.0.0.0
+waiting for server to shut down.... done
+server stopped
+Encerrado.
