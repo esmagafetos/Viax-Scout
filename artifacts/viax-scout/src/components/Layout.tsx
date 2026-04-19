@@ -98,23 +98,6 @@ export default function Layout({ children, showNav = true }: LayoutProps) {
             <div className="header-top-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
               {/* Brand */}
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                  background: "linear-gradient(145deg, #D4521A 0%, #9333ea 100%)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 2px 10px rgba(212,82,26,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
-                }}>
-                  {/* ViaX Scout — two route nodes converging into a validated destination pin */}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none">
-                    <circle cx="4.5" cy="4.5" r="2" fill="white"/>
-                    <circle cx="17.5" cy="4.5" r="2" fill="white"/>
-                    <line x1="4.5" y1="4.5" x2="11" y2="13.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="17.5" y1="4.5" x2="11" y2="13.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <circle cx="11" cy="13.5" r="3.4" fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="1.5"/>
-                    <polyline points="9.1,13.5 10.5,15.1 13.2,11.8" stroke="white" strokeWidth="1.55" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                    <line x1="11" y1="16.9" x2="11" y2="20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </div>
                 <div style={{ display: "flex", flexDirection: "column" }}>
                   <span style={{ fontFamily: "var(--font-display)", fontSize: "1.05rem", fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.15 }}>ViaX<span style={{ opacity: 0.5, fontWeight: 400 }}>:</span> System</span>
                   <span style={{ fontSize: "0.6rem", color: "var(--accent)", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", lineHeight: 1 }}>v8.0</span>

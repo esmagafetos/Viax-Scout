@@ -488,22 +488,6 @@ export default function Settings() {
           <div style={{ ...card, background: "linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%)", marginBottom: "1.25rem" }}>
             <div style={{ padding: "2rem 1.75rem", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "1rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                <div style={{
-                  width: 52, height: 52, borderRadius: 14, flexShrink: 0,
-                  background: "linear-gradient(145deg, #D4521A 0%, #9333ea 100%)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 4px 18px rgba(212,82,26,0.35)",
-                }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 22 22" fill="none">
-                    <circle cx="4.5" cy="4.5" r="2" fill="white"/>
-                    <circle cx="17.5" cy="4.5" r="2" fill="white"/>
-                    <line x1="4.5" y1="4.5" x2="11" y2="13.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="17.5" y1="4.5" x2="11" y2="13.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <circle cx="11" cy="13.5" r="3.4" fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="1.5"/>
-                    <polyline points="9.1,13.5 10.5,15.1 13.2,11.8" stroke="white" strokeWidth="1.55" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                    <line x1="11" y1="16.9" x2="11" y2="20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </div>
                 <div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem" }}>
                     <span style={{ fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.03em" }}>ViaX<span style={{ opacity: 0.4, fontWeight: 300 }}>:</span> System</span>
