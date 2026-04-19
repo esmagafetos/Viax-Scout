@@ -12,6 +12,8 @@ interface ResultRow {
   is_nuance: boolean;
   motivo: string;
   poi_estruturado: string | null;
+  distancia_metros: number | null;
+  tipo_endereco: string;
 }
 
 interface ProcessResult {
@@ -294,6 +296,133 @@ export default function Process() {
               {result.metricas_tecnicas.instancia}
             </span>
           </div>
+
+          {/* ── Analytics chart ── */}
+          {(() => {
+            const total = result.total_enderecos;
+            const nuances = result.total_nuances;
+            const ok = total - nuances;
+            const pctNuance = total > 0 ? (nuances / total) * 100 : 0;
+            const pctOk = 100 - pctNuance;
+
+            // tipo_endereco breakdown
+            const tipoMap: Record<string, { label: string; color: string }> = {
+              rodovia:       { label: "Rodovias",       color: "#f97316" },
+              comercio:      { label: "Comércios",      color: "#a855f7" },
+              via_secundaria:{ label: "Via Secundária", color: "#3b82f6" },
+              avenida_extensa:{ label: "Av. Extensas",  color: "#eab308" },
+              residencial:   { label: "Residencial",    color: "#22c55e" },
+            };
+            const tipoCounts: Record<string, number> = {};
+            for (const row of result.detalhes) {
+              const t = row.tipo_endereco || "residencial";
+              tipoCounts[t] = (tipoCounts[t] || 0) + 1;
+            }
+
+            // SVG donut
+            const R = 42, cx = 56, cy = 56, stroke = 14;
+            const circ = 2 * Math.PI * R;
+            const nuanceDash = (pctNuance / 100) * circ;
+            const okDash = (pctOk / 100) * circ;
+
+            return (
+              <div style={{
+                background: "var(--surface)", border: "1px solid var(--border-strong)",
+                borderRadius: 14, marginBottom: "1.5rem", overflow: "hidden",
+              }}>
+                <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1px solid var(--border)" }}>
+                  <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>
+                    Análise Visual da Rota
+                  </span>
+                </div>
+                <div style={{ padding: "1.25rem 1.5rem", display: "flex", flexWrap: "wrap", gap: "2.5rem", alignItems: "flex-start" }}>
+
+                  {/* Donut - Nuances vs OK */}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem", minWidth: 130 }}>
+                    <svg width={112} height={112} viewBox="0 0 112 112">
+                      {/* OK segment */}
+                      <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--ok)" strokeWidth={stroke}
+                        strokeDasharray={`${okDash} ${circ}`}
+                        strokeDashoffset={0}
+                        transform={`rotate(-90 ${cx} ${cy})`} />
+                      {/* Nuance segment */}
+                      <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--accent)" strokeWidth={stroke}
+                        strokeDasharray={`${nuanceDash} ${circ}`}
+                        strokeDashoffset={-okDash}
+                        transform={`rotate(-90 ${cx} ${cy})`} />
+                      <text x={cx} y={cy - 6} textAnchor="middle" fontSize={16} fontWeight={800} fill="var(--text)">{Math.round(pctNuance)}%</text>
+                      <text x={cx} y={cy + 10} textAnchor="middle" fontSize={9} fill="var(--text-faint)">Nuances</text>
+                    </svg>
+                    <div style={{ display: "flex", gap: "1rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                        <div style={{ width: 8, height: 8, borderRadius: 2, background: "var(--accent)", flexShrink: 0 }} />
+                        Nuances ({nuances})
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                        <div style={{ width: 8, height: 8, borderRadius: 2, background: "var(--ok)", flexShrink: 0 }} />
+                        OK ({ok})
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bar chart - tipos */}
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--text-faint)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.9rem" }}>
+                      Distribuição por Tipo
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                      {Object.entries(tipoMap).map(([tipo, { label, color }]) => {
+                        const count = tipoCounts[tipo] || 0;
+                        const pct = total > 0 ? (count / total) * 100 : 0;
+                        return (
+                          <div key={tipo}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
+                              <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", fontWeight: 500 }}>{label}</span>
+                              <span style={{ fontSize: "0.73rem", color: "var(--text-faint)", fontVariantNumeric: "tabular-nums" }}>
+                                {count} <span style={{ opacity: 0.6 }}>({pct.toFixed(0)}%)</span>
+                              </span>
+                            </div>
+                            <div style={{ height: 6, borderRadius: 99, background: "var(--border-strong)", overflow: "hidden" }}>
+                              <div style={{
+                                height: "100%", borderRadius: 99,
+                                width: `${pct}%`,
+                                background: color,
+                                transition: "width 0.8s cubic-bezier(0.16,1,0.3,1)",
+                              }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Nuance por tipo */}
+                    <div style={{ marginTop: "1.25rem", paddingTop: "1rem", borderTop: "1px solid var(--border)" }}>
+                      <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--text-faint)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.75rem" }}>
+                        Nuances por Tipo
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                        {Object.entries(tipoMap).map(([tipo, { label, color }]) => {
+                          const count = result.detalhes.filter(r => (r.tipo_endereco || "residencial") === tipo && r.is_nuance).length;
+                          if (count === 0) return null;
+                          return (
+                            <div key={tipo} style={{
+                              display: "inline-flex", alignItems: "center", gap: "0.4rem",
+                              padding: "0.25rem 0.65rem", borderRadius: 99,
+                              background: `${color}18`, border: `1px solid ${color}44`,
+                              fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 500,
+                            }}>
+                              <div style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
+                              {label}: {count}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Results table */}
           <div style={{ background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: 14, boxShadow: "0 4px 16px rgba(0,0,0,0.07)", overflow: "hidden" }}>

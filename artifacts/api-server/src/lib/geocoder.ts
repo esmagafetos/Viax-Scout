@@ -246,7 +246,8 @@ function extrairLogradouroPrincipal(endereco: string): string {
 
 function extrairViaSecundaria(endereco: string): string | null {
   // Formatos: "Travessa B", "Tv B", "Passagem 3", "Viela X"
-  const m = endereco.match(/[,\s]+((?:travessa|trav\.?|tv\.?|passagem|psg\.?|viela|beco)\s*\.?\s*[A-Za-z0-9][^,]{0,30})/i);
+  // Para em vírgula, parêntese ou colchete — evita capturar complementos como "( Apt 1)"
+  const m = endereco.match(/[,\s]+((?:travessa|trav\.?|tv\.?|passagem|psg\.?|viela|beco)\s*\.?\s*[A-Za-z0-9][^,([]{0,25})/i);
   if (m) return m[1].trim();
   return null;
 }
