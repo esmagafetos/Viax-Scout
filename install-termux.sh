@@ -155,11 +155,11 @@ echo "Iniciando PostgreSQL..."
 pg_ctl start -D "$PG_DATA" -l "$PG_DATA/postgresql.log" -w -t 30 2>/dev/null || true
 
 echo "Iniciando API..."
-PORT=8080 node dist/index.mjs &
+PORT=8080 node artifacts/api-server/dist/index.mjs &
 API_PID=$!
 
 echo "Iniciando Frontend..."
-PORT=5173 BASE_PATH=/ npx --yes vite --host 0.0.0.0 &
+(cd artifacts/viax-scout && PORT=5173 BASE_PATH=/ pnpm exec vite --host 0.0.0.0) &
 WEB_PID=$!
 
 echo ""
