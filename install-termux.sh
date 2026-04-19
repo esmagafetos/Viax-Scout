@@ -96,6 +96,7 @@ fi
 success "Banco '$DB_NAME' pronto"
 
 DATABASE_URL="postgresql://$(whoami)@localhost:5432/$DB_NAME"
+export DATABASE_URL
 
 # ---------------------------------------------------------------------------
 # 4. CLONAR REPOSITÓRIO
@@ -131,7 +132,7 @@ pnpm install
 success "Dependências instaladas"
 
 header "Aplicando schema"
-pnpm --filter @workspace/db run push 2>/dev/null || warn "Verifique DATABASE_URL se houver erro"
+pnpm --filter @workspace/db run push || warn "Falha ao aplicar schema — verifique o PostgreSQL e DATABASE_URL"
 success "Schema aplicado"
 
 header "Compilando API"
