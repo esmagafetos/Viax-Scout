@@ -114,10 +114,10 @@ success "Código em: $APP_DIR"
 # 5. ARQUIVO .ENV
 # ---------------------------------------------------------------------------
 header "Criando .env"
-SESSION_SECRET=$(openssl rand -base64 32 2>/dev/null || date | md5sum | head -c 40)
+SESSION_SECRET=$(openssl rand -base64 32 2>/dev/null || date | md5sum | cut -d' ' -f1)
 cat > "$APP_DIR/.env" <<EOF
-DATABASE_URL=${DATABASE_URL}
-SESSION_SECRET=${SESSION_SECRET}
+DATABASE_URL="${DATABASE_URL}"
+SESSION_SECRET="${SESSION_SECRET}"
 NODE_ENV=development
 PORT=${API_PORT}
 EOF
@@ -128,6 +128,8 @@ success ".env criado"
 # ---------------------------------------------------------------------------
 header "Instalando dependências"
 cd "$APP_DIR"
+# Remove overrides that block Android ARM64 native modules (added for Replit/Linux only)
+sed -i '/"rollup>@rollup\/rollup-android-arm64": "-"/d' pnpm-workspace.yaml
 pnpm install --no-frozen-lockfile
 success "Dependências instaladas"
 
