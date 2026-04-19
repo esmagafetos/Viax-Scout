@@ -148,6 +148,36 @@ function limparNomeLogradouro(candidato: string): string {
     .trim();
 }
 
+/**
+ * Comparação especializada para via secundária vs rua oficial.
+ * Não remove o tipo de logradouro antes de comparar, para que
+ * "Travessa B" vs "Travessa" seja reconhecido como match
+ * (um começa com o outro = mesma via, sufixo local diferente).
+ */
+function calcularSimilaridadeVia(via: string, oficial: string): number {
+  const v = normalizarTexto(via).trim();
+  const o = normalizarTexto(oficial).trim();
+  if (!v || !o) return 0;
+  if (v === o) return 1;
+  // Um começa com o outro: "travessa b" começa com "travessa" → mesma via
+  if (v.startsWith(o) || o.startsWith(v)) {
+    const menor = Math.min(v.length, o.length);
+    const maior = Math.max(v.length, o.length);
+    return Math.max(0.82, menor / maior);
+  }
+  // Mesma família de tipo de via: ambos são "travessa X"
+  const tipoVia = /^(travessa|passagem|viela|beco|trav|tv|psg)\b/i;
+  if (tipoVia.test(v) && tipoVia.test(o)) {
+    // Compara o sufixo após o tipo
+    const sufixoV = v.replace(tipoVia, "").trim();
+    const sufixoO = o.replace(tipoVia, "").trim();
+    if (!sufixoV || !sufixoO) return 0.75; // "Travessa" vs "Travessa" pura
+    if (sufixoV === sufixoO) return 0.95;
+  }
+  // Fallback à comparação padrão
+  return calcularSimilaridade(via, oficial);
+}
+
 function calcularSimilaridade(str1: string, str2: string): number {
   const a = normalizarNomeRua(str1);
   const b = normalizarNomeRua(str2);
@@ -870,7 +900,7 @@ export function verificarNuance(
     // Ex.: "Rua Sinagoga, 49, Travessa B" → mapa retorna "Travessa B"
     // "Rua Sinagoga" é referência de bairro/área; "Travessa B" é a via real.
     if (parsed.via_secundaria) {
-      const simVia = calcularSimilaridade(parsed.via_secundaria, ruaOficial);
+      const simVia = calcularSimilaridadeVia(parsed.via_secundaria, ruaOficial);
       if (simVia >= 0.65) {
         return {
           is_nuance: true,
