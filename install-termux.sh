@@ -121,6 +121,12 @@ DATABASE_URL="${DATABASE_URL}"
 SESSION_SECRET="${SESSION_SECRET}"
 NODE_ENV=development
 PORT=${API_PORT}
+
+# geocodebr microservice (CNEFE/IBGE) — fallback para municípios do interior
+# Termux/Android: R e Docker não são suportados nativamente.
+# Para usar o geocodebr, suba o serviço Docker em outro computador e aponte aqui:
+# GEOCODEBR_URL=http://IP-DO-SERVIDOR:8002
+GEOCODEBR_URL=
 EOF
 success ".env criado"
 

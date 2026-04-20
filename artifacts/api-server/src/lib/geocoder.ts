@@ -1,6 +1,11 @@
 import { logger } from "./logger.js";
 
 const USER_AGENT = "ViaX-Scout/8.0 (viax-system-br)";
+
+// geocodebr microservice — CNEFE/IBGE (opcional; usado como fallback final)
+// Configure via variável de ambiente GEOCODEBR_URL (ex: http://localhost:8002)
+const GEOCODEBR_URL = process.env.GEOCODEBR_URL ?? "";
+
 const NOMINATIM_INSTANCES = [
   "https://nominatim.openstreetmap.org",
   "https://nominatim.geocoding.ai",
@@ -37,7 +42,7 @@ export interface GeoResult {
   rua: string;
   lat?: number;
   lon?: number;
-  fonte?: "reverse" | "forward" | "photon" | "overpass" | "brasilapi" | "awesomeapi" | "google";
+  fonte?: "reverse" | "forward" | "photon" | "overpass" | "brasilapi" | "awesomeapi" | "google" | "geocodebr";
   confianca?: "rua" | "localidade" | "estimado";
   localidade?: string;
 }
@@ -565,6 +570,40 @@ export async function geocodeForwardPOI(
   }
 
   return { result: null, ultimaReq: newUltimaReq };
+}
+
+// ── geocodebr — CNEFE/IBGE (fallback para interior e municípios pouco mapeados) ──
+// Chama o microserviço R/Plumber que usa o pacote geocodebr do IPEA.
+// Completamente opcional: se GEOCODEBR_URL não estiver configurado, retorna null silenciosamente.
+export async function geocodeGeocobeBR(
+  logradouro: string,
+  municipio: string,
+  numero: string = ""
+): Promise<GeoResult | null> {
+  if (!GEOCODEBR_URL) return null;
+  try {
+    const params = new URLSearchParams({ logradouro, numero, municipio });
+    const data = await httpGet(`${GEOCODEBR_URL}/geocode?${params.toString()}`);
+    if (data && data.encontrado === true && typeof data.lat === "number" && typeof data.lon === "number") {
+      const precisao = typeof data.precisao === "number" ? data.precisao : 6;
+      logger.debug(
+        { logradouro, municipio, lat: data.lat, lon: data.lon, precisao, tipo: data.tipo },
+        "geocodebr CNEFE hit"
+      );
+      return {
+        rua: logradouro,
+        lat: data.lat,
+        lon: data.lon,
+        fonte: "geocodebr",
+        // precisao 1-2 = endereço exato; 3-4 = logradouro; 5-6 = localidade
+        confianca: precisao <= 2 ? "rua" : precisao <= 4 ? "localidade" : "estimado",
+      };
+    }
+    return null;
+  } catch (err) {
+    logger.debug({ logradouro, municipio, err: String(err) }, "geocodebr indisponível ou sem resultado");
+    return null;
+  }
 }
 
 export async function geocodeViaSecundaria(
@@ -1183,6 +1222,18 @@ export async function processarEndereco(
           if (forwardGeoResult?.lat) geocodeLat = forwardGeoResult.lat;
           if (forwardGeoResult?.lon) geocodeLon = forwardGeoResult.lon;
         }
+
+        // 3. geocodebr (CNEFE/IBGE) — fallback para interior e municípios pouco mapeados no OSM
+        // Ativado apenas quando Photon + Nominatim falharam em confirmar a rua.
+        if (!geoResult && parsed.rua_principal && item.cidade) {
+          const geocobrResult = await geocodeGeocobeBR(parsed.rua_principal, item.cidade, parsed.numero);
+          if (geocobrResult) {
+            forwardGeoResult = geocobrResult;
+            geoResult = geocobrResult;
+            if (geocobrResult.lat) { geocodeLat = geocobrResult.lat; geocodeLon = geocobrResult.lon!; }
+          }
+        }
+
         cache.set(cacheKey, { data: forwardGeoResult, ts: Date.now() });
       }
     }

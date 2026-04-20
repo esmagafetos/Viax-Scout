@@ -192,6 +192,12 @@ DATABASE_URL=${DATABASE_URL}
 SESSION_SECRET=${SESSION_SECRET}
 NODE_ENV=development
 PORT=${API_PORT}
+
+# geocodebr microservice (CNEFE/IBGE) — fallback para municípios do interior
+# Deixe vazio para desativar. Configure após subir o serviço:
+#   docker compose -f artifacts/geocodebr-service/docker-compose.yml up -d
+# Depois aponte: GEOCODEBR_URL=http://localhost:8002
+GEOCODEBR_URL=
 EOF
 
 success ".env criado em $ENV_FILE"
@@ -228,9 +234,19 @@ success "Build concluído"
 START_SCRIPT="$APP_DIR/start.sh"
 cat > "$START_SCRIPT" <<STARTSCRIPT
 #!/usr/bin/env bash
-# Inicia ViaX: System (API + Frontend)
+# Inicia ViaX: System (API + Frontend + geocodebr opcional)
 cd "$APP_DIR"
-export \$(cat .env | grep -v '^#' | xargs)
+export \$(cat .env | grep -v '^#' | xargs 2>/dev/null)
+
+# geocodebr microservice (opcional — requer Docker)
+GEOCODEBR_PID=""
+if command -v docker &>/dev/null && [[ -z "\${GEOCODEBR_URL:-}" ]]; then
+  echo "Iniciando geocodebr (CNEFE/IBGE)..."
+  docker compose -f artifacts/geocodebr-service/docker-compose.yml up -d 2>/dev/null && \\
+    export GEOCODEBR_URL=http://localhost:8002 && \\
+    echo "geocodebr disponível em http://localhost:8002" || \\
+    echo "[aviso] geocodebr não iniciado — Docker pode não estar disponível"
+fi
 
 echo "Iniciando API em http://localhost:${API_PORT} ..."
 PORT=${API_PORT} pnpm --filter @workspace/api-server run start &
@@ -242,12 +258,15 @@ WEB_PID=\$!
 
 echo ""
 echo "✅ ViaX: System rodando!"
-echo "   Frontend : http://localhost:${WEB_PORT}"
-echo "   API      : http://localhost:${API_PORT}"
+echo "   Frontend  : http://localhost:${WEB_PORT}"
+echo "   API       : http://localhost:${API_PORT}"
+if [[ -n "\${GEOCODEBR_URL:-}" ]]; then
+  echo "   geocodebr : \${GEOCODEBR_URL}"
+fi
 echo "   Ctrl+C para parar"
 echo ""
 
-trap "kill \$API_PID \$WEB_PID 2>/dev/null; echo Encerrado." EXIT INT TERM
+trap "kill \$API_PID \$WEB_PID 2>/dev/null; docker compose -f artifacts/geocodebr-service/docker-compose.yml down 2>/dev/null; echo Encerrado." EXIT INT TERM
 wait
 STARTSCRIPT
 chmod +x "$START_SCRIPT"

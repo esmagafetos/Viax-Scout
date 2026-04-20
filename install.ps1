@@ -170,6 +170,12 @@ DATABASE_URL=$DATABASE_URL
 SESSION_SECRET=$SESSION_SECRET
 NODE_ENV=development
 PORT=$API_PORT
+
+# geocodebr microservice (CNEFE/IBGE) — fallback para municipios do interior
+# Deixe vazio para desativar. Apos subir o servico Docker:
+#   docker compose -f artifacts\geocodebr-service\docker-compose.yml up -d
+# Configure: GEOCODEBR_URL=http://localhost:8002
+GEOCODEBR_URL=
 "@
 Set-Content -Path "$APP_DIR\.env" -Value $envContent -Encoding UTF8
 Write-Ok ".env criado"
@@ -202,14 +208,21 @@ echo.
 
 for /f "tokens=*" %%i in (.env) do set %%i 2>nul
 
+:: geocodebr microservice (opcional - requer Docker Desktop)
+docker compose -f artifacts\geocodebr-service\docker-compose.yml up -d 2>nul && (
+  set GEOCODEBR_URL=http://localhost:8002
+  echo geocodebr disponivel em http://localhost:8002
+) || echo [aviso] geocodebr nao iniciado - Docker pode nao estar disponivel
+
 start "ViaX API" /min cmd /c "set PORT=$API_PORT && node dist\index.mjs"
 timeout /t 2 /nobreak >nul
 start "ViaX Frontend" /min cmd /c "set PORT=$WEB_PORT && set BASE_PATH=/ && npx vite --host"
 
 echo ===================================
 echo  ViaX: System iniciado!
-echo  Frontend : http://localhost:$WEB_PORT
-echo  API      : http://localhost:$API_PORT
+echo  Frontend  : http://localhost:$WEB_PORT
+echo  API       : http://localhost:$API_PORT
+echo  geocodebr : http://localhost:8002 (se Docker ativo)
 echo ===================================
 echo.
 pause
