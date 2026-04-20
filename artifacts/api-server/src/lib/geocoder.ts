@@ -1241,6 +1241,25 @@ export async function processarEndereco(
     }
   }
 
+  // ── Promoção de via secundária a rua principal de comparação ──
+  // Padrão muito comum no Brasil: "Rua Sinagoga, 49, Travessa B (Apt 1)"
+  // A "Rua Sinagoga" é referência de área; "Travessa B" é a via real de entrega.
+  // Quando o GPS/geocodificador confirma que a via_secundaria é a via oficial,
+  // ela é promovida a rua_principal para que a comparação, log e resultado
+  // mostrem o nome correto ("Travessa B") em vez da referência ("Rua Sinagoga").
+  if (parsed.via_secundaria && geoResult?.rua) {
+    const simPrincipal = calcularSimilaridade(parsed.rua_principal, geoResult.rua);
+    const simVia = calcularSimilaridadeVia(parsed.via_secundaria, geoResult.rua);
+    if (simVia >= 0.65 && simVia > simPrincipal) {
+      logger.debug(
+        { ruaPrincipal: parsed.rua_principal, viaSecundaria: parsed.via_secundaria, oficial: geoResult.rua, simPrincipal: Math.round(simPrincipal * 100), simVia: Math.round(simVia * 100) },
+        "Via secundária promovida a rua principal (melhor coincidência com oficial)"
+      );
+      parsed.rua_principal = parsed.via_secundaria;
+      parsed.via_secundaria = null;
+    }
+  }
+
   const verif = verificarNuance(
     parsed, geoResult,
     item.lat, item.lon,
