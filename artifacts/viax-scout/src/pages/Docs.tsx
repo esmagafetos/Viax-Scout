@@ -58,8 +58,8 @@ O sistema processa cada endereço em tempo real via geocodificação multi-camad
 
 <strong>4. Revise os resultados</strong>
 Cada linha é classificada com:
-• ✅ <strong>OK</strong> — Endereço confere com o GPS
-• ⚠️ <strong>Nuance</strong> — Discrepância detectada, requer revisão
+• <span style="display:inline-flex;align-items:center;gap:0.3em;vertical-align:middle"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>OK</strong> — Endereço confere com o GPS
+• <span style="display:inline-flex;align-items:center;gap:0.3em;vertical-align:middle"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4521a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span> <strong>Nuance</strong> — Discrepância detectada, requer revisão
 
 <strong>5. Exporte o relatório</strong>
 Baixe o relatório final em XLSX com todos os resultados e detalhes de similaridade.`,
@@ -309,20 +309,42 @@ export default function Docs() {
             display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.75rem",
           }}>
             {[
-              { href: "/process", label: "Processar Rota", desc: "Upload de planilha", icon: "📂" },
-              { href: "/history", label: "Histórico", desc: "Ver análises anteriores", icon: "📋" },
-              { href: "/settings", label: "Configurações", desc: "Valor por rota, metas", icon: "⚙️" },
+              {
+                href: "/process", label: "Processar Rota", desc: "Upload de planilha",
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9,15 12,12 15,15"/>
+                  </svg>
+                ),
+              },
+              {
+                href: "/history", label: "Histórico", desc: "Ver análises anteriores",
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/>
+                  </svg>
+                ),
+              },
+              {
+                href: "/settings", label: "Configurações", desc: "Valor por rota, metas",
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                ),
+              },
             ].map(item => (
               <Link key={item.href} href={item.href}>
                 <div style={{
                   padding: "1rem", background: "var(--surface)", border: "1px solid var(--border-strong)",
                   borderRadius: 12, cursor: "pointer", transition: "all 150ms",
-                  display: "flex", flexDirection: "column", gap: "0.25rem",
+                  display: "flex", flexDirection: "column", gap: "0.5rem",
                 }}
                   onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--accent)"; (e.currentTarget as HTMLDivElement).style.background = "var(--accent-dim)"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border-strong)"; (e.currentTarget as HTMLDivElement).style.background = "var(--surface)"; }}
                 >
-                  <span style={{ fontSize: "1.2rem" }}>{item.icon}</span>
+                  <div style={{ color: "var(--accent)" }}>{item.icon}</div>
                   <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)" }}>{item.label}</div>
                   <div style={{ fontSize: "0.72rem", color: "var(--text-faint)" }}>{item.desc}</div>
                 </div>

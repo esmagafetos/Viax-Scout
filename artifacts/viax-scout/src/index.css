@@ -214,6 +214,10 @@ body {
 .register-card-header { padding: 1.75rem 2rem 1.25rem; }
 .register-card-body { padding: 1.5rem 2rem 2rem; }
 
+/* ── Login card (same pattern as register) ── */
+.login-card-header { padding: 1.75rem 2rem 1.25rem; }
+.login-card-body { padding: 1.5rem 2rem 2rem; }
+
 /* ── Login form container ── */
 .login-form-wrapper {
   width: 100%;
@@ -312,6 +316,10 @@ body {
   .register-card { border-radius: 10px !important; }
   .register-card-header { padding: 1.25rem 1.25rem 1rem !important; }
   .register-card-body { padding: 1rem 1.25rem 1.5rem !important; }
+
+  /* ── Login card mobile ── */
+  .login-card-header { padding: 1.25rem 1.25rem 1rem !important; }
+  .login-card-body { padding: 1rem 1.25rem 1.5rem !important; }
 
   /* ── Login page mobile ── */
   .login-panel-right { padding: 1.5rem 1.25rem !important; align-items: flex-start !important; padding-top: 3.5rem !important; }
