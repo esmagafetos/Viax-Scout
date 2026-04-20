@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import Process from "@/pages/Process";
 import History from "@/pages/History";
 import Settings from "@/pages/Settings";
+import Docs from "@/pages/Docs";
 import { useEffect, useRef, useState } from "react";
 
 const queryClient = new QueryClient({
@@ -96,6 +97,7 @@ function AppRoutes() {
         <Route path="/process" component={() => <ProtectedRoute component={Process} />} />
         <Route path="/history" component={() => <ProtectedRoute component={History} />} />
         <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
+        <Route path="/docs" component={() => <ProtectedRoute component={Docs} />} />
         <Route path="/" component={() => <Redirect to="/dashboard" />} />
         <Route component={() => <Redirect to="/dashboard" />} />
       </Switch>

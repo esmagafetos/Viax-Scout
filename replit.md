@@ -1,13 +1,13 @@
-# ViaX: System
+# ViaX:Trace
 
 ## Overview
 
-Full SaaS web application for validating delivery route XLSX/CSV files against OpenStreetMap/Nominatim.
+Full SaaS web application for validating delivery route XLSX/CSV files against GPS coordinates.
 pnpm workspace monorepo with React+Vite frontend and Express API backend.
 
 ## Project
 
-**ViaX: System** (v8.0) — Brazilian Portuguese SaaS route analysis tool.
+**ViaX:Trace** (v8.0) — Brazilian Portuguese SaaS logistics auditing platform.
 - Auth: session-based (express-session + bcryptjs)
 - Design: warm amber/orange→purple gradient palette (`#d4521a` → `#9333ea` accent), Poppins font, glassmorphism blur, 14px radius cards
 - UI language: Brazilian Portuguese throughout
@@ -20,9 +20,15 @@ pnpm workspace monorepo with React+Vite frontend and Express API backend.
 
 ## Branding
 
-- **Logo mark**: "V-route mark" — two filled waypoint dots at top connected by lines to a validation reticle (ring + crosshair) at the apex; gradient background orange→purple
-- **Header tagline**: "v8.0" in accent color (replaced "Validação de Rotas")
-- **Color gradient**: `linear-gradient(145deg, #D4521A 0%, #9333ea 100%)`
+- **Brand name**: ViaX:Trace (replaces "ViaX: System")
+- **Logo component**: `artifacts/viax-scout/src/components/ViaXLogo.tsx`
+  - `ViaXLogo` — Horizontal wordmark with icon + "ViaX:Trace" + "AUDITORIA DE ROTAS" tagline
+  - `LogoIcon` — Standalone SVG mark: start dot + bezier curve + orange endpoint pin
+  - `AppIcon` — Square app icon (light/dark) 
+  - `GitHubBanner` — Full project banner used in Docs page
+- **Design exports**: `design-exports/` — Screenshots of logo variants (showcase, light, dark, github banner)
+- **Accent**: `#d4521a` orange → warm dark browns for gradients
+- **Color gradient**: `linear-gradient(135deg, #1a0e08 0%, #2d1408 40%, #3d1c0c 70%, #1f0a18 100%)`
 
 ## Artifacts
 

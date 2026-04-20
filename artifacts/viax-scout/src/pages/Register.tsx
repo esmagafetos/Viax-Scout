@@ -4,6 +4,7 @@ import { useRegister } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/Toast";
 import { useTheme } from "@/components/Layout";
+import ViaXLogo from "@/components/ViaXLogo";
 
 export default function Register() {
   const [, navigate] = useLocation();
@@ -61,10 +62,9 @@ export default function Register() {
         backdropFilter: "blur(12px)",
         overflow: "hidden",
       }}>
-        <div style={{ padding: "2rem 2rem 1.5rem", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", marginBottom: "0.75rem" }}>
-            <span style={{ fontFamily: "Poppins", fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.02em" }}>ViaX<span style={{ opacity: 0.5, fontWeight: 400 }}>:</span> System</span>
-            <span style={{ fontSize: "0.6rem", color: "var(--accent)", background: "var(--accent-dim)", padding: "0.15rem 0.5rem", borderRadius: 4, letterSpacing: "0.06em", fontWeight: 600 }}>v8.0</span>
+        <div style={{ padding: "1.75rem 2rem 1.25rem", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ marginBottom: "0.75rem" }}>
+            <ViaXLogo size="md" dark={dark} showTagline />
           </div>
           <p style={{ fontSize: "0.82rem", color: "var(--text-faint)" }}>Crie sua conta gratuita</p>
         </div>

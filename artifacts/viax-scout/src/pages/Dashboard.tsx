@@ -7,6 +7,7 @@ import {
 } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Layout from "@/components/Layout";
+import ViaXLogo, { LogoIcon } from "@/components/ViaXLogo";
 import { formatDate, formatPct } from "@/lib/utils";
 
 function StatTile({ value, label, accent, good, sub }: {
@@ -196,6 +197,81 @@ function FinancialPanel({ financial }: { financial: any }) {
   );
 }
 
+function HeroBanner({ userName }: { userName: string }) {
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+  return (
+    <div style={{
+      position: "relative", overflow: "hidden",
+      borderRadius: 16, marginBottom: "1.75rem",
+      background: "linear-gradient(135deg, #1a0e08 0%, #2d1408 40%, #3d1c0c 70%, #1f0a18 100%)",
+      border: "1px solid rgba(212,82,26,0.2)",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+    }}>
+      {/* Decorative blobs */}
+      <div style={{ position: "absolute", width: 260, height: 260, borderRadius: "50%", background: "radial-gradient(circle, rgba(212,82,26,0.3) 0%, transparent 70%)", top: -80, right: 80, pointerEvents: "none" }} />
+      <div style={{ position: "absolute", width: 180, height: 180, borderRadius: "50%", background: "radial-gradient(circle, rgba(212,82,26,0.15) 0%, transparent 70%)", bottom: -60, left: 40, pointerEvents: "none" }} />
+
+      {/* Route decoration */}
+      <svg viewBox="0 0 600 120" fill="none" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.06, pointerEvents: "none" }} preserveAspectRatio="xMidYMid slice">
+        <path d="M0 60 C100 20 200 100 300 60 C400 20 500 80 600 40" stroke="white" strokeWidth="2" strokeDasharray="8 10"/>
+        <path d="M0 90 C150 50 250 110 400 70 C500 40 550 90 600 70" stroke="white" strokeWidth="1.5" strokeDasharray="5 8"/>
+        <circle cx="0" cy="60" r="6" fill="white"/><circle cx="300" cy="60" r="8" fill="white" fillOpacity="0.6"/><circle cx="600" cy="40" r="5" fill="white"/>
+      </svg>
+
+      <div style={{ position: "relative", zIndex: 1, padding: "1.5rem 1.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.5rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", flex: 1, minWidth: 0 }}>
+          <div style={{ flexShrink: 0 }}>
+            <ViaXLogo size="md" dark showTagline />
+          </div>
+
+          <div style={{ width: "1px", height: 40, background: "rgba(255,255,255,0.12)", flexShrink: 0 }} />
+
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#f0ede8" }}>
+                Olá, {userName}!
+              </span>
+              <span style={{ padding: "0.15rem 0.55rem", borderRadius: 99, background: "rgba(212,82,26,0.25)", border: "1px solid rgba(212,82,26,0.4)", fontSize: "0.65rem", color: "#e8a882", fontWeight: 700, letterSpacing: "0.06em" }}>
+                v8.0
+              </span>
+            </div>
+            <p style={{ fontSize: "0.78rem", color: "rgba(240,237,232,0.5)", lineHeight: 1.4, margin: 0 }}>
+              Geocodificação multi-camada · Detecção de nuances avançada · Suporte a Travessa e Passagem
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
+          <Link href="/process">
+            <button style={{
+              display: "flex", alignItems: "center", gap: "0.45rem",
+              padding: "0.6rem 1.25rem", borderRadius: 99,
+              background: "#d4521a", color: "#fff",
+              border: "none", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
+              boxShadow: "0 2px 12px rgba(212,82,26,0.5)",
+              transition: "filter 150ms",
+            }}
+              onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.12)")}
+              onMouseLeave={e => (e.currentTarget.style.filter = "none")}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9,15 12,12 15,15"/></svg>
+              Nova Análise
+            </button>
+          </Link>
+          <button
+            onClick={() => setDismissed(true)}
+            style={{ background: "none", border: "none", color: "rgba(240,237,232,0.3)", cursor: "pointer", padding: "0.25rem", display: "flex", alignItems: "center" }}
+            title="Fechar"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const { data: summary, isLoading: sumLoading } = useGetDashboardSummary();
@@ -208,10 +284,12 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      {/* Welcome */}
+      <HeroBanner userName={user?.name?.split(" ")[0] ?? "usuário"} />
+
+      {/* Page title */}
       <div style={{ marginBottom: "1.5rem" }}>
-        <h1 style={{ fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>
-          Bem-vindo, {user?.name?.split(" ")[0] ?? "usuário"}.
+        <h1 style={{ fontSize: "1.3rem", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: "0.2rem" }}>
+          Dashboard
         </h1>
         <p style={{ fontSize: "0.8rem", color: "var(--text-faint)" }}>
           Resumo das suas análises e controle financeiro de rotas.
