@@ -14,7 +14,7 @@ die()  { echo -e "${R}[erro]${N} $*" >&2; exit 1; }
 step() { echo -e "\n${B}${C}==> $*${N}"; }
 
 echo -e "\n${B}${C}ViaX:Trace — GeocodeR BR${N}  (proot-distro + Ubuntu + R)\n"
-echo -e "${Y}Espaço necessário: ~3.5 GB livres   Tempo estimado: 20-60 min${N}\n"
+echo -e "${Y}Espaço necessário: ~3.5 GB livres   Tempo estimado: 30-90 min${N}\n"
 
 # ---------------------------------------------------------------------------
 # Detecta diretório da app
@@ -31,6 +31,9 @@ START_R="$APP/artifacts/geocodebr-service/start.R"
 UBUNTU_ROOT="${PREFIX}/var/lib/proot-distro/installed-rootfs/ubuntu"
 UBUNTU_WORK="$UBUNTU_ROOT/root/viax-geocodebr"
 
+# Função auxiliar: executar dentro do Ubuntu
+ubuntu() { proot-distro login ubuntu -- bash -c "$1"; }
+
 # ---------------------------------------------------------------------------
 # PASSO 1 — proot-distro
 # ---------------------------------------------------------------------------
@@ -41,7 +44,7 @@ fi
 ok "proot-distro disponível"
 
 # ---------------------------------------------------------------------------
-# PASSO 2 — Ubuntu via proot-distro
+# PASSO 2 — Ubuntu
 # ---------------------------------------------------------------------------
 step "Configurando Ubuntu no proot-distro..."
 if [[ ! -d "$UBUNTU_ROOT" ]]; then
@@ -53,53 +56,63 @@ proot-distro login ubuntu -- true 2>/dev/null \
 ok "Ubuntu pronto"
 
 # ---------------------------------------------------------------------------
-# Função auxiliar: executar comando dentro do Ubuntu
+# PASSO 3 — Corrige DNS dentro do Ubuntu (problema comum no Termux/proot)
 # ---------------------------------------------------------------------------
-ubuntu() { proot-distro login ubuntu -- bash -c "$1"; }
+step "Corrigindo DNS do Ubuntu..."
+cat > "$UBUNTU_ROOT/etc/resolv.conf" << 'EOF'
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+EOF
+ok "DNS configurado (1.1.1.1 / 8.8.8.8)"
 
 # ---------------------------------------------------------------------------
-# PASSO 3 — Detectar versão do Ubuntu e configurar repositórios
+# PASSO 4 — Detecta versão do Ubuntu
 # ---------------------------------------------------------------------------
 step "Detectando versão do Ubuntu..."
-UBUNTU_CODENAME=$(ubuntu "lsb_release -cs 2>/dev/null || . /etc/os-release && echo \$VERSION_CODENAME" 2>/dev/null | tr -d '[:space:]')
+UBUNTU_CODENAME=$(ubuntu ". /etc/os-release && echo \$VERSION_CODENAME" 2>/dev/null | tr -d '[:space:]')
 [[ -z "$UBUNTU_CODENAME" ]] && UBUNTU_CODENAME="noble"
-inf "Ubuntu detectado: ${UBUNTU_CODENAME}"
+inf "Ubuntu: ${UBUNTU_CODENAME}"
 
-# Monta a URL do PPM binário para a versão correta
-# PPM tem binários para noble (24.04); para versões mais novas usa noble como fallback
+# PPM tem binários pré-compilados para focal, jammy e noble.
+# Para versões mais novas usa noble como fallback.
 PPM_CODENAME="$UBUNTU_CODENAME"
 case "$UBUNTU_CODENAME" in
   focal|jammy|noble) ;;
-  *) warn "Ubuntu '${UBUNTU_CODENAME}' sem binários PPM — usando noble como fallback"; PPM_CODENAME="noble" ;;
+  *) warn "Ubuntu '${UBUNTU_CODENAME}' sem binários PPM — usando noble como fallback"
+     PPM_CODENAME="noble" ;;
 esac
 PPM_URL="https://packagemanager.posit.co/cran/__linux__/${PPM_CODENAME}/latest"
-inf "PPM: ${PPM_URL}"
-ok "Repositórios configurados"
+ok "Repositórios: PPM (${PPM_CODENAME}) + CRAN + DuckDB"
 
 # ---------------------------------------------------------------------------
-# PASSO 4 — Atualiza apt e instala dependências de sistema
+# PASSO 5 — Atualiza apt e instala dependências de sistema
 # ---------------------------------------------------------------------------
-step "Atualizando apt e instalando dependências de sistema..."
+step "Instalando dependências de sistema via apt..."
+inf "Atualizando listas de pacotes..."
+ubuntu "export DEBIAN_FRONTEND=noninteractive && apt-get update -qq" \
+  || warn "apt-get update retornou erro — continuando..."
+
+inf "Instalando bibliotecas necessárias..."
 ubuntu "
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update -qq 2>&1 | tail -1
   apt-get install -y --no-install-recommends \
     r-base r-base-dev \
     libcurl4-openssl-dev libssl-dev libxml2-dev \
     libgdal-dev libgeos-dev libproj-dev libudunits2-dev \
-    libuv1-dev \
+    libuv1-dev libsodium-dev \
     libfontconfig1-dev libfreetype-dev \
     libharfbuzz-dev libfribidi-dev \
-    libpng-dev libjpeg-dev libtiff5-dev \
-    build-essential ca-certificates git \
-    pkg-config 2>&1 | grep -E '(Err|error|NEW|upgraded|not upgraded|Done)' || true
-" || die "Falha ao instalar dependências de sistema"
+    libpng-dev libjpeg-dev \
+    build-essential ca-certificates git pkg-config curl \
+    2>&1 | grep -E '^(E:|Get:|Setting up|0 upgraded|[0-9]+ upgraded)' || true
+" || die "Falha crítica ao instalar dependências de sistema"
 ok "Dependências de sistema instaladas"
 
 # ---------------------------------------------------------------------------
-# PASSO 5 — Instala pacotes R via apt (binários pré-compilados, sem compilação)
+# PASSO 6 — Instala pacotes R via apt (binários prontos, sem compilação)
 # ---------------------------------------------------------------------------
-step "Instalando pacotes R via apt (rápido, sem compilação)..."
+step "Instalando pacotes R via apt (pré-compilados)..."
 ubuntu "
   export DEBIAN_FRONTEND=noninteractive
   apt-get install -y --no-install-recommends \
@@ -113,97 +126,113 @@ ubuntu "
     r-cran-mime r-cran-rcpp r-cran-digest \
     r-cran-generics r-cran-tidyselect r-cran-utf8 r-cran-fansi \
     r-cran-withr r-cran-parallelly r-cran-globals r-cran-listenv \
-    2>&1 | grep -E '(Err|error|NEW|upgraded|not upgraded|Done)' || true
-" || warn "Alguns pacotes apt podem não ter sido instalados — continuando..."
+    r-cran-data.table \
+    2>&1 | grep -E '^(E:|Get:|Setting up|0 upgraded|[0-9]+ upgraded)' || true
+" || warn "Alguns pacotes apt não encontrados — serão instalados via CRAN"
 ok "Pacotes apt instalados"
 
 # ---------------------------------------------------------------------------
-# PASSO 6 — Escreve script R no Ubuntu e instala plumber + geocodebr
+# PASSO 7 — Escreve e executa script R para instalar plumber + geocodebr
 # ---------------------------------------------------------------------------
-step "Instalando plumber e geocodebr via CRAN..."
+step "Instalando plumber e geocodebr via CRAN/PPM/DuckDB..."
+inf "Esta etapa envolve compilação — pode demorar 30-60 min na primeira vez."
 
-# Cria o diretório de trabalho no Ubuntu e escreve o script R em um arquivo
-ubuntu "mkdir -p /root/viax-geocodebr"
-
+mkdir -p "$UBUNTU_WORK"
 cat > "$UBUNTU_ROOT/root/viax-geocodebr/_install_pkgs.R" << RSCRIPT
-# Configura repositórios (PPM binários + CRAN fallback)
+# ── Configuração de repositórios ─────────────────────────────────────────────
 options(
   repos = c(
-    PPM  = "${PPM_URL}",
-    CRAN = "https://cloud.r-project.org"
+    DUCKDB = "https://duckdb.r-universe.dev",
+    PPM    = "${PPM_URL}",
+    CRAN   = "https://cloud.r-project.org"
   ),
-  Ncpus        = max(1L, parallel::detectCores() - 1L),
-  timeout      = 300
+  Ncpus   = max(1L, parallel::detectCores() - 1L),
+  timeout = 600
 )
 
-# Limpa locks órfãos que possam ter sobrado de instalações anteriores
-lib <- .libPaths()[1]
+# ── Remove locks órfãos ───────────────────────────────────────────────────────
+lib   <- .libPaths()[1]
 locks <- list.files(lib, pattern = "^00LOCK-", full.names = TRUE)
-if (length(locks) > 0) {
-  message("Removendo ", length(locks), " lock(s) órfão(s)...")
+if (length(locks)) {
+  message("Removendo ", length(locks), " lock(s) orfao(s)...")
   unlink(locks, recursive = TRUE)
 }
 
-# Instala apenas Depends + Imports + LinkingTo (sem Suggests pesados)
-safe_install <- function(pkg) {
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    message("\n[instalando] ", pkg, " ...")
-    tryCatch(
-      install.packages(pkg, dependencies = c("Depends", "Imports", "LinkingTo")),
-      error = function(e) message("[aviso] Falha em '", pkg, "': ", conditionMessage(e))
-    )
-  } else {
-    message("[ok] ", pkg, " ja instalado")
+# ── Instalação segura com retry ───────────────────────────────────────────────
+safe_install <- function(pkg, tries = 3) {
+  if (requireNamespace(pkg, quietly = TRUE)) {
+    message("[ok] ", pkg, " ja instalado"); return(invisible(TRUE))
   }
+  for (i in seq_len(tries)) {
+    message("\n[", i, "/", tries, "] Instalando: ", pkg, " ...")
+    result <- tryCatch({
+      install.packages(pkg, dependencies = c("Depends", "Imports", "LinkingTo"),
+                       quiet = FALSE)
+      TRUE
+    }, error = function(e) {
+      message("[aviso] Tentativa ", i, " falhou: ", conditionMessage(e))
+      FALSE
+    })
+    if (result && requireNamespace(pkg, quietly = TRUE)) {
+      message("[ok] ", pkg, " instalado com sucesso"); return(invisible(TRUE))
+    }
+    if (i < tries) Sys.sleep(3)
+  }
+  message("[FALHA] Nao foi possivel instalar: ", pkg)
+  return(invisible(FALSE))
 }
 
-# Pacotes necessários em ordem de dependência
-pkgs <- c(
-  "webutils",
-  "httpuv",
-  "plumber",
-  "geocodebr"
+# ── Instala na ordem correta de dependências ──────────────────────────────────
+pkgs_order <- c(
+  "sodium",       # dep do plumber — compila com libsodium-dev
+  "webutils",     # dep do plumber
+  "httpuv",       # dep do plumber — usa libuv do sistema
+  "plumber",      # servidor HTTP R
+  "nanoarrow",    # dep do geocodebr (leve)
+  "arrow",        # dep do geocodebr (pesado — pode demorar)
+  "duckdb",       # dep do geocodebr — binário via duckdb r-universe
+  "geocodebr"     # pacote principal
 )
 
-for (pkg in pkgs) safe_install(pkg)
+results <- vapply(pkgs_order, safe_install, logical(1))
 
-# Verifica resultado final
-ok  <- pkgs[sapply(pkgs, requireNamespace, quietly = TRUE)]
-nok <- pkgs[!sapply(pkgs, requireNamespace, quietly = TRUE)]
+# ── Relatório final ───────────────────────────────────────────────────────────
+ok_pkgs  <- names(results)[results]
+nok_pkgs <- names(results)[!results]
 
-cat("\n--- Resultado ---\n")
-if (length(ok))  cat("[ok]    ", paste(ok,  collapse = ", "), "\n")
-if (length(nok)) cat("[FALHA] ", paste(nok, collapse = ", "), "\n")
+cat("\n=== Resultado da instalacao ===\n")
+if (length(ok_pkgs))  cat("[ok]    ", paste(ok_pkgs,  collapse = ", "), "\n")
+if (length(nok_pkgs)) cat("[FALHA] ", paste(nok_pkgs, collapse = ", "), "\n")
 
-if ("plumber" %in% nok || "geocodebr" %in% nok) {
+essenciais <- c("plumber", "geocodebr")
+faltando   <- essenciais[!sapply(essenciais, requireNamespace, quietly = TRUE)]
+
+if (length(faltando)) {
+  cat("\nERRO: pacotes essenciais ausentes:", paste(faltando, collapse = ", "), "\n")
   quit(status = 1)
 } else {
-  cat("\nPacotes essenciais prontos!\n")
+  cat("\nTodos os pacotes essenciais prontos!\n")
 }
 RSCRIPT
 
 ubuntu "Rscript /root/viax-geocodebr/_install_pkgs.R" \
-  || warn "Alguns pacotes R podem não ter sido instalados (veja saída acima)"
+  || warn "Instalação de pacotes R finalizada com avisos (veja saída acima)"
 ok "Etapa de pacotes R concluída"
 
 # ---------------------------------------------------------------------------
-# PASSO 7 — Copia arquivos do microserviço para o Ubuntu
+# PASSO 8 — Copia arquivos do microserviço
 # ---------------------------------------------------------------------------
-step "Copiando arquivos do microserviço para o Ubuntu..."
-mkdir -p "$UBUNTU_WORK"
+step "Copiando arquivos do microserviço..."
 if [[ -f "$PLUMBER" ]]; then
   cp "$PLUMBER" "$UBUNTU_WORK/"
-  ok "plumber.R copiado"
+  ok "plumber.R copiado para o Ubuntu"
 else
   warn "plumber.R não encontrado em $PLUMBER — copie manualmente para $UBUNTU_WORK/"
 fi
-if [[ -f "$START_R" ]]; then
-  cp "$START_R" "$UBUNTU_WORK/"
-  ok "start.R copiado"
-fi
+[[ -f "$START_R" ]] && cp "$START_R" "$UBUNTU_WORK/" && ok "start.R copiado"
 
 # ---------------------------------------------------------------------------
-# PASSO 8 — Cria script de inicialização
+# PASSO 9 — Cria script de inicialização
 # ---------------------------------------------------------------------------
 step "Criando start-geocodebr.sh..."
 cat > "$APP/start-geocodebr.sh" << 'STARTSCRIPT'
@@ -212,9 +241,11 @@ cat > "$APP/start-geocodebr.sh" << 'STARTSCRIPT'
 PORT="${GEOCODEBR_PORT:-8002}"
 
 echo ""
-echo "  GeocodeR BR — porta $PORT"
-echo "  Aguarde 'Listening on 0.0.0.0:$PORT'"
-echo "  (1º início: baixa dados CNEFE ~1-2 GB — seja paciente)"
+echo "  GeocodeR BR iniciando na porta $PORT..."
+echo "  Aguarde a mensagem: 'Listening on 0.0.0.0:$PORT'"
+echo ""
+echo "  AVISO: No primeiro inicio, os dados CNEFE (~1-2 GB) serao"
+echo "         baixados automaticamente. Isso pode levar varios minutos."
 echo ""
 
 exec proot-distro login ubuntu -- bash -c "
@@ -224,8 +255,9 @@ exec proot-distro login ubuntu -- bash -c "
   elif [[ -f /root/viax-geocodebr/plumber.R ]]; then
     exec Rscript /root/viax-geocodebr/plumber.R
   else
+    echo ''
     echo 'ERRO: nenhum arquivo R encontrado em /root/viax-geocodebr/'
-    echo 'Copie plumber.R ou start.R para esse diretório e tente novamente.'
+    echo 'Execute novamente: bash ~/viax-system/install-geocodebr-termux.sh'
     exit 1
   fi
 "
@@ -234,10 +266,10 @@ chmod +x "$APP/start-geocodebr.sh"
 ok "start-geocodebr.sh criado"
 
 # ---------------------------------------------------------------------------
-# PASSO 9 — Adiciona GEOCODEBR_URL ao .env (se ainda não existir)
+# PASSO 10 — Atualiza .env
 # ---------------------------------------------------------------------------
 if [[ -f "$APP/.env" ]] && ! grep -q "GEOCODEBR_URL" "$APP/.env"; then
-  printf '\n# GeocodeR BR — descomente após iniciar: bash %s/start-geocodebr.sh\n# GEOCODEBR_URL=http://localhost:8002\n' "$APP" >> "$APP/.env"
+  printf '\n# GeocodeR BR — descomente apos iniciar: bash %s/start-geocodebr.sh\n# GEOCODEBR_URL=http://localhost:8002\n' "$APP" >> "$APP/.env"
   ok ".env atualizado com GEOCODEBR_URL (comentado)"
 fi
 
@@ -246,7 +278,7 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo -e "${G}${B}╔══════════════════════════════════════════╗${N}"
-echo -e "${G}${B}║      Instalação concluída com sucesso!   ║${N}"
+echo -e "${G}${B}║    Instalação concluída com sucesso!     ║${N}"
 echo -e "${G}${B}╚══════════════════════════════════════════╝${N}"
 echo ""
 echo -e "  ${B}Iniciar o serviço:${N}"
@@ -258,5 +290,5 @@ echo ""
 echo -e "  ${B}Variável de ambiente:${N}"
 echo -e "    ${C}GEOCODEBR_URL=http://localhost:8002${N}"
 echo ""
-echo -e "  ${Y}Dica:${N} na primeira execução o CNEFE (~1-2 GB) será baixado automaticamente."
+echo -e "  ${Y}Dica:${N} no 1º uso, os dados CNEFE (~1-2 GB) são baixados automaticamente."
 echo ""

@@ -1,0 +1,243 @@
+ls
+downloads  libpostal  storage  viax-system
+~ $ cd ~/viax-system && git pull && bash install-geocodebr-termux.sh
+Already up to date.
+
+ViaX:Trace — GeocodeR BR  (proot-distro + Ubuntu + R)
+
+Espaço necessário: ~3.5 GB livres   Tempo estimado: 20-60 min
+
+
+==> Instalando proot-distro...
+[ok] proot-distro disponível
+
+==> Configurando Ubuntu no proot-distro...
+[ok] Ubuntu pronto
+
+==> Detectando versão do Ubuntu...
+[..] Ubuntu detectado: questing
+[av] Ubuntu 'questing' sem binários PPM — usando noble como fallback
+[..] PPM: https://packagemanager.posit.co/cran/__linux__/noble/latest
+[ok] Repositórios configurados
+
+==> Atualizando apt e instalando dependências de sistema...
+  libcairo-gobject2 liberror-perl libffi-dev libfontconfig-dev libgio-2.0-dev
+The following NEW packages will be installed:
+  libcairo-gobject2 liberror-perl libffi-dev libfontconfig-dev
+The following packages will be upgraded:
+7 upgraded, 37 newly installed, 0 to remove and 21 not upgraded.
+Get:18 http://ports.ubuntu.com/ubuntu-ports questing/main arm64 liberror-perl all 0.17030-1 [23.5 kB]
+Selecting previously unselected package liberror-perl.
+Preparing to unpack .../11-liberror-perl_0.17030-1_all.deb ...
+Unpacking liberror-perl (0.17030-1) ...
+Setting up liberror-perl (0.17030-1) ...
+[ok] Dependências de sistema instaladas
+
+==> Instalando pacotes R via apt (rápido, sem compilação)...
+0 upgraded, 0 newly installed, 0 to remove and 21 not upgraded.
+[ok] Pacotes apt instalados
+
+==> Instalando plumber e geocodebr via CRAN...
+Removendo 14 lock(s) órfão(s)...
+[ok] webutils ja instalado
+
+[instalando] httpuv ...
+Installing package into ‘/usr/local/lib/R/site-library’
+(as ‘lib’ is unspecified)
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/httpuv_1.6.17.tar.gz'
+Content type 'binary/octet-stream' length 1900379 bytes (1.8 MB)
+==================================================
+downloaded 1.8 MB
+
+* installing *source* package ‘httpuv’ ...
+** this is package ‘httpuv’ version ‘1.6.17’
+** package ‘httpuv’ successfully unpacked and MD5 sums checked
+** using staged installation
+** Using libuv found by pkg-config in /usr
+** PKG_CFLAGS=
+** PKG_LIBS=-luv -lpthread -ldl -lrt
+** libs
+using C compiler: ‘gcc (Ubuntu 15.2.0-4ubuntu4) 15.2.0’
+using C++ compiler: ‘g++ (Ubuntu 15.2.0-4ubuntu4) 15.2.0’
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c RcppExports.cpp -o RcppExports.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c callback.cpp -o callback.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c callbackqueue.cpp -o callbackqueue.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c filedatasource-unix.cpp -o filedatasource-unix.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c filedatasource-win.cpp -o filedatasource-win.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c fs.cpp -o fs.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c gzipdatasource.cpp -o gzipdatasource.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c http.cpp -o http.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c httprequest.cpp -o httprequest.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c httpresponse.cpp -o httpresponse.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c httpuv.cpp -o httpuv.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c md5.c -o md5.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c mime.cpp -o mime.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c socket.cpp -o socket.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c staticpath.cpp -o staticpath.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c thread.cpp -o thread.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c timegm.cpp -o timegm.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c utils.cpp -o utils.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c uvutil.cpp -o uvutil.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c webapplication.cpp -o webapplication.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c websockets-base.cpp -o websockets-base.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c websockets-hixie76.cpp -o websockets-hixie76.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c websockets-hybi03.cpp -o websockets-hybi03.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c websockets-ietf.cpp -o websockets-ietf.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c websockets.cpp -o websockets.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c winutils.cpp -o winutils.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c http-parser/http_parser.c -o http-parser/http_parser.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c sha1/sha1.c -o sha1/sha1.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c base64/base64.cpp -o base64/base64.o
+g++ -std=gnu++17 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -Wl,-z,relro -o httpuv.so RcppExports.o callback.o callbackqueue.o filedatasource-unix.o filedatasource-win.o fs.o gzipdatasource.o http.o httprequest.o httpresponse.o httpuv.o md5.o mime.o socket.o staticpath.o thread.o timegm.o utils.o uvutil.o webapplication.o websockets-base.o websockets-hixie76.o websockets-hybi03.o websockets-ietf.o websockets.o winutils.o -luv -lpthread -ldl -lrt ./http-parser/http_parser.o ./sha1/sha1.o ./base64/base64.o -pthread -L/usr/lib/R/lib -lR
+/usr/lib/gcc/aarch64-linux-gnu/15/../../../aarch64-linux-gnu/libuv.so: warning: GCS is required by -z gcs, but this shared library lacks the necessary property note. The dynamic loader might not enable GCS or refuse to load the program unless all the shared library dependencies have the GCS marking.
+/usr/lib/R/lib/libR.so: warning: GCS is required by -z gcs, but this shared library lacks the necessary property note. The dynamic loader might not enable GCS or refuse to load the program unless all the shared library dependencies have the GCS marking.
+installing to /usr/local/lib/R/site-library/00LOCK-httpuv/00new/httpuv/libs
+** R
+** demo
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+CANNOT LINK EXECUTABLE "file": "/usr/lib/aarch64-linux-gnu/libc.so" has bad ELF magic: 2f2a2047
+Warning in system(paste("file", shQuote(l)), intern = TRUE) :
+  running command 'file '/usr/local/lib/R/site-library/00LOCK-httpuv/00new/httpuv/libs/httpuv.so'' had status 1
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (httpuv)
+
+The downloaded source packages are in
+        ‘/tmp/RtmpfFdzAH/downloaded_packages’
+
+[instalando] plumber ...
+Installing package into ‘/usr/local/lib/R/site-library’
+(as ‘lib’ is unspecified)
+also installing the dependency ‘sodium’
+
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/sodium_1.4.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/plumber_1.3.3.tar.gz'
+Error in download.file(urls, destfiles, "libcurl", mode = "wb", ...) :
+  cannot download any files
+In addition: Warning messages:
+1: In download.file(urls, destfiles, "libcurl", mode = "wb", ...) :
+  URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/sodium_1.4.0.tar.gz': status was 'Could not resolve hostname'
+2: In download.file(urls, destfiles, "libcurl", mode = "wb", ...) :
+  URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/plumber_1.3.3.tar.gz': status was 'Could not resolve hostname'
+Warning in download.packages(pkgs, destdir = tmpd, available = available,  :
+  download of package ‘sodium’ failed
+Warning in download.packages(pkgs, destdir = tmpd, available = available,  :
+  download of package ‘plumber’ failed
+
+[instalando] geocodebr ...
+Installing package into ‘/usr/local/lib/R/site-library’
+(as ‘lib’ is unspecified)
+also installing the dependencies ‘blob’, ‘backports’, ‘processx’, ‘dbplyr’, ‘uuid’, ‘h3lib’, ‘geometries’, ‘arrow’, ‘checkmate’, ‘callr’, ‘data.table’, ‘duckdb’, ‘duckspatial’, ‘enderecobr’, ‘fs’, ‘geoarrow’, ‘h3r’, ‘httr2’, ‘nanoarrow’, ‘sfheaders’
+
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/blob_1.3.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/backports_1.5.1.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/processx_3.8.7.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/dbplyr_2.5.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/uuid_1.2-2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/h3lib_0.1.4.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/geometries_0.2.5.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/arrow_23.0.1.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/checkmate_2.3.4.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/callr_3.7.6.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/data.table_1.18.2.1.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/duckdb_1.5.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/duckspatial_1.0.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/enderecobr_0.5.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/fs_2.1.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/geoarrow_0.4.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/h3r_0.1.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/httr2_1.2.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/nanoarrow_0.8.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/sfheaders_0.4.5.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/geocodebr_0.6.2.tar.gz'
+Warning in download.packages(pkgs, destdir = tmpd, available = available,  :
+  download of package ‘blob’ failed
+begin installing package ‘backports’
+begin installing package ‘processx’
+begin installing package ‘dbplyr’
+begin installing package ‘uuid’
+begin installing package ‘h3lib’
+begin installing package ‘geometries’
+begin installing package ‘arrow’
+* installing *source* package ‘backports’ ...
+** this is package ‘backports’ version ‘1.5.1’
+** package ‘backports’ successfully unpacked and MD5 sums checked
+** using staged installation
+** libs
+using C compiler: ‘gcc (Ubuntu 15.2.0-4ubuntu4) 15.2.0’
+make[1]: Entering directory '/tmp/RtmpFQyAqi/R.INSTALL371173fc7eea/backports/src'
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c dotsElt.c -o dotsElt.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c dotsLength.c -o dotsLength.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c dotsNames.c -o dotsNames.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c init.c -o init.o
+gcc -std=gnu23 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -Wl,-z,relro -o backports.so dotsElt.o dotsLength.o dotsNames.o init.o -L/usr/lib/R/lib -lR
+/usr/lib/R/lib/libR.so: warning: GCS is required by -z gcs, but this shared library lacks the necessary property note. The dynamic loader might not enable GCS or refuse to load the program unless all the shared library dependencies have the GCS marking.
+make[1]: Leaving directory '/tmp/RtmpFQyAqi/R.INSTALL371173fc7eea/backports/src'
+installing to /usr/local/lib/R/site-library/00LOCK-backports/00new/backports/libs
+** R
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+CANNOT LINK EXECUTABLE "file": "/usr/lib/aarch64-linux-gnu/libc.so" has bad ELF magic: 2f2a2047
+Warning in system(paste("file", shQuote(l)), intern = TRUE) :
+  running command 'file '/usr/local/lib/R/site-library/00LOCK-backports/00new/backports/libs/backports.so'' had status 1
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (backports)
+begin installing package ‘data.table’
+* installing *source* package ‘h3lib’ ...
+** this is package ‘h3lib’ version ‘0.1.4’
+** package ‘h3lib’ successfully unpacked and MD5 sums checked
+** using staged installation
+** libs
+using C compiler: ‘gcc (Ubuntu 15.2.0-4ubuntu4) 15.2.0’
+make[1]: Entering directory '/tmp/RtmpjXgXNa/R.INSTALL37194e060ce5/h3lib/src'
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c algos.c -o algos.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c baseCells.c -o baseCells.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c bbox.c -o bbox.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c coordijk.c -o coordijk.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c directedEdge.c -o directedEdge.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c faceijk.c -o faceijk.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c h3Assert.c -o h3Assert.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c h3Index.c -o h3Index.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c init.c -o init.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c iterators.c -o iterators.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c latLng.c -o latLng.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c linkedGeo.c -o linkedGeo.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c localij.c -o localij.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c mathExtensions.c -o mathExtensions.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c polyfill.c -o polyfill.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c polygon.c -o polygon.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c vec2d.c -o vec2d.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c vec3d.c -o vec3d.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c vertex.c -o vertex.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c vertexGraph.c -o vertexGraph.o
+gcc -std=gnu23 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -Wl,-z,relro -o h3lib.so algos.o baseCells.o bbox.o coordijk.o directedEdge.o faceijk.o h3Assert.o h3Index.o init.o iterators.o latLng.o linkedGeo.o localij.o mathExtensions.o polyfill.o polygon.o vec2d.o vec3d.o vertex.o vertexGraph.o -L/usr/lib/R/lib -lR
+/usr/lib/R/lib/libR.so: warning: GCS is required by -z gcs, but this shared library lacks the necessary property note. The dynamic loader might not enable GCS or refuse to load the program unless all the shared library dependencies have the GCS marking.
+make[1]: Leaving directory '/tmp/RtmpjXgXNa/R.INSTALL37194e060ce5/h3lib/src'
+installing to /usr/local/lib/R/site-library/00LOCK-h3lib/00new/h3lib/libs
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+CANNOT LINK EXECUTABLE "file": "/usr/lib/aarch64-linux-gnu/libc.so" has bad ELF magic: 2f2a2047
+Warning in system(paste("file", shQuote(l)), intern = TRUE) :
+  running command 'file '/usr/local/lib/R/site-library/00LOCK-h3lib/00new/h3lib/libs/h3lib.so'' had status 1
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (h3lib)
+begin installing package ‘duckdb’
+make: *** [Makefile:17: dbplyr.ts] Error 1
+begin installing package ‘fs’
+
+[Process completed (signal 9) - press Enter]
