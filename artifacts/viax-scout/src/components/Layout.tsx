@@ -248,7 +248,7 @@ export default function Layout({ children, showNav = true }: LayoutProps) {
           padding: "1.25rem",
           textAlign: "center",
         }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+          <div className="footer-inner" style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
             <ViaXLogo size="sm" dark={dark} showTagline={false} />
             <div style={{ display: "flex", gap: "1.5rem" }}>
               {[

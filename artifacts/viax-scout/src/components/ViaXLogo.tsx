@@ -118,35 +118,36 @@ export default function ViaXLogo({
 
 export function GitHubBanner() {
   return (
-    <div style={{
-      background: "#0d0c0b",
-      borderRadius: 12,
-      padding: "1.5rem 2rem",
-      display: "flex",
-      alignItems: "center",
-      gap: "2rem",
-      border: "1px solid rgba(255,255,255,0.08)",
-    }}>
-      <div style={{ borderRight: "1px solid rgba(255,255,255,0.1)", paddingRight: "2rem" }}>
-        <ViaXLogo size="lg" dark showTagline />
+    <a
+      href="https://github.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ display: "block", textDecoration: "none" }}
+    >
+      <div style={{
+        background: "#0d0c0b",
+        borderRadius: 14,
+        overflow: "hidden",
+        border: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
+        transition: "box-shadow 200ms, transform 200ms",
+        cursor: "pointer",
+      }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 40px rgba(0,0,0,0.4)";
+          (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.25)";
+          (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+        }}
+      >
+        <img
+          src="/github-banner.png"
+          alt="ViaX:Trace — GitHub"
+          style={{ width: "100%", height: "auto", display: "block" }}
+        />
       </div>
-      <div>
-        <p style={{ color: "#e0ddd8", fontSize: "0.95rem", fontWeight: 500, marginBottom: "0.75rem" }}>
-          Valide planilhas XLSX/CSV contra coordenadas GPS reais
-        </p>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          {["TypeScript", "React", "Node.js", "PostgreSQL"].map(tag => (
-            <span key={tag} style={{
-              padding: "0.2rem 0.7rem",
-              borderRadius: 4,
-              border: "1px solid rgba(255,255,255,0.15)",
-              fontSize: "0.75rem",
-              color: "rgba(255,255,255,0.6)",
-              fontFamily: "monospace",
-            }}>{tag}</span>
-          ))}
-        </div>
-      </div>
-    </div>
+    </a>
   );
 }
