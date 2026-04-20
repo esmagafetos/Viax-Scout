@@ -1,0 +1,821 @@
+Welcome to Termux!
+
+Docs:       https://termux.dev/docs
+Donate:     https://termux.dev/donate
+Community:  https://termux.dev/community
+
+Working with packages:
+
+ - Search:  pkg search <query>
+ - Install: pkg install <package>
+ - Upgrade: pkg upgrade
+
+Subscribing to additional repositories:
+
+ - Root:    pkg install root-repo
+ - X11:     pkg install x11-repo
+
+For fixing any repository issues,
+try 'termux-change-repo' command.
+
+Report issues at https://termux.dev/issues
+~ $ cd ~/viax-system
+git checkout -- install-geocodebr-termux.sh
+git pull
+bash install-geocodebr-termux.sh
+remote: Enumerating objects: 8, done.
+remote: Counting objects: 100% (8/8), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 5 (delta 3), reused 5 (delta 3), pack-reused 0 (from 0)
+Unpacking objects: 100% (5/5), 2.72 KiB | 232.00 KiB/s, done.
+From https://github.com/esmagafetos/Viax-Scout
+   5f48aa9..ca402ce  main       -> origin/main
+Updating 5f48aa9..ca402ce
+Fast-forward
+ ...out-install-geocod_1776695977703.txt | 111 ++++++++++++++
+ install-geocodebr-termux.sh             |  28 +++-
+ 2 files changed, 134 insertions(+), 5 deletions(-)
+ create mode 100644 attached_assets/Pasted--viax-system-cd-viax-system-git-checkout-install-geocod_1776695977703.txt
+
+ViaX:Trace — GeocodeR BR  (proot-distro + Ubuntu + R)
+
+Espaço: ~3.5 GB livres necessários   Tempo: 20-60 min
+
+[..] Instalando proot-distro...
+Checking availability of current mirror:
+[*] https://mirror.quantum5.ca/termux/termux-main: ok
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+proot-distro is already the newest version (4.38.0).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+[ok] proot-distro pronto
+[..] Verificando Ubuntu no proot-distro...
+[ok] Ubuntu disponível
+[..] Instalando R e dependências dentro do Ubuntu...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+r-base is already the newest version (4.5.1-1).
+r-base-dev is already the newest version (4.5.1-1).
+libcurl4-openssl-dev is already the newest version (8.14.1-2ubuntu1.2).
+libssl-dev is already the newest version (3.5.3-1ubuntu3.3).
+libxml2-dev is already the newest version (2.14.5+dfsg-0.2ubuntu0.1).
+libgdal-dev is already the newest version (3.10.3+dfsg-1build2).
+libgeos-dev is already the newest version (3.13.1-1).
+libproj-dev is already the newest version (9.6.0-1).
+libudunits2-dev is already the newest version (2.2.28-7build1).
+build-essential is already the newest version (12.12ubuntu1).
+ca-certificates is already the newest version (20250419).
+Solving dependencies... Done
+0 upgraded, 0 newly installed, 0 to remove and 28 not upgraded.
+[ok] R instalado
+[..] Instalando pacotes R via binários pré-compilados (sem compilação)...
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Solving dependencies... Done
+The following additional packages will be installed:
+  libjs-jquery node-html5shiv r-cran-askpass r-cran-classint
+  r-cran-cpp11 r-cran-dbi r-cran-digest r-cran-e1071
+  r-cran-fansi r-cran-fastmap r-cran-generics r-cran-globals
+  r-cran-later r-cran-listenv r-cran-littler r-cran-magrittr
+  r-cran-mime r-cran-openssl r-cran-parallelly
+  r-cran-pkgconfig r-cran-pkgkitten r-cran-proxy
+  r-cran-purrr r-cran-r6 r-cran-rcpp r-cran-s2 r-cran-sys
+  r-cran-tidyselect r-cran-utf8 r-cran-withr r-cran-wk
+Suggested packages:
+  nodejs r-cran-rmysql r-cran-covr r-cran-getopt
+  r-cran-knitr r-cran-rmarkdown r-cran-testthat
+  r-cran-inline
+Recommended packages:
+  javascript-common r-cran-testthat r-cran-spdata
+  r-cran-knitr r-cran-rmarkdown r-cran-tinytest r-cran-callr
+  r-cran-covr r-cran-crayon r-cran-htmltools
+  r-cran-htmlwidgets r-cran-processx r-cran-ps
+  r-cran-rprojroot r-cran-rstudioapi r-cran-whoami
+  r-cran-bench r-cran-brio r-cran-decor r-cran-desc
+  r-cran-ggplot2 r-cran-lobstr r-cran-mockery
+  r-cran-progress r-cran-scales r-cran-spelling
+  r-cran-httpuv r-cran-webutils r-cran-broom r-cran-dbplyr
+  r-cran-microbenchmark r-cran-rmysql r-cran-rpostgresql
+  r-cran-rsqlite r-cran-unitizer r-cran-rhpcblasctl
+  r-cran-r.rsp r-cran-markdown r-cran-pkgload r-cran-waldo
+  r-cran-jpeg r-cran-png r-cran-readr r-cran-lintr
+  r-cran-tidyverse r-cran-r.utils r-cran-sodium
+  r-cran-commonmark r-cran-base64enc r-cran-bit64
+  r-cran-diagrammer r-cran-formattable r-cran-lubridate
+  r-cran-nanotime r-cran-palmerpenguins r-cran-vdiffr
+  r-cran-cba r-cran-fs r-cran-usethis r-cran-blob
+  r-cran-nanoarrow r-cran-lwgeom r-cran-maps r-cran-pbapply
+  r-cran-raster r-cran-sp r-cran-spatstat
+  r-cran-spatstat.geom r-cran-spatstat.random
+  r-cran-spatstat.linnet r-cran-spatstat.utils r-cran-stars
+  r-cran-terra r-cran-evaluate r-cran-here r-cran-hms
+  r-cran-pkgbuild r-cran-data.table r-cran-rvest
+  r-cran-pkgdown r-cran-zeallot r-cran-xslt
+The following NEW packages will be installed:
+  libjs-jquery node-html5shiv r-cran-askpass r-cran-classint
+  r-cran-cli r-cran-cpp11 r-cran-curl r-cran-dbi
+  r-cran-digest r-cran-dplyr r-cran-e1071 r-cran-fansi
+  r-cran-fastmap r-cran-future r-cran-generics
+  r-cran-globals r-cran-glue r-cran-httr r-cran-jsonlite
+  r-cran-later r-cran-lifecycle r-cran-listenv
+  r-cran-littler r-cran-magrittr r-cran-mime r-cran-openssl
+  r-cran-parallelly r-cran-pillar r-cran-pkgconfig
+  r-cran-pkgkitten r-cran-promises r-cran-proxy r-cran-purrr
+  r-cran-r6 r-cran-rcpp r-cran-rlang r-cran-s2 r-cran-sf
+  r-cran-stringi r-cran-stringr r-cran-sys r-cran-tibble
+  r-cran-tidyr r-cran-tidyselect r-cran-units r-cran-utf8
+  r-cran-vctrs r-cran-withr r-cran-wk r-cran-xml2
+0 upgraded, 50 newly installed, 0 to remove and 28 not upgraded.
+Need to get 27.3 MB of archives.
+After this operation, 51.9 MB of additional disk space will be used.
+Get:1 http://ports.ubuntu.com/ubuntu-ports questing/main arm64 libjs-jquery all 3.6.1+dfsg+~3.5.14-1 [328 kB]
+Get:2 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 node-html5shiv all 3.7.3+dfsg-5 [13.5 kB]
+Get:3 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-sys arm64 3.4.3-1 [45.2 kB]
+Get:4 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-askpass arm64 1.2.1-1 [24.8 kB]
+Get:5 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-proxy arm64 0.4-27-1 [181 kB]
+Get:6 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-e1071 arm64 1.7-16-1 [563 kB]
+Get:7 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-classint arm64 0.4-11+dfsg-1 [108 kB]
+Get:8 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-cli arm64 3.6.4-1 [1,374 kB]
+Get:9 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-cpp11 all 0.5.2-1 [233 kB]
+Get:10 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-curl arm64 6.2.1+dfsg-1ubuntu1 [196 kB]
+Get:11 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-dbi all 1.2.3-1 [853 kB]
+Get:12 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-digest arm64 0.6.37-1 [200 kB]
+Get:13 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-generics all 0.1.3-1 [81.3 kB]
+Get:14 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-glue arm64 1.8.0-1 [163 kB]
+Get:15 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-rlang arm64 1.1.5-3 [1,706 kB]
+Get:16 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-lifecycle all 1.0.4+dfsg-1 [110 kB]
+Get:17 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-magrittr arm64 2.0.3-1 [154 kB]
+Get:18 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-utf8 arm64 1.2.4-1 [140 kB]
+Get:19 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-vctrs arm64 0.6.5-1 [1,327 kB]
+Get:20 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-pillar all 1.10.1+dfsg-1 [453 kB]
+Get:21 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-r6 all 2.6.1-1 [101 kB]
+Get:22 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-fansi arm64 1.0.6-2 [627 kB]
+Get:23 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-pkgconfig all 2.0.3-2build1 [19.7 kB]
+Get:24 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-tibble arm64 3.2.1+dfsg-3 [420 kB]
+Get:25 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-withr all 3.0.2+dfsg-1 [214 kB]
+Get:26 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-tidyselect arm64 1.2.1+dfsg-1 [222 kB]
+Get:27 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-dplyr arm64 1.1.4-4 [1,534 kB]
+Get:28 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-fastmap arm64 1.2.0-1 [70.6 kB]
+Get:29 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-globals all 0.16.3-1 [120 kB]
+Get:30 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-listenv all 0.9.1+dfsg-1 [112 kB]
+Get:31 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-parallelly arm64 1.42.0-1 [540 kB]
+Get:32 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-future all 1.34.0+dfsg-1 [646 kB]
+Get:33 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-jsonlite arm64 1.9.1+dfsg-1 [445 kB]
+Get:34 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-mime arm64 0.12-2 [35.8 kB]
+Get:35 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-openssl arm64 2.3.2+dfsg-1 [406 kB]
+Get:36 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-httr all 1.4.7+dfsg-1 [459 kB]
+Get:37 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-littler arm64 0.3.21-1 [99.7 kB]
+Get:38 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-pkgkitten all 0.2.4-1 [27.2 kB]
+Get:39 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-rcpp arm64 1.1.0-1 [2,011 kB]
+Get:40 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-later arm64 1.4.1+dfsg-1 [141 kB]
+Get:41 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-promises arm64 1.3.2+dfsg-1 [290 kB]
+Get:42 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-purrr arm64 1.0.4-1 [552 kB]
+Get:43 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-wk arm64 0.9.4-1 [1,790 kB]
+Get:44 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-s2 arm64 1.1.7-2 [1,987 kB]
+Get:45 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-units arm64 0.8-7+dfsg-2 [289 kB]
+Get:46 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-sf arm64 1.0-19+dfsg-2 [3,245 kB]
+Get:47 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-stringi arm64 1.8.4-1build1 [902 kB]
+Get:48 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-stringr all 1.5.1-1 [290 kB]
+Get:49 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-tidyr arm64 1.3.1-1 [1,154 kB]
+Get:50 http://ports.ubuntu.com/ubuntu-ports questing/universe arm64 r-cran-xml2 arm64 1.4.0-1 [328 kB]
+Fetched 27.3 MB in 9s (3,045 kB/s)
+Selecting previously unselected package libjs-jquery.
+(Reading database ... 44118 files and directories currently installed.)
+Preparing to unpack .../00-libjs-jquery_3.6.1+dfsg+~3.5.14-1_all.deb ...
+Unpacking libjs-jquery (3.6.1+dfsg+~3.5.14-1) ...
+Selecting previously unselected package node-html5shiv.
+Preparing to unpack .../01-node-html5shiv_3.7.3+dfsg-5_all.deb ...
+Unpacking node-html5shiv (3.7.3+dfsg-5) ...
+Selecting previously unselected package r-cran-sys.
+Preparing to unpack .../02-r-cran-sys_3.4.3-1_arm64.deb ...
+Unpacking r-cran-sys (3.4.3-1) ...
+Selecting previously unselected package r-cran-askpass.
+Preparing to unpack .../03-r-cran-askpass_1.2.1-1_arm64.deb ...
+Unpacking r-cran-askpass (1.2.1-1) ...
+Selecting previously unselected package r-cran-proxy.
+Preparing to unpack .../04-r-cran-proxy_0.4-27-1_arm64.deb ...
+Unpacking r-cran-proxy (0.4-27-1) ...
+Selecting previously unselected package r-cran-e1071.
+Preparing to unpack .../05-r-cran-e1071_1.7-16-1_arm64.deb ...
+Unpacking r-cran-e1071 (1.7-16-1) ...
+Selecting previously unselected package r-cran-classint.
+Preparing to unpack .../06-r-cran-classint_0.4-11+dfsg-1_arm64.deb ...
+Unpacking r-cran-classint (0.4-11+dfsg-1) ...
+Selecting previously unselected package r-cran-cli.
+Preparing to unpack .../07-r-cran-cli_3.6.4-1_arm64.deb ...
+Unpacking r-cran-cli (3.6.4-1) ...
+Selecting previously unselected package r-cran-cpp11.
+Preparing to unpack .../08-r-cran-cpp11_0.5.2-1_all.deb ...
+Unpacking r-cran-cpp11 (0.5.2-1) ...
+Selecting previously unselected package r-cran-curl.
+Preparing to unpack .../09-r-cran-curl_6.2.1+dfsg-1ubuntu1_arm64.deb ...
+Unpacking r-cran-curl (6.2.1+dfsg-1ubuntu1) ...
+Selecting previously unselected package r-cran-dbi.
+Preparing to unpack .../10-r-cran-dbi_1.2.3-1_all.deb ...
+Unpacking r-cran-dbi (1.2.3-1) ...
+Selecting previously unselected package r-cran-digest.
+Preparing to unpack .../11-r-cran-digest_0.6.37-1_arm64.deb ...
+Unpacking r-cran-digest (0.6.37-1) ...
+Selecting previously unselected package r-cran-generics.
+Preparing to unpack .../12-r-cran-generics_0.1.3-1_all.deb ...
+Unpacking r-cran-generics (0.1.3-1) ...
+Selecting previously unselected package r-cran-glue.
+Preparing to unpack .../13-r-cran-glue_1.8.0-1_arm64.deb ...
+Unpacking r-cran-glue (1.8.0-1) ...
+Selecting previously unselected package r-cran-rlang.
+Preparing to unpack .../14-r-cran-rlang_1.1.5-3_arm64.deb ...
+Unpacking r-cran-rlang (1.1.5-3) ...
+Selecting previously unselected package r-cran-lifecycle.
+Preparing to unpack .../15-r-cran-lifecycle_1.0.4+dfsg-1_all.deb ...
+Unpacking r-cran-lifecycle (1.0.4+dfsg-1) ...
+Selecting previously unselected package r-cran-magrittr.
+Preparing to unpack .../16-r-cran-magrittr_2.0.3-1_arm64.deb ...
+Unpacking r-cran-magrittr (2.0.3-1) ...
+Selecting previously unselected package r-cran-utf8.
+Preparing to unpack .../17-r-cran-utf8_1.2.4-1_arm64.deb ...
+Unpacking r-cran-utf8 (1.2.4-1) ...
+Selecting previously unselected package r-cran-vctrs.
+Preparing to unpack .../18-r-cran-vctrs_0.6.5-1_arm64.deb ...
+Unpacking r-cran-vctrs (0.6.5-1) ...
+Selecting previously unselected package r-cran-pillar.
+Preparing to unpack .../19-r-cran-pillar_1.10.1+dfsg-1_all.deb ...
+Unpacking r-cran-pillar (1.10.1+dfsg-1) ...
+Selecting previously unselected package r-cran-r6.
+Preparing to unpack .../20-r-cran-r6_2.6.1-1_all.deb ...
+Unpacking r-cran-r6 (2.6.1-1) ...
+Selecting previously unselected package r-cran-fansi.
+Preparing to unpack .../21-r-cran-fansi_1.0.6-2_arm64.deb ...
+Unpacking r-cran-fansi (1.0.6-2) ...
+Selecting previously unselected package r-cran-pkgconfig.
+Preparing to unpack .../22-r-cran-pkgconfig_2.0.3-2build1_all.deb ...
+Unpacking r-cran-pkgconfig (2.0.3-2build1) ...
+Selecting previously unselected package r-cran-tibble.
+Preparing to unpack .../23-r-cran-tibble_3.2.1+dfsg-3_arm64.deb ...
+Unpacking r-cran-tibble (3.2.1+dfsg-3) ...
+Selecting previously unselected package r-cran-withr.
+Preparing to unpack .../24-r-cran-withr_3.0.2+dfsg-1_all.deb ...
+Unpacking r-cran-withr (3.0.2+dfsg-1) ...
+Selecting previously unselected package r-cran-tidyselect.
+Preparing to unpack .../25-r-cran-tidyselect_1.2.1+dfsg-1_arm64.deb ...
+Unpacking r-cran-tidyselect (1.2.1+dfsg-1) ...
+Selecting previously unselected package r-cran-dplyr.
+Preparing to unpack .../26-r-cran-dplyr_1.1.4-4_arm64.deb ...
+Unpacking r-cran-dplyr (1.1.4-4) ...
+Selecting previously unselected package r-cran-fastmap.
+Preparing to unpack .../27-r-cran-fastmap_1.2.0-1_arm64.deb ...
+Unpacking r-cran-fastmap (1.2.0-1) ...
+Selecting previously unselected package r-cran-globals.
+Preparing to unpack .../28-r-cran-globals_0.16.3-1_all.deb ...
+Unpacking r-cran-globals (0.16.3-1) ...
+Selecting previously unselected package r-cran-listenv.
+Preparing to unpack .../29-r-cran-listenv_0.9.1+dfsg-1_all.deb ...
+Unpacking r-cran-listenv (0.9.1+dfsg-1) ...
+Selecting previously unselected package r-cran-parallelly.
+Preparing to unpack .../30-r-cran-parallelly_1.42.0-1_arm64.deb ...
+Unpacking r-cran-parallelly (1.42.0-1) ...
+Selecting previously unselected package r-cran-future.
+Preparing to unpack .../31-r-cran-future_1.34.0+dfsg-1_all.deb ...
+Unpacking r-cran-future (1.34.0+dfsg-1) ...
+Selecting previously unselected package r-cran-jsonlite.
+Preparing to unpack .../32-r-cran-jsonlite_1.9.1+dfsg-1_arm64.deb ...
+Unpacking r-cran-jsonlite (1.9.1+dfsg-1) ...
+Selecting previously unselected package r-cran-mime.
+Preparing to unpack .../33-r-cran-mime_0.12-2_arm64.deb ...
+Unpacking r-cran-mime (0.12-2) ...
+Selecting previously unselected package r-cran-openssl.
+Preparing to unpack .../34-r-cran-openssl_2.3.2+dfsg-1_arm64.deb ...
+Unpacking r-cran-openssl (2.3.2+dfsg-1) ...
+Selecting previously unselected package r-cran-httr.
+Preparing to unpack .../35-r-cran-httr_1.4.7+dfsg-1_all.deb ...
+Unpacking r-cran-httr (1.4.7+dfsg-1) ...
+Selecting previously unselected package r-cran-littler.
+Preparing to unpack .../36-r-cran-littler_0.3.21-1_arm64.deb ...
+Unpacking r-cran-littler (0.3.21-1) ...
+Selecting previously unselected package r-cran-pkgkitten.
+Preparing to unpack .../37-r-cran-pkgkitten_0.2.4-1_all.deb ...
+Unpacking r-cran-pkgkitten (0.2.4-1) ...
+Selecting previously unselected package r-cran-rcpp.
+Preparing to unpack .../38-r-cran-rcpp_1.1.0-1_arm64.deb ...
+Unpacking r-cran-rcpp (1.1.0-1) ...
+Selecting previously unselected package r-cran-later.
+Preparing to unpack .../39-r-cran-later_1.4.1+dfsg-1_arm64.deb ...
+Unpacking r-cran-later (1.4.1+dfsg-1) ...
+Selecting previously unselected package r-cran-promises.
+Preparing to unpack .../40-r-cran-promises_1.3.2+dfsg-1_arm64.deb ...
+Unpacking r-cran-promises (1.3.2+dfsg-1) ...
+Selecting previously unselected package r-cran-purrr.
+Preparing to unpack .../41-r-cran-purrr_1.0.4-1_arm64.deb ...
+Unpacking r-cran-purrr (1.0.4-1) ...
+Selecting previously unselected package r-cran-wk.
+Preparing to unpack .../42-r-cran-wk_0.9.4-1_arm64.deb ...
+Unpacking r-cran-wk (0.9.4-1) ...
+Selecting previously unselected package r-cran-s2.
+Preparing to unpack .../43-r-cran-s2_1.1.7-2_arm64.deb ...
+Unpacking r-cran-s2 (1.1.7-2) ...
+Selecting previously unselected package r-cran-units.
+Preparing to unpack .../44-r-cran-units_0.8-7+dfsg-2_arm64.deb ...
+Unpacking r-cran-units (0.8-7+dfsg-2) ...
+Selecting previously unselected package r-cran-sf.
+Preparing to unpack .../45-r-cran-sf_1.0-19+dfsg-2_arm64.deb ...
+Unpacking r-cran-sf (1.0-19+dfsg-2) ...
+Selecting previously unselected package r-cran-stringi.
+Preparing to unpack .../46-r-cran-stringi_1.8.4-1build1_arm64.deb ...
+Unpacking r-cran-stringi (1.8.4-1build1) ...
+Selecting previously unselected package r-cran-stringr.
+Preparing to unpack .../47-r-cran-stringr_1.5.1-1_all.deb ...
+Unpacking r-cran-stringr (1.5.1-1) ...
+Selecting previously unselected package r-cran-tidyr.
+Preparing to unpack .../48-r-cran-tidyr_1.3.1-1_arm64.deb ...
+Unpacking r-cran-tidyr (1.3.1-1) ...
+Selecting previously unselected package r-cran-xml2.
+Preparing to unpack .../49-r-cran-xml2_1.4.0-1_arm64.deb ...
+Unpacking r-cran-xml2 (1.4.0-1) ...
+Setting up r-cran-curl (6.2.1+dfsg-1ubuntu1) ...
+Setting up r-cran-rlang (1.1.5-3) ...
+Setting up r-cran-listenv (0.9.1+dfsg-1) ...
+Setting up r-cran-sys (3.4.3-1) ...
+Setting up r-cran-withr (3.0.2+dfsg-1) ...
+Setting up r-cran-mime (0.12-2) ...
+Setting up r-cran-generics (0.1.3-1) ...
+Setting up r-cran-digest (0.6.37-1) ...
+Setting up r-cran-dbi (1.2.3-1) ...
+Setting up node-html5shiv (3.7.3+dfsg-5) ...
+Setting up r-cran-fansi (1.0.6-2) ...
+Setting up r-cran-glue (1.8.0-1) ...
+Setting up r-cran-cli (3.6.4-1) ...
+Setting up r-cran-lifecycle (1.0.4+dfsg-1) ...
+Setting up r-cran-askpass (1.2.1-1) ...
+Setting up r-cran-fastmap (1.2.0-1) ...
+Setting up r-cran-jsonlite (1.9.1+dfsg-1) ...
+Setting up r-cran-pkgconfig (2.0.3-2build1) ...
+Setting up r-cran-utf8 (1.2.4-1) ...
+Setting up r-cran-parallelly (1.42.0-1) ...
+Setting up r-cran-stringi (1.8.4-1build1) ...
+Setting up r-cran-cpp11 (0.5.2-1) ...
+Setting up r-cran-wk (0.9.4-1) ...
+Setting up libjs-jquery (3.6.1+dfsg+~3.5.14-1) ...
+Setting up r-cran-proxy (0.4-27-1) ...
+Setting up r-cran-r6 (2.6.1-1) ...
+Setting up r-cran-pkgkitten (0.2.4-1) ...
+Setting up r-cran-globals (0.16.3-1) ...
+Setting up r-cran-magrittr (2.0.3-1) ...
+Setting up r-cran-vctrs (0.6.5-1) ...
+Setting up r-cran-littler (0.3.21-1) ...
+Setting up r-cran-pillar (1.10.1+dfsg-1) ...
+Setting up r-cran-rcpp (1.1.0-1) ...
+Setting up r-cran-openssl (2.3.2+dfsg-1) ...
+Setting up r-cran-stringr (1.5.1-1) ...
+Setting up r-cran-s2 (1.1.7-2) ...
+Setting up r-cran-xml2 (1.4.0-1) ...
+Setting up r-cran-tibble (3.2.1+dfsg-3) ...
+Setting up r-cran-future (1.34.0+dfsg-1) ...
+Setting up r-cran-tidyselect (1.2.1+dfsg-1) ...
+Setting up r-cran-httr (1.4.7+dfsg-1) ...
+Setting up r-cran-purrr (1.0.4-1) ...
+Setting up r-cran-e1071 (1.7-16-1) ...
+Setting up r-cran-units (0.8-7+dfsg-2) ...
+Setting up r-cran-later (1.4.1+dfsg-1) ...
+Setting up r-cran-dplyr (1.1.4-4) ...
+Setting up r-cran-classint (0.4-11+dfsg-1) ...
+Setting up r-cran-promises (1.3.2+dfsg-1) ...
+Setting up r-cran-tidyr (1.3.1-1) ...
+Setting up r-cran-sf (1.0-19+dfsg-2) ...
+Instalando plumber...
+Installing package into ‘/usr/local/lib/R/site-library’
+(as ‘lib’ is unspecified)
+also installing the dependencies ‘sass’, ‘fs’, ‘pkgbuild’, ‘geometries’, ‘jsonify’, ‘sfheaders’, ‘knitr’, ‘systemfonts’, ‘textshaping’, ‘hms’, ‘vroom’, ‘tzdb’, ‘cellranger’, ‘progress’, ‘bslib’, ‘hunspell’, ‘callr’, ‘pkgload’, ‘processx’, ‘waldo’, ‘httpuv’, ‘sodium’, ‘webutils’, ‘arrow’, ‘coro’, ‘geojsonsf’, ‘htmlwidgets’, ‘ragg’, ‘readr’, ‘readxl’, ‘redoc’, ‘rmarkdown’, ‘spelling’, ‘svglite’, ‘testthat’, ‘visNetwork’
+
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/sass_0.4.10.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/fs_2.1.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/pkgbuild_1.4.8.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/geometries_0.2.5.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/jsonify_1.2.3.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/sfheaders_0.4.5.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/knitr_1.51.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/systemfonts_1.3.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/textshaping_1.0.5.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/hms_1.1.4.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/vroom_1.7.1.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/tzdb_0.5.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/cellranger_1.1.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/progress_1.2.3.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/bslib_0.10.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/hunspell_3.0.6.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/callr_3.7.6.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/pkgload_1.5.1.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/processx_3.8.7.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/waldo_0.6.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/httpuv_1.6.17.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/sodium_1.4.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/webutils_1.2.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/arrow_23.0.1.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/coro_1.1.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/geojsonsf_2.0.5.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/htmlwidgets_1.6.4.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/ragg_1.5.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/readr_2.2.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/readxl_1.4.5.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/redoc_2.0.0.75.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/rmarkdown_2.31.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/spelling_2.3.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/svglite_2.2.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/testthat_3.3.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/visNetwork_2.1.4.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/plumber_1.3.3.tar.gz'
+begin installing package ‘fs’
+begin installing package ‘geometries’
+begin installing package ‘jsonify’
+begin installing package ‘knitr’
+begin installing package ‘systemfonts’
+begin installing package ‘hms’
+begin installing package ‘tzdb’
+make: *** [Makefile:39: tzdb.ts] Error 3
+begin installing package ‘cellranger’
+make: *** [Makefile:19: jsonify.ts] Error 3
+begin installing package ‘hunspell’
+make: *** [Makefile:29: systemfonts.ts] Error 1
+begin installing package ‘processx’
+make: *** [Makefile:9: fs.ts] Error 1
+begin installing package ‘waldo’
+* installing *source* package ‘hms’ ...
+** this is package ‘hms’ version ‘1.1.4’
+** package ‘hms’ successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+*** copying figures
+** building package indices
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (hms)
+make: *** [Makefile:59: waldo.ts] Error 3
+* installing *source* package ‘cellranger’ ...
+** this is package ‘cellranger’ version ‘1.1.0’
+** package ‘cellranger’ successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (cellranger)
+begin installing package ‘httpuv’
+begin installing package ‘sodium’
+begin installing package ‘webutils’
+make: *** [Makefile:49: hunspell.ts] Error 3
+begin installing package ‘arrow’
+make: *** [Makefile:54: processx.ts] Error 3
+begin installing package ‘coro’
+make: *** [Makefile:24: knitr.ts] Error 3
+begin installing package ‘redoc’
+make: *** [Makefile:14: geometries.ts] Error 3
+begin installing package ‘progress’
+make: *** [Makefile:69: sodium.ts] Error 1
+* installing *source* package ‘redoc’ ...
+** this is package ‘redoc’ version ‘2.0.0.75’
+** package ‘redoc’ successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (redoc)
+* installing *source* package ‘webutils’ ...
+** this is package ‘webutils’ version ‘1.2.2’
+** package ‘webutils’ successfully unpacked and MD5 sums checked
+** using staged installation
+** libs
+using C compiler: ‘gcc (Ubuntu 15.2.0-4ubuntu4) 15.2.0’
+make[1]: Entering directory '/tmp/RtmpgaeA7t/R.INSTALL7ed9641af308/webutils/src'
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c memmem.c -o memmem.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c register.c -o register.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG       -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c split.c -o split.o
+gcc -std=gnu23 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -Wl,-z,relro -o webutils.so memmem.o register.o split.o -L/usr/lib/R/lib -lR
+/usr/lib/R/lib/libR.so: warning: GCS is required by -z gcs, but this shared library lacks the necessary property note. The dynamic loader might not enable GCS or refuse to load the program unless all the shared library dependencies have the GCS marking.
+make[1]: Leaving directory '/tmp/RtmpgaeA7t/R.INSTALL7ed9641af308/webutils/src'
+installing to /usr/local/lib/R/site-library/00LOCK-webutils/00new/webutils/libs
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+CANNOT LINK EXECUTABLE "file": "/usr/lib/aarch64-linux-gnu/libc.so" has bad ELF magic: 2f2a2047
+Warning in system(paste("file", shQuote(l)), intern = TRUE) :
+  running command 'file '/usr/local/lib/R/site-library/00LOCK-webutils/00new/webutils/libs/webutils.so'' had status 1
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (webutils)
+* installing *source* package ‘progress’ ...
+** this is package ‘progress’ version ‘1.2.3’
+** package ‘progress’ successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+*** copying figures
+** building package indices
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (progress)
+begin installing package ‘readxl’
+* installing *source* package ‘coro’ ...
+** this is package ‘coro’ version ‘1.1.0’
+** package ‘coro’ successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+*** copying figures
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (coro)
+make: *** [Makefile:79: arrow.ts] Error 1
+* installing *source* package ‘readxl’ ...
+** this is package ‘readxl’ version ‘1.4.5’
+** package ‘readxl’ successfully unpacked and MD5 sums checked
+** using staged installation
+** libs
+using C compiler: ‘gcc (Ubuntu 15.2.0-4ubuntu4) 15.2.0’
+using C++ compiler: ‘g++ (Ubuntu 15.2.0-4ubuntu4) 15.2.0’
+make[1]: Entering directory '/tmp/Rtmp258DXB/R.INSTALL22c744dc983/readxl/src'
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c cpp11.cpp -o cpp11.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c XlsWorkBook.cpp -o XlsWorkBook.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c XlsxWorkBook.cpp -o XlsxWorkBook.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c zip.cpp -o zip.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c Read.cpp -o Read.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c cran.c -o cran.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c libxls/xlstool.c -o libxls/xlstool.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c libxls/endian.c -o libxls/endian.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c libxls/ole.c -o libxls/ole.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c libxls/xls.c -o libxls/xls.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG -Iunix -I. -I'/usr/local/lib/R/site-library/cpp11/include' -I'/usr/local/lib/R/site-library/progress/include'    -fvisibility=hidden -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c libxls/locale.c -o libxls/locale.o
+g++ -std=gnu++17 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -Wl,-z,relro -o readxl.so cpp11.o XlsWorkBook.o XlsxWorkBook.o zip.o Read.o cran.o libxls/xlstool.o libxls/endian.o libxls/ole.o libxls/xls.o libxls/locale.o -L/usr/lib/R/lib -lR
+/usr/lib/R/lib/libR.so: warning: GCS is required by -z gcs, but this shared library lacks the necessary property note. The dynamic loader might not enable GCS or refuse to load the program unless all the shared library dependencies have the GCS marking.
+make[1]: Leaving directory '/tmp/Rtmp258DXB/R.INSTALL22c744dc983/readxl/src'
+installing to /usr/local/lib/R/site-library/00LOCK-readxl/00new/readxl/libs
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+*** copying figures
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+CANNOT LINK EXECUTABLE "file": "/usr/lib/aarch64-linux-gnu/libc.so" has bad ELF magic: 2f2a2047
+Warning in system(paste("file", shQuote(l)), intern = TRUE) :
+  running command 'file '/usr/local/lib/R/site-library/00LOCK-readxl/00new/readxl/libs/readxl.so'' had status 1
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (readxl)
+make: *** [Makefile:64: httpuv.ts] Error 1
+make: Target 'all' not remade because of errors.
+* installing *source* package ‘fs’ ...
+** this is package ‘fs’ version ‘2.1.0’
+** package ‘fs’ successfully unpacked and MD5 sums checked
+** using staged installation
+Package libuv was not found in the pkg-config search path.
+Perhaps you should add the directory containing `libuv.pc'
+to the PKG_CONFIG_PATH environment variable
+Package 'libuv', required by 'virtual:world', not found
+Using PKG_CFLAGS=
+Using PKG_LIBS=-luv
+--------------------------- [CONFIGURE] --------------------------------
+Configuration failed because libuv was not found. Try installing:
+ * deb: libuv1-dev (Debian, Ubuntu, etc)
+ * rpm: libuv-devel (Fedora, EPEL)
+ * brew: libuv (OSX)
+Alternatively set environment variable USE_BUNDLED_LIBUV=1 to build a static
+version of libuv that is included with this package.
+-------------------------- [ERROR MESSAGE] ---------------------------
+<stdin>:1:10: fatal error: uv.h: No such file or directory
+compilation terminated.
+--------------------------------------------------------------------
+ERROR: configuration failed for package ‘fs’
+* removing ‘/usr/local/lib/R/site-library/fs’
+ERROR: failed to lock directory ‘/usr/local/lib/R/site-library’ for modifying
+Try removing ‘/usr/local/lib/R/site-library/00LOCK-geometries’
+ERROR: failed to lock directory ‘/usr/local/lib/R/site-library’ for modifying
+Try removing ‘/usr/local/lib/R/site-library/00LOCK-jsonify’
+ERROR: failed to lock directory ‘/usr/local/lib/R/site-library’ for modifying
+Try removing ‘/usr/local/lib/R/site-library/00LOCK-knitr’
+* installing *source* package ‘systemfonts’ ...
+** this is package ‘systemfonts’ version ‘1.3.2’
+** package ‘systemfonts’ successfully unpacked and MD5 sums checked
+** using staged installation
+Package fontconfig was not found in the pkg-config search path.
+Perhaps you should add the directory containing `fontconfig.pc'
+to the PKG_CONFIG_PATH environment variable
+Package 'fontconfig', required by 'virtual:world', not found
+Package 'freetype2', required by 'virtual:world', not found
+Using PKG_CFLAGS=
+Using PKG_LIBS=-lfontconfig -lfreetype
+--------------------------- [ANTICONF] --------------------------------
+Configuration failed to find the fontconfig freetype2 library. Try installing:
+ * deb: libfontconfig1-dev (Debian, Ubuntu, etc)
+ * rpm: fontconfig-devel (Fedora, EPEL)
+ * csw: fontconfig_dev (Solaris)
+ * apk: harfbuzz-dev fribidi-dev (Alpine)
+ * brew: freetype (OSX)
+If fontconfig freetype2 is already installed, check that 'pkg-config' is in your
+PATH and PKG_CONFIG_PATH contains a fontconfig freetype2.pc file. If pkg-config
+is unavailable you can set INCLUDE_DIR and LIB_DIR manually via:
+R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'
+-------------------------- [ERROR MESSAGE] ---------------------------
+<stdin>:1:10: fatal error: fontconfig/fontconfig.h: No such file or directory
+compilation terminated.
+--------------------------------------------------------------------
+ERROR: configuration failed for package ‘systemfonts’
+* removing ‘/usr/local/lib/R/site-library/systemfonts’
+ERROR: failed to lock directory ‘/usr/local/lib/R/site-library’ for modifying
+Try removing ‘/usr/local/lib/R/site-library/00LOCK-tzdb’
+ERROR: failed to lock directory ‘/usr/local/lib/R/site-library’ for modifying
+Try removing ‘/usr/local/lib/R/site-library/00LOCK-hunspell’
+ERROR: failed to lock directory ‘/usr/local/lib/R/site-library’ for modifying
+Try removing ‘/usr/local/lib/R/site-library/00LOCK-processx’
+ERROR: failed to lock directory ‘/usr/local/lib/R/site-library’ for modifying
+Try removing ‘/usr/local/lib/R/site-library/00LOCK-waldo’
+* installing *source* package ‘httpuv’ ...
+** this is package ‘httpuv’ version ‘1.6.17’
+** package ‘httpuv’ successfully unpacked and MD5 sums checked
+** using staged installation
+** Using bundled copy of libuv
+** PKG_CFLAGS=-Ilibuv/include
+** PKG_LIBS=./libuv/.libs/libuv.b
+** libs
+using C compiler: ‘gcc (Ubuntu 15.2.0-4ubuntu4) 15.2.0’
+using C++ compiler: ‘g++ (Ubuntu 15.2.0-4ubuntu4) 15.2.0’
+make[1]: Entering directory '/tmp/Rtmp2IzWRv/R.INSTALL7ec73155dc2b/httpuv/src'
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c RcppExports.cpp -o RcppExports.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c callback.cpp -o callback.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c callbackqueue.cpp -o callbackqueue.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c filedatasource-unix.cpp -o filedatasource-unix.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c filedatasource-win.cpp -o filedatasource-win.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c fs.cpp -o fs.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c gzipdatasource.cpp -o gzipdatasource.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c http.cpp -o http.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c httprequest.cpp -o httprequest.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c httpresponse.cpp -o httpresponse.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c httpuv.cpp -o httpuv.o
+gcc -std=gnu23 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -c md5.c -o md5.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c mime.cpp -o mime.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c socket.cpp -o socket.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c staticpath.cpp -o staticpath.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c thread.cpp -o thread.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c timegm.cpp -o timegm.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c utils.cpp -o utils.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c uvutil.cpp -o uvutil.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c webapplication.cpp -o webapplication.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c websockets-base.cpp -o websockets-base.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c websockets-hixie76.cpp -o websockets-hixie76.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c websockets-hybi03.cpp -o websockets-hybi03.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c websockets-ietf.cpp -o websockets-ietf.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c websockets.cpp -o websockets.o
+g++ -std=gnu++17 -I"/usr/share/R/include" -DNDEBUG -Ilibuv/include -pthread -I'/usr/lib/R/site-library/later/include' -I'/usr/local/lib/R/site-library/Rcpp/include'    -fvisibility=hidden -DSTRICT_R_HEADERS -fPIC  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3   -c winutils.cpp -o winutils.o
+cp -p -f libuv/m4/lt_obsolete.m4 libuv/m4/lt~obsolete.m4
+cd libuv; \
+touch aclocal.m4 configure.ac Makefile.am m4/*.m4; \
+touch -r aclocal.m4 configure Makefile.in; \
+chmod +x configure; \
+CC="gcc -std=gnu23" CFLAGS="-g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -mbranch-protection=standard -fdebug-prefix-map=/build/r-base-ik6IvA/r-base-4.5.1=/usr/src/r-base-4.5.1-1 -Wdate-time -D_FORTIFY_SOURCE=3  -fPIC -fvisibility=hidden -DNDEBUG" CPPFLAGS="" AR="ar" RANLIB="ranlib" LDFLAGS="-Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -Wl,-z,relro" ./configure lt_cv_apple_cc_single_mod=no "--quiet"
+CANNOT LINK EXECUTABLE "gawk": "/usr/lib/aarch64-linux-gnu/libm.so" has bad ELF magic: 2f2a2047
+config.status: error: could not create Makefile
+make[1]: *** [Makevars:64: libuv/Makefile] Error 1
+make[1]: Leaving directory '/tmp/Rtmp2IzWRv/R.INSTALL7ec73155dc2b/httpuv/src'
+ERROR: compilation failed for package ‘httpuv’
+* removing ‘/usr/local/lib/R/site-library/httpuv’
+* installing *source* package ‘sodium’ ...
+** this is package ‘sodium’ version ‘1.4.0’
+** package ‘sodium’ successfully unpacked and MD5 sums checked
+** using staged installation
+Package libsodium was not found in the pkg-config search path.
+Perhaps you should add the directory containing `libsodium.pc'
+to the PKG_CONFIG_PATH environment variable
+Package 'libsodium', required by 'virtual:world', not found
+Using PKG_CFLAGS=
+Using PKG_LIBS=-lsodium
+--------------------------- [ANTICONF] --------------------------------
+Configuration failed because libsodium was not found. Try installing:
+ * deb: libsodium-dev (Debian, Ubuntu, etc)
+ * rpm: libsodium-devel (Fedora, EPEL)
+ * csw: libsodium_dev (Solaris)
+ * brew: libsodium (OSX)
+If libsodium is already installed, check that 'pkg-config' is in your
+PATH and PKG_CONFIG_PATH contains a libsodium.pc file. If pkg-config
+is unavailable you can set INCLUDE_DIR and LIB_DIR manually via:
+R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'
+-------------------------- [ERROR MESSAGE] ---------------------------
+<stdin>:1:10: fatal error: sodium.h: No such file or directory
+compilation terminated.
+--------------------------------------------------------------------
+ERROR: configuration failed for package ‘sodium’
+* removing ‘/usr/local/lib/R/site-library/sodium’
+* installing *source* package ‘arrow’ ...
+** this is package ‘arrow’ version ‘23.0.1.2’
+** package ‘arrow’ successfully unpacked and MD5 sums checked
+** using staged installation
+*** pkg-config found.
+*** Building on linux aarch64
+*** Found local C++ source: 'tools/cpp'
+*** Building libarrow from source
+    For build options and troubleshooting, see the install guide:
+    https://arrow.apache.org/docs/r/articles/install.html
+Error in if (found_version >= version_required) { :
+  argument is of length zero
+Calls: build_libarrow -> ensure_cmake -> find_cmake
+In addition: Warning message:
+In system(paste(cmd, "--version"), intern = TRUE, ignore.stderr = TRUE) :
+  running command '/data/data/com.termux/files/usr/bin/cmake --version 2>/dev/null' had status 1
+Execution halted
+------------------------- NOTE ---------------------------
+There was an issue building the Arrow C++ libraries.
+See https://arrow.apache.org/docs/r/articles/install.html
+---------------------------------------------------------
+ERROR: configuration failed for package ‘arrow’
+* removing ‘/usr/local/lib/R/site-library/arrow’
+
+The downloaded source packages are in
+        ‘/tmp/RtmpJyIyiH/downloaded_packages’
+Instalando geocodebr...
+Installing package into ‘/usr/local/lib/R/site-library’
+(as ‘lib’ is unspecified)
+also installing the dependencies ‘sass’, ‘pkgbuild’, ‘backports’, ‘processx’, ‘uuid’, ‘h3lib’, ‘geometries’, ‘rex’, ‘blob’, ‘gtable’, ‘isoband’, ‘S7’, ‘bslib’, ‘farver’, ‘labeling’, ‘RColorBrewer’, ‘viridisLite’, ‘pkgload’, ‘waldo’, ‘arrow’, ‘checkmate’, ‘callr’, ‘data.table’, ‘duckdb’, ‘duckspatial’, ‘enderecobr’, ‘fs’, ‘geoarrow’, ‘h3r’, ‘httr2’, ‘nanoarrow’, ‘sfheaders’, ‘covr’, ‘dbplyr’, ‘geobr’, ‘ggplot2’, ‘knitr’, ‘rmarkdown’, ‘scales’, ‘testthat’
+
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/sass_0.4.10.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/pkgbuild_1.4.8.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/backports_1.5.1.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/processx_3.8.7.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/uuid_1.2-2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/h3lib_0.1.4.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/geometries_0.2.5.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/rex_1.2.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/blob_1.3.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/gtable_0.3.6.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/isoband_0.3.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/Transit/S7_0.2.1-1.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/bslib_0.10.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/farver_2.1.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/labeling_0.4.3.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/RColorBrewer_1.1-3.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/viridisLite_0.4.3.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/pkgload_1.5.1.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/waldo_0.6.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/arrow_23.0.1.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/checkmate_2.3.4.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/callr_3.7.6.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/data.table_1.18.2.1.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/duckdb_1.5.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/duckspatial_1.0.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/enderecobr_0.5.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/fs_2.1.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/geoarrow_0.4.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/h3r_0.1.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/httr2_1.2.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/nanoarrow_0.8.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/sfheaders_0.4.5.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/covr_3.6.5.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/dbplyr_2.5.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/geobr_1.9.1.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/ggplot2_4.0.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/knitr_1.51.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/rmarkdown_2.31.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/scales_1.4.0.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/testthat_3.3.2.tar.gz'
+trying URL 'https://packagemanager.posit.co/cran/__linux__/noble/latest/src/contrib/geocodebr_0.6.2.tar.gz'
+begin installing package ‘backports’
+begin installing package ‘processx’
+begin installing package ‘uuid’
+begin installing package ‘h3lib’
+begin installing package ‘geometries’
+begin installing package ‘rex’
+begin installing package ‘blob’
+make: *** [Makefile:30: geometries.ts] Error 3
+begin installing package ‘gtable’
+
+[Process completed (signal 9) - press Enter]
