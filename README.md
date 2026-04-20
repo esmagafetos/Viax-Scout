@@ -171,18 +171,26 @@ iwr -useb https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install.
 curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install-termux.sh | bash
 ```
 
-O instalador Termux detecta automaticamente se R está disponível e instala os pacotes do GeocodeR BR. Para ativar o microserviço após a instalação:
+O instalador Termux detecta automaticamente se R está disponível. Para instalar o GeocodeR BR separadamente (ou se o instalador principal não encontrou o R):
+
+```bash
+# Instalador standalone do GeocodeR BR para Termux
+curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install-geocodebr-termux.sh | bash
+
+# Ou, se já clonou o repositório:
+bash ~/viax-system/install-geocodebr-termux.sh
+```
+
+> **Nota:** Se o Termux não encontrar o pacote `r-base`, execute `termux-change-repo` primeiro para selecionar um mirror válido (recomendado: Albatross), depois rode o instalador novamente.
+
+Após instalar, inicie o microserviço e ative na interface:
 
 ```bash
 # Inicia o microserviço GeocodeR BR (porta 8002)
 bash ~/viax-system/start-geocodebr.sh
-
-# Ou instale os pacotes R manualmente se necessário:
-pkg install r-base
-bash ~/viax-system/install-geocodebr-r.sh
 ```
 
-Depois acesse **Configurações → Instâncias → GeocodeR BR** na interface.
+Depois acesse **Configurações → Instâncias → GeocodeR BR** e adicione `GEOCODEBR_URL=http://localhost:8002` ao `.env` do servidor.
 
 ---
 

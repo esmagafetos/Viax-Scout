@@ -162,19 +162,23 @@ if command -v R &>/dev/null; then
   GEOCODEBR_AVAILABLE=true
 else
   info "Tentando instalar R no Termux..."
+  # Garantir que a lista de pacotes está atualizada antes de tentar r-base
+  pkg update -y 2>/dev/null || true
   if pkg install -y r-base 2>/dev/null; then
     success "R instalado com sucesso"
     GEOCODEBR_AVAILABLE=true
   else
-    warn "R não pôde ser instalado automaticamente. O GeocodeR BR não estará disponível."
-    warn "Para instalar manualmente: pkg install r-base"
+    warn "r-base não encontrado no mirror atual."
+    warn "Para instalar depois: bash $APP_DIR/install-geocodebr-termux.sh"
   fi
 fi
 
 if [[ "$GEOCODEBR_AVAILABLE" == true ]]; then
   info "Instalando pacotes R necessários (plumber, geocodebr, future)..."
-  info "Isso pode demorar 5-15 minutos na primeira execução (compilação de pacotes)..."
-  R --no-save --quiet <<'RSCRIPT' 2>/dev/null && success "Pacotes R instalados" || warn "Falha ao instalar pacotes R. Execute 'bash ~/viax-system/install-geocodebr-r.sh' manualmente depois."
+  info "Isso pode demorar 15-40 minutos (compilação no Android)..."
+  R --no-save --quiet <<'RSCRIPT' 2>/dev/null \
+    && success "Pacotes R instalados" \
+    || warn "Falha ao instalar pacotes R. Execute 'bash $APP_DIR/install-geocodebr-termux.sh' manualmente depois."
 options(repos = c(CRAN = "https://cran.rstudio.com/"))
 pkgs <- c("plumber", "geocodebr", "future", "promises", "jsonlite")
 for (p in pkgs) {
@@ -184,23 +188,6 @@ for (p in pkgs) {
 }
 RSCRIPT
 fi
-
-# Cria script de instalação R separado (para executar manualmente se necessário)
-cat > "$APP_DIR/install-geocodebr-r.sh" <<'RINSTALL'
-#!/usr/bin/env bash
-echo "Instalando pacotes R para o GeocodeR BR..."
-R --no-save --quiet <<EOF
-options(repos = c(CRAN = "https://cran.rstudio.com/"))
-pkgs <- c("plumber", "geocodebr", "future", "promises", "jsonlite")
-for (p in pkgs) {
-  cat("Instalando", p, "...\n")
-  install.packages(p, dependencies=TRUE, quiet=TRUE)
-}
-cat("Pacotes instalados!\n")
-EOF
-echo "Pronto! Execute: bash ~/viax-system/start-geocodebr.sh"
-RINSTALL
-chmod +x "$APP_DIR/install-geocodebr-r.sh"
 
 # ---------------------------------------------------------------------------
 # 8. SCRIPTS DE INICIALIZAÇÃO
@@ -247,13 +234,13 @@ cat > "$APP_DIR/start-geocodebr.sh" <<'GEOCOBRSCRIPT'
 #  ViaX:Trace — Iniciador do microserviço GeocodeR BR (CNEFE/IBGE)
 #  Porta padrão: 8002
 #  Pré-requisito: R e pacotes plumber/geocodebr instalados
-#    -> bash ~/viax-system/install-geocodebr-r.sh
+#    -> bash ~/viax-system/install-geocodebr-termux.sh
 # =============================================================================
 cd "$(dirname "$0")"
 
 if ! command -v R &>/dev/null; then
-  echo "ERRO: R nao encontrado. Instale com: pkg install r-base"
-  echo "Depois execute: bash ~/viax-system/install-geocodebr-r.sh"
+  echo "ERRO: R nao encontrado."
+  echo "Execute: bash ~/viax-system/install-geocodebr-termux.sh"
   exit 1
 fi
 
@@ -263,7 +250,7 @@ R --no-save --quiet -e "
   missing <- pkgs[!sapply(pkgs, requireNamespace, quietly=TRUE)]
   if (length(missing)>0) {
     cat('Pacotes ausentes:', paste(missing, collapse=', '), '\n')
-    cat('Execute: bash ~/viax-system/install-geocodebr-r.sh\n')
+    cat('Execute: bash ~/viax-system/install-geocodebr-termux.sh\n')
     quit(status=1)
   }
 " || exit 1
@@ -323,8 +310,8 @@ if [[ "$GEOCODEBR_AVAILABLE" == true ]]; then
   echo -e "  Depois configure em Configuracoes -> Instancias -> GeocodeR BR"
   echo ""
 else
-  echo -e "  ${YELLOW}GeocodeR BR nao instalado.${NC} Para instalar manualmente:"
-  echo -e "  ${CYAN}pkg install r-base && bash ~/viax-system/install-geocodebr-r.sh${NC}"
+  echo -e "  ${YELLOW}GeocodeR BR nao instalado.${NC} Para instalar depois:"
+  echo -e "  ${CYAN}bash ~/viax-system/install-geocodebr-termux.sh${NC}"
   echo ""
 fi
 echo -e "  Acesse no navegador do Android:"
