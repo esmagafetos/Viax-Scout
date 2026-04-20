@@ -132,7 +132,7 @@ function FinancialPanel({ financial }: { financial: any }) {
 
       <div style={{ padding: "1rem 1.25rem" }}>
         {/* Main financial numbers */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.75rem", marginBottom: "1.25rem" }}>
+        <div className="financial-numbers-grid">
           {[
             { label: "Receita Estimada", value: formatBRL(f.receitaEstimada), color: "var(--ok)" },
             { label: "Despesas Fixas", value: formatBRL(f.despesasFixas), color: "var(--accent)" },
@@ -149,7 +149,7 @@ function FinancialPanel({ financial }: { financial: any }) {
         </div>
 
         {/* Routes in cycle + mini chart */}
-        <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: "1rem", alignItems: "center" }}>
+        <div className="financial-chart-grid">
           <div>
             <div style={{ fontSize: "0.65rem", color: "var(--text-faint)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.5rem" }}>
               Rotas no ciclo
@@ -219,15 +219,15 @@ function HeroBanner({ userName }: { userName: string }) {
         <circle cx="0" cy="60" r="6" fill="white"/><circle cx="300" cy="60" r="8" fill="white" fillOpacity="0.6"/><circle cx="600" cy="40" r="5" fill="white"/>
       </svg>
 
-      <div style={{ position: "relative", zIndex: 1, padding: "1.5rem 1.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.5rem", flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", flex: 1, minWidth: 0 }}>
-          <div style={{ flexShrink: 0 }}>
+      <div className="hero-banner-inner" style={{ position: "relative", zIndex: 1, padding: "1.5rem 1.75rem" }}>
+        <div className="hero-banner-left">
+          <div className="hero-banner-logo" style={{ flexShrink: 0 }}>
             <ViaXLogo size="md" dark showTagline />
           </div>
 
-          <div style={{ width: "1px", height: 40, background: "rgba(255,255,255,0.12)", flexShrink: 0 }} />
+          <div className="hero-banner-divider" />
 
-          <div style={{ minWidth: 0 }}>
+          <div className="hero-banner-text" style={{ minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem", flexWrap: "wrap" }}>
               <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#f0ede8" }}>
                 Olá, {userName}!
@@ -242,15 +242,15 @@ function HeroBanner({ userName }: { userName: string }) {
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
+        <div className="hero-banner-actions">
           <Link href="/process">
             <button style={{
-              display: "flex", alignItems: "center", gap: "0.45rem",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "0.45rem",
               padding: "0.6rem 1.25rem", borderRadius: 99,
               background: "#d4521a", color: "#fff",
               border: "none", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
               boxShadow: "0 2px 12px rgba(212,82,26,0.5)",
-              transition: "filter 150ms",
+              transition: "filter 150ms", width: "100%",
             }}
               onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.12)")}
               onMouseLeave={e => (e.currentTarget.style.filter = "none")}
@@ -261,7 +261,7 @@ function HeroBanner({ userName }: { userName: string }) {
           </Link>
           <button
             onClick={() => setDismissed(true)}
-            style={{ background: "none", border: "none", color: "rgba(240,237,232,0.3)", cursor: "pointer", padding: "0.25rem", display: "flex", alignItems: "center" }}
+            style={{ background: "none", border: "none", color: "rgba(240,237,232,0.3)", cursor: "pointer", padding: "0.25rem", display: "flex", alignItems: "center", flexShrink: 0 }}
             title="Fechar"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

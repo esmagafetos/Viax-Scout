@@ -228,7 +228,7 @@ export default function Login() {
           {dark ? "Claro" : "Escuro"}
         </button>
 
-        <div style={{ width: "100%", maxWidth: 400 }}>
+        <div className="login-form-wrapper">
           {/* Mobile logo */}
           <div className="login-mobile-logo" style={{ display: "none", marginBottom: "2rem" }}>
             <ViaXLogo size="md" dark={dark} showTagline />

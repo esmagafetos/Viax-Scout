@@ -1,17 +1,20 @@
 <div align="center">
 
-# ViaX: System
+<img src="docs/banner.png" alt="ViaX: System Banner" width="100%" />
+
+<br />
+<br />
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14%2B-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![pnpm](https://img.shields.io/badge/pnpm-workspace-F69220?style=flat-square&logo=pnpm&logoColor=white)](https://pnpm.io)
 
 **Auditoria inteligente de rotas de entrega — valide planilhas XLSX/CSV contra coordenadas GPS reais**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green?logo=node.js)](https://nodejs.org)
-[![pnpm](https://img.shields.io/badge/pnpm-workspace-blue?logo=pnpm)](https://pnpm.io)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14%2B-336791?logo=postgresql)](https://postgresql.org)
-
-[Funcionalidades](#-funcionalidades) · [Instalação](#-instalação) · [Configuração](#️-configuração) · [Uso](#-uso) · [Arquitetura](#-arquitetura) · [Contribuindo](#-contribuindo)
+[Funcionalidades](#-funcionalidades) · [Screenshots](#-screenshots) · [Instalação](#-instalação) · [Configuração](#️-configuração) · [Arquitetura](#-arquitetura) · [Contribuindo](#-contribuindo)
 
 </div>
 
@@ -19,16 +22,12 @@
 
 ## Sobre o projeto
 
-O **ViaX: System** é uma plataforma SaaS de auditoria logística que verifica automaticamente se os endereços registrados em planilhas de rotas de entrega correspondem às coordenadas GPS coletadas em campo. O sistema detecta **nuances** — divergências entre o endereço informado e o local real de coleta — e gera relatórios operacionais para análise.
+O **ViaX: System** é uma plataforma SaaS de auditoria logística que verifica automaticamente se os endereços registrados em planilhas de rotas de entrega correspondem às coordenadas GPS coletadas em campo.
 
-### Problema que resolve
-
-Gestores de logística frequentemente recebem planilhas de rota onde o endereço digitado pelo entregador não confere com o GPS do dispositivo. Isso pode indicar fraude, erro de digitação, ou ponto de coleta incorreto. O ViaX automatiza essa auditoria para centenas ou milhares de linhas em segundos.
-
-### Como funciona
+O sistema detecta **nuances** — divergências entre o endereço informado e o local real de coleta — e gera relatórios operacionais detalhados, ajudando gestores de logística a identificar fraudes, erros de digitação e pontos de coleta incorretos em segundos.
 
 ```
-Planilha XLSX/CSV → Parser de endereço → Geocodificação reversa → Comparação → Relatório de nuances
+Planilha XLSX/CSV → Parser de endereço → Geocodificação reversa → Comparação → Relatório
        ↓                    ↓                      ↓                  ↓
   Endereço + GPS     Rua extraída          Nome oficial da rua   Similaridade + distância
 ```
@@ -39,53 +38,51 @@ Planilha XLSX/CSV → Parser de endereço → Geocodificação reversa → Compa
 
 | Funcionalidade | Descrição |
 |---|---|
-| **Upload XLSX / CSV** | Suporte a planilhas com colunas de endereço, latitude, longitude, cidade, bairro e CEP |
-| **Parser embutido** | Extrai logradouro, número, travessa, POI e CEP via regex adaptado ao português brasileiro |
-| **Parser via IA** | Alternativa ao parser embutido usando OpenAI, Anthropic ou Google Gemini |
-| **Geocodificação brasileira** | BrasilAPI v2 (IBGE/Correios) + AwesomeAPI CEP como fontes primárias para endereços BR |
+| **Upload XLSX / CSV** | Suporte a planilhas com endereço, latitude, longitude, cidade, bairro e CEP |
+| **Parser embutido** | Extrai logradouro, número, travessa, POI e CEP via regex adaptado ao português BR |
+| **Parser via IA** | Alternativa usando OpenAI, Anthropic ou Google Gemini |
+| **Geocodificação brasileira** | BrasilAPI v2 (IBGE/Correios) + AwesomeAPI CEP como fontes primárias |
 | **Geocodificação global** | Photon (sem rate limit), Overpass API e Nominatim como fallback |
-| **Google Maps premium** | Integração opcional com Google Maps API para máxima precisão |
-| **Detecção de nuances** | Similaridade de string (bigram Jaccard) + distância Haversine configurável |
-| **Tolerância configurável** | Raio de tolerância em metros ajustável por conta |
-| **Dashboard** | Visão geral de análises realizadas, nuances detectadas e estatísticas de custo |
-| **Histórico completo** | Listagem e download de relatórios CSV de todas as análises anteriores |
-| **Autenticação segura** | Sessões com bcrypt, suporte a avatar e perfil de usuário |
+| **Google Maps premium** | Integração opcional para máxima precisão |
+| **Detecção de nuances** | Similaridade bigram Jaccard + distância Haversine configurável |
+| **Tolerância configurável** | Raio de aceitação em metros ajustável por conta |
+| **Dashboard** | Visão geral de análises, nuances detectadas e controle financeiro |
+| **Histórico completo** | Listagem e download de relatórios CSV de todas as análises |
+| **Autenticação segura** | Sessões com bcrypt, avatar e perfil de usuário |
 | **Modo escuro / claro** | Tema automático com preferência salva |
 
 ---
 
 ## Screenshots
 
-> O sistema suporta modo claro e escuro com alternância instantânea.
-
 ### Login
 | Claro | Escuro |
-|-------|--------|
+|:-----:|:------:|
 | ![Login claro](docs/screenshots/login.jpg) | ![Login escuro](docs/screenshots/login-dark.jpg) |
 
 ### Cadastro
 | Claro | Escuro |
-|-------|--------|
+|:-----:|:------:|
 | ![Cadastro claro](docs/screenshots/register.jpg) | ![Cadastro escuro](docs/screenshots/register-dark.jpg) |
 
 ### Dashboard
 | Claro | Escuro |
-|-------|--------|
+|:-----:|:------:|
 | ![Dashboard claro](docs/screenshots/dashboard.jpg) | ![Dashboard escuro](docs/screenshots/dashboard-dark.jpg) |
 
 ### Processar Rota
 | Claro | Escuro |
-|-------|--------|
+|:-----:|:------:|
 | ![Processar claro](docs/screenshots/processing.jpg) | ![Processar escuro](docs/screenshots/processing-dark.jpg) |
 
 ### Histórico de Análises
 | Claro | Escuro |
-|-------|--------|
+|:-----:|:------:|
 | ![Histórico claro](docs/screenshots/history.jpg) | ![Histórico escuro](docs/screenshots/history-dark.jpg) |
 
 ### Configurações
 | Claro | Escuro |
-|-------|--------|
+|:-----:|:------:|
 | ![Config claro](docs/screenshots/settings.jpg) | ![Config escuro](docs/screenshots/settings-dark.jpg) |
 
 ---
@@ -123,12 +120,9 @@ viax-scout/                          ← raiz do monorepo (pnpm workspaces)
 
 ### Pipeline de Geocodificação
 
-O sistema usa uma cadeia de fallback para garantir máxima cobertura, priorizando fontes especializadas para o Brasil:
-
 ```
 CEP detectado?
   ├─ SIM → BrasilAPI v2 (IBGE/Correios) → AwesomeAPI CEP
-  │         ↓ retorna rua + lat/lon quando disponível
   └─ NÃO → continua no fluxo global
 
 GPS fornecido? → Geocodificação reversa:
@@ -146,16 +140,14 @@ Modo premium:
 ## Pré-requisitos
 
 - **Node.js** 20 ou superior
-- **pnpm** 9 ou superior (`npm install -g pnpm`)
+- **pnpm** 9 ou superior — `npm install -g pnpm`
 - **PostgreSQL** 14 ou superior
 
 ---
 
 ## Instalação
 
-### Instalação automática (recomendada)
-
-Scripts de instalação automática estão disponíveis para todos os sistemas operacionais. Cada script instala as dependências, configura o banco de dados e inicia o sistema completo.
+### Automática (recomendada)
 
 **Linux / macOS**
 ```bash
@@ -174,28 +166,28 @@ curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install
 
 ---
 
-### Instalação manual
+### Manual
 
 ```bash
 # 1. Clone o repositório
 git clone https://github.com/esmagafetos/Viax-Scout.git
 cd Viax-Scout
 
-# 2. Instale as dependências (todas as packages do monorepo)
+# 2. Instale as dependências
 pnpm install
 
 # 3. Configure as variáveis de ambiente
 cp .env.example .env
-# Edite o .env com as credenciais do seu banco de dados
+# Edite o .env com as credenciais do banco de dados
 
 # 4. Aplique o schema no banco de dados
 pnpm --filter @workspace/db run push
 
-# 5. Inicie o servidor de desenvolvimento
+# 5. Inicie em modo de desenvolvimento
 pnpm run dev
 ```
 
-O sistema estará disponível em:
+Após iniciar, o sistema estará disponível em:
 - **Frontend:** http://localhost:5173
 - **API:** http://localhost:8080
 
@@ -204,10 +196,7 @@ O sistema estará disponível em:
 ### Docker
 
 ```bash
-# Subir toda a stack com Docker Compose
 docker compose up -d
-
-# Verificar logs
 docker compose logs -f api
 ```
 
@@ -215,7 +204,7 @@ docker compose logs -f api
 
 ## Configuração
 
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+Crie um arquivo `.env` na raiz do projeto:
 
 ```env
 # Banco de dados (obrigatório)
@@ -225,11 +214,9 @@ DATABASE_URL=postgresql://usuario:senha@localhost:5432/viax_scout
 SESSION_SECRET=sua_chave_secreta_aqui
 
 # Google Maps API (opcional — para modo premium)
-# Obtenha em: https://console.cloud.google.com
 GOOGLE_MAPS_API_KEY=
 
-# Parser via IA (opcional — configure nas Configurações da interface)
-# Suportado: openai, anthropic, google
+# Parser via IA (opcional)
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 GOOGLE_AI_API_KEY=
@@ -237,16 +224,13 @@ GOOGLE_AI_API_KEY=
 
 ### Configurações da interface
 
-Acesse **Configurações → Instâncias** para selecionar o modo de geocodificação:
-
-| Modo | Custo | Precisão | Indicado para |
-|---|---|---|---|
-| `builtin` | Gratuito | Alta para Brasil (CEP) | Uso geral |
-| `googlemaps` | Pay-per-use | Máxima | Operações críticas |
-
-Acesse **Configurações → Parser** para alternar entre parser embutido e parser via IA.
-
-Acesse **Configurações → Tolerância** para ajustar o raio de aceitação em metros.
+| Seção | Opção | Descrição |
+|---|---|---|
+| **Instâncias** | `builtin` | Geocodificação gratuita — alta precisão para BR |
+| **Instâncias** | `googlemaps` | Google Maps API — máxima precisão, pay-per-use |
+| **Parser** | `embutido` | Regex otimizado para português BR |
+| **Parser** | `ia` | LLM para endereços complexos ou ambíguos |
+| **Tolerância** | raio em metros | Define o limiar de detecção de nuances |
 
 ---
 
@@ -254,11 +238,11 @@ Acesse **Configurações → Tolerância** para ajustar o raio de aceitação em
 
 ### 1. Criar conta
 
-Acesse a interface, clique em **Criar conta** e preencha os dados. O primeiro usuário registrado não requer aprovação.
+Acesse a interface e clique em **Criar conta**. O primeiro usuário registrado não requer aprovação.
 
 ### 2. Preparar a planilha
 
-O sistema aceita arquivos `.xlsx` ou `.csv` com as seguintes colunas (nomes flexíveis):
+O sistema aceita `.xlsx` ou `.csv` com as seguintes colunas:
 
 | Coluna | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
@@ -271,18 +255,20 @@ O sistema aceita arquivos `.xlsx` ou `.csv` com as seguintes colunas (nomes flex
 
 ### 3. Processar
 
-Vá até **Processar**, faça o upload da planilha e aguarde. O processamento ocorre em tempo real via streaming (SSE), com progresso linha por linha.
+Vá até **Processar**, faça o upload e acompanhe o progresso linha a linha em tempo real via streaming.
 
 ### 4. Analisar o relatório
 
 Cada linha retorna:
 
-- **Status:** `ok` ou `nuance`
-- **Rua extraída:** o que o sistema entendeu do campo de endereço
-- **Rua oficial:** o nome retornado pelo geocodificador
-- **Similaridade:** índice de 0 a 1 (1 = idêntico)
-- **Distância:** metros entre o endereço informado e o GPS coletado
-- **Motivo:** descrição da divergência quando detectada
+| Campo | Descrição |
+|---|---|
+| `status` | `ok` ou `nuance` |
+| `rua_extraida` | O que o sistema interpretou do campo de endereço |
+| `rua_oficial` | O nome retornado pelo geocodificador |
+| `similaridade` | Índice de 0 a 1 (1 = idêntico) |
+| `distancia` | Metros entre endereço informado e GPS coletado |
+| `motivo` | Descrição da divergência quando detectada |
 
 O relatório completo pode ser baixado em CSV no **Histórico**.
 
@@ -293,7 +279,7 @@ O relatório completo pode ser baixado em CSV no **Histórico**.
 ### Comandos úteis
 
 ```bash
-# Iniciar todos os serviços em modo desenvolvimento
+# Iniciar todos os serviços
 pnpm run dev
 
 # Typecheck de todo o monorepo
@@ -302,10 +288,10 @@ pnpm run typecheck
 # Build completo
 pnpm run build
 
-# Regenerar API hooks e schemas Zod a partir do openapi.yaml
+# Regenerar hooks e schemas a partir do openapi.yaml
 pnpm --filter @workspace/api-spec run codegen
 
-# Aplicar alterações de schema no banco (desenvolvimento)
+# Aplicar alterações de schema no banco
 pnpm --filter @workspace/db run push
 
 # Executar apenas o servidor API
@@ -318,16 +304,15 @@ PORT=5173 BASE_PATH=/ pnpm --filter @workspace/viax-scout run dev
 ### Adicionar um novo endpoint
 
 1. Atualize `lib/api-spec/openapi.yaml` com o novo endpoint
-2. Execute `pnpm --filter @workspace/api-spec run codegen` para gerar os tipos e hooks
+2. Execute `pnpm --filter @workspace/api-spec run codegen` para gerar tipos e hooks
 3. Implemente a rota em `artifacts/api-server/src/routes/`
-4. Registre a rota em `artifacts/api-server/src/index.ts`
+4. Registre-a em `artifacts/api-server/src/routes/index.ts`
 5. Use o hook gerado no frontend via `@workspace/api-client-react`
 
 ### Alterar o schema do banco
 
-1. Edite o schema em `lib/db/src/schema/`
+1. Edite os arquivos em `lib/db/src/schema/`
 2. Execute `pnpm --filter @workspace/db run push`
-3. Se necessário, atualize os tipos Zod correspondentes
 
 ---
 
@@ -336,10 +321,9 @@ PORT=5173 BASE_PATH=/ pnpm --filter @workspace/viax-scout run dev
 | Camada | Tecnologia | Versão |
 |---|---|---|
 | Runtime | Node.js | 20+ |
-| Gerenciador de pacotes | pnpm workspaces | 9+ |
+| Gerenciador | pnpm workspaces | 9+ |
 | Linguagem | TypeScript | 5.9 |
-| **Frontend** | React | 19 |
-| Build tool | Vite | 7 |
+| **Frontend** | React + Vite | 19 + 7 |
 | Roteamento | Wouter | — |
 | Data fetching | TanStack Query | 5 |
 | Estilo | Tailwind CSS | 4 |
@@ -349,33 +333,30 @@ PORT=5173 BASE_PATH=/ pnpm --filter @workspace/viax-scout run dev
 | **Banco de dados** | PostgreSQL | 14+ |
 | ORM | Drizzle ORM | — |
 | Validação | Zod | 3 |
-| Autenticação | express-session + bcryptjs | — |
+| Auth | express-session + bcryptjs | — |
 | Upload | Multer | — |
-| Parsing de planilhas | xlsx | — |
-| **Geocodificação BR** | BrasilAPI v2 (IBGE/Correios) | — |
-| **Geocodificação BR** | AwesomeAPI CEP | — |
-| Geocodificação global | Photon (Komoot) | — |
-| Geocodificação global | Overpass API + Nominatim | — |
-| **API codegen** | Orval | — |
+| Parsing XLSX | xlsx | — |
+| **Geocodificação BR** | BrasilAPI v2 + AwesomeAPI | — |
+| **Geocodificação global** | Photon + Overpass + Nominatim | — |
+| API codegen | Orval | — |
 
 ---
 
 ## Contribuindo
 
-Contribuições são bem-vindas. Siga os passos abaixo:
+Contribuições são bem-vindas. Siga os passos:
 
 1. Faça um fork do repositório
-2. Crie uma branch para sua feature: `git checkout -b feat/nome-da-feature`
+2. Crie uma branch: `git checkout -b feat/nome-da-feature`
 3. Implemente suas alterações seguindo o padrão do projeto
 4. Execute o typecheck: `pnpm run typecheck`
-5. Faça commit usando [Conventional Commits](https://www.conventionalcommits.org/): `git commit -m "feat: descrição da feature"`
+5. Faça commit seguindo [Conventional Commits](https://www.conventionalcommits.org/): `git commit -m "feat: descrição"`
 6. Abra um Pull Request descrevendo o que foi feito e por quê
 
 ### Reportar bugs
 
 Abra uma [issue](https://github.com/esmagafetos/Viax-Scout/issues) com:
-- Descrição do problema
-- Passos para reproduzir
+- Descrição do problema e passos para reproduzir
 - Comportamento esperado vs. observado
 - Versão do sistema e sistema operacional
 
@@ -383,12 +364,12 @@ Abra uma [issue](https://github.com/esmagafetos/Viax-Scout/issues) com:
 
 ## Licença
 
-Distribuído sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+Distribuído sob a licença **MIT**. Veja [LICENSE](LICENSE) para detalhes.
 
 ---
 
 <div align="center">
 
-Desenvolvido por [esmagafetos](https://github.com/esmagafetos) · Veja também o [Changelog](https://github.com/esmagafetos/Viax-Scout/releases)
+Desenvolvido por [esmagafetos](https://github.com/esmagafetos) · [Releases](https://github.com/esmagafetos/Viax-Scout/releases) · [Issues](https://github.com/esmagafetos/Viax-Scout/issues)
 
 </div>

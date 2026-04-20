@@ -53,7 +53,7 @@ export default function Register() {
         {dark ? "Claro" : "Escuro"}
       </button>
 
-      <div style={{
+      <div className="register-card" style={{
         width: "100%", maxWidth: 440,
         background: "var(--surface)",
         border: "1px solid var(--border-strong)",
@@ -62,14 +62,14 @@ export default function Register() {
         backdropFilter: "blur(12px)",
         overflow: "hidden",
       }}>
-        <div style={{ padding: "1.75rem 2rem 1.25rem", borderBottom: "1px solid var(--border)" }}>
+        <div className="register-card-header" style={{ borderBottom: "1px solid var(--border)" }}>
           <div style={{ marginBottom: "0.75rem" }}>
             <ViaXLogo size="md" dark={dark} showTagline />
           </div>
           <p style={{ fontSize: "0.82rem", color: "var(--text-faint)" }}>Crie sua conta gratuita</p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: "1.5rem 2rem 2rem" }}>
+        <form onSubmit={handleSubmit} className="register-card-body">
           {[
             { label: "Nome completo", type: "text", value: name, setter: setName, placeholder: "Seu nome", required: true },
             { label: "Email", type: "email", value: email, setter: setEmail, placeholder: "seu@email.com", required: true },
