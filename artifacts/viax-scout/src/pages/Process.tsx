@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import Layout from "@/components/Layout";
 import { useToast } from "@/components/Toast";
 import { formatPct, formatMs } from "@/lib/utils";
+import { useGetSettings, getGetSettingsQueryKey } from "@workspace/api-client-react";
 
 interface ResultRow {
   linha: number;
@@ -37,6 +38,33 @@ export default function Process() {
   const [activeFilter, setActiveFilter] = useState<"all" | "nuance" | "ok">("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { showToast, ToastComponent } = useToast();
+
+  const { data: settingsData } = useGetSettings({
+    query: { queryKey: getGetSettingsQueryKey() },
+  });
+  const settings = settingsData as any;
+  const instanceMode: string = settings?.instanceMode ?? "builtin";
+  const googleMapsApiKey: string = settings?.googleMapsApiKey ?? "";
+
+  const configWarning: { type: "error" | "warn" | "info"; message: string; action?: string } | null = (() => {
+    if (instanceMode === "googlemaps" && !googleMapsApiKey) {
+      return {
+        type: "error",
+        message: "Motor Google Maps selecionado, mas nenhuma chave de API foi configurada.",
+        action: "Adicione sua chave em Configurações → Instâncias para continuar.",
+      };
+    }
+    if (instanceMode === "geocodebr") {
+      return {
+        type: "info",
+        message: "Motor GeocodeR BR (CNEFE/IBGE) ativo.",
+        action: "Certifique-se de que o microserviço R está rodando localmente na porta 8002.",
+      };
+    }
+    return null;
+  })();
+
+  const canProcess = !!file && !isProcessing && !(configWarning?.type === "error");
 
   const addStep = (msg: string) => setSteps((prev) => [...prev.slice(-20), msg]);
 
@@ -163,6 +191,42 @@ export default function Process() {
         </p>
       </div>
 
+      {/* Config warning banner */}
+      {configWarning && (
+        <div style={{
+          display: "flex", alignItems: "flex-start", gap: "0.75rem",
+          padding: "0.9rem 1.1rem", borderRadius: 10, marginBottom: "1rem",
+          background: configWarning.type === "error"
+            ? "rgba(212,82,26,0.08)"
+            : configWarning.type === "warn"
+            ? "rgba(234,179,8,0.08)"
+            : "rgba(124,58,237,0.07)",
+          border: `1px solid ${configWarning.type === "error" ? "rgba(212,82,26,0.3)" : configWarning.type === "warn" ? "rgba(234,179,8,0.3)" : "rgba(124,58,237,0.25)"}`,
+        }}>
+          {configWarning.type === "error" ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          ) : configWarning.type === "warn" ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          )}
+          <div>
+            <div style={{
+              fontSize: "0.78rem", fontWeight: 600,
+              color: configWarning.type === "error" ? "var(--accent)" : configWarning.type === "warn" ? "#ca8a04" : "#7c3aed",
+              marginBottom: configWarning.action ? "0.2rem" : 0,
+            }}>
+              {configWarning.message}
+            </div>
+            {configWarning.action && (
+              <div style={{ fontSize: "0.72rem", color: "var(--text-faint)", lineHeight: 1.5 }}>
+                {configWarning.action}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Upload card */}
       <div style={{
         background: "var(--surface)", border: "1px solid var(--border-strong)",
@@ -232,15 +296,15 @@ export default function Process() {
         <div style={{ padding: "0 1rem 1rem" }}>
           <button
             onClick={handleProcess}
-            disabled={!file || isProcessing}
+            disabled={!canProcess}
             className="btn-full-mobile"
             style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
               padding: "0.75rem 1.5rem", borderRadius: 99,
               background: "var(--text)", color: "var(--bg)",
               border: "none", fontSize: "0.85rem", fontWeight: 600,
-              cursor: !file || isProcessing ? "not-allowed" : "pointer",
-              opacity: !file || isProcessing ? 0.4 : 1,
+              cursor: !canProcess ? "not-allowed" : "pointer",
+              opacity: !canProcess ? 0.4 : 1,
               transition: "all 200ms",
             }}
           >

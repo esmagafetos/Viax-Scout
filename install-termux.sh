@@ -122,10 +122,11 @@ SESSION_SECRET="${SESSION_SECRET}"
 NODE_ENV=development
 PORT=${API_PORT}
 
-# geocodebr microservice (CNEFE/IBGE) — fallback para municípios do interior
-# Termux/Android: R e Docker não são suportados nativamente.
-# Para usar o geocodebr, suba o serviço Docker em outro computador e aponte aqui:
-# GEOCODEBR_URL=http://IP-DO-SERVIDOR:8002
+# geocodebr microservice (CNEFE/IBGE) — precisao maxima para enderecos BR
+# Para ativar localmente no Termux (se R instalado):
+#   bash ~/viax-system/start-geocodebr.sh
+# Depois defina:
+# GEOCODEBR_URL=http://localhost:8002
 GEOCODEBR_URL=
 EOF
 success ".env criado"
@@ -150,7 +151,59 @@ pnpm --filter @workspace/api-server run build
 success "Build concluído"
 
 # ---------------------------------------------------------------------------
-# 7. SCRIPTS DE INICIALIZAÇÃO
+# 7. MICROSERVIÇO GEOCODEBR (OPCIONAL — R + CNEFE/IBGE)
+# ---------------------------------------------------------------------------
+header "Verificando suporte ao GeocodeR BR (opcional)"
+
+GEOCODEBR_AVAILABLE=false
+
+if command -v R &>/dev/null; then
+  info "R já instalado: $(R --version | head -1)"
+  GEOCODEBR_AVAILABLE=true
+else
+  info "Tentando instalar R no Termux..."
+  if pkg install -y r-base 2>/dev/null; then
+    success "R instalado com sucesso"
+    GEOCODEBR_AVAILABLE=true
+  else
+    warn "R não pôde ser instalado automaticamente. O GeocodeR BR não estará disponível."
+    warn "Para instalar manualmente: pkg install r-base"
+  fi
+fi
+
+if [[ "$GEOCODEBR_AVAILABLE" == true ]]; then
+  info "Instalando pacotes R necessários (plumber, geocodebr, future)..."
+  info "Isso pode demorar 5-15 minutos na primeira execução (compilação de pacotes)..."
+  R --no-save --quiet <<'RSCRIPT' 2>/dev/null && success "Pacotes R instalados" || warn "Falha ao instalar pacotes R. Execute 'bash ~/viax-system/install-geocodebr-r.sh' manualmente depois."
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+pkgs <- c("plumber", "geocodebr", "future", "promises", "jsonlite")
+for (p in pkgs) {
+  if (!requireNamespace(p, quietly=TRUE)) {
+    install.packages(p, dependencies=TRUE, quiet=TRUE)
+  }
+}
+RSCRIPT
+fi
+
+# Cria script de instalação R separado (para executar manualmente se necessário)
+cat > "$APP_DIR/install-geocodebr-r.sh" <<'RINSTALL'
+#!/usr/bin/env bash
+echo "Instalando pacotes R para o GeocodeR BR..."
+R --no-save --quiet <<EOF
+options(repos = c(CRAN = "https://cran.rstudio.com/"))
+pkgs <- c("plumber", "geocodebr", "future", "promises", "jsonlite")
+for (p in pkgs) {
+  cat("Instalando", p, "...\n")
+  install.packages(p, dependencies=TRUE, quiet=TRUE)
+}
+cat("Pacotes instalados!\n")
+EOF
+echo "Pronto! Execute: bash ~/viax-system/start-geocodebr.sh"
+RINSTALL
+chmod +x "$APP_DIR/install-geocodebr-r.sh"
+
+# ---------------------------------------------------------------------------
+# 8. SCRIPTS DE INICIALIZAÇÃO
 # ---------------------------------------------------------------------------
 header "Criando scripts de controle"
 
@@ -174,10 +227,11 @@ echo "Iniciando Frontend..."
 WEB_PID=$!
 
 echo ""
-echo "✅ ViaX: System rodando!"
+echo "ViaX:Trace rodando!"
 echo "   Frontend : http://localhost:5173"
 echo "   API      : http://localhost:8080"
 echo ""
+echo "Para ativar GeocodeR BR (precisao maxima): bash ~/viax-system/start-geocodebr.sh"
 echo "Acesse pelo navegador: http://127.0.0.1:5173"
 echo "Ctrl+C para parar"
 
@@ -186,6 +240,53 @@ wait
 STARTSCRIPT
 chmod +x "$APP_DIR/start.sh"
 
+# start-geocodebr.sh — inicia o microserviço R/CNEFE separadamente
+cat > "$APP_DIR/start-geocodebr.sh" <<'GEOCOBRSCRIPT'
+#!/usr/bin/env bash
+# =============================================================================
+#  ViaX:Trace — Iniciador do microserviço GeocodeR BR (CNEFE/IBGE)
+#  Porta padrão: 8002
+#  Pré-requisito: R e pacotes plumber/geocodebr instalados
+#    -> bash ~/viax-system/install-geocodebr-r.sh
+# =============================================================================
+cd "$(dirname "$0")"
+
+if ! command -v R &>/dev/null; then
+  echo "ERRO: R nao encontrado. Instale com: pkg install r-base"
+  echo "Depois execute: bash ~/viax-system/install-geocodebr-r.sh"
+  exit 1
+fi
+
+# Verifica se os pacotes necessarios estao instalados
+R --no-save --quiet -e "
+  pkgs <- c('plumber','geocodebr','future')
+  missing <- pkgs[!sapply(pkgs, requireNamespace, quietly=TRUE)]
+  if (length(missing)>0) {
+    cat('Pacotes ausentes:', paste(missing, collapse=', '), '\n')
+    cat('Execute: bash ~/viax-system/install-geocodebr-r.sh\n')
+    quit(status=1)
+  }
+" || exit 1
+
+GEOCODEBR_PORT="${GEOCODEBR_PORT:-8002}"
+APP_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+echo "============================================================"
+echo " ViaX:Trace — GeocodeR BR Microservice"
+echo " Porta   : $GEOCODEBR_PORT"
+echo " Fonte   : CNEFE / IBGE (via geocodebr)"
+echo "============================================================"
+echo ""
+echo "IMPORTANTE: No primeiro inicio, o geocodebr baixa os dados"
+echo "do CNEFE (~1-2 GB). Isso pode demorar varios minutos."
+echo ""
+echo "Aguarde a mensagem 'Listening on ...' antes de usar."
+echo ""
+
+GEOCODEBR_PORT="$GEOCODEBR_PORT" Rscript "$APP_DIR/artifacts/geocodebr-service/start.R"
+GEOCOBRSCRIPT
+chmod +x "$APP_DIR/start-geocodebr.sh"
+
 # stop.sh
 cat > "$APP_DIR/stop.sh" <<'STOPSCRIPT'
 #!/usr/bin/env bash
@@ -193,8 +294,10 @@ PG_DATA="${PREFIX}/var/lib/postgresql"
 pkill -f "viax-system" 2>/dev/null || true
 pkill -f "api-server" 2>/dev/null || true
 pkill -f "vite" 2>/dev/null || true
+pkill -f "plumber" 2>/dev/null || true
+pkill -f "geocodebr" 2>/dev/null || true
 pg_ctl stop -D "$PG_DATA" 2>/dev/null && echo "PostgreSQL parado" || true
-echo "ViaX: System encerrado."
+echo "ViaX:Trace encerrado."
 STOPSCRIPT
 chmod +x "$APP_DIR/stop.sh"
 
@@ -204,9 +307,9 @@ success "Scripts criados"
 # RESULTADO FINAL
 # ---------------------------------------------------------------------------
 echo ""
-echo -e "${GREEN}${BOLD}╔══════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}${BOLD}║  ViaX: System instalado com sucesso! (Termux)║${NC}"
-echo -e "${GREEN}${BOLD}╚══════════════════════════════════════════════╝${NC}"
+echo -e "${GREEN}${BOLD}╔════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}${BOLD}║  ViaX:Trace instalado com sucesso! (Termux)    ║${NC}"
+echo -e "${GREEN}${BOLD}╚════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "  Para iniciar:"
 echo -e "  ${CYAN}${BOLD}bash ~/viax-system/start.sh${NC}"
@@ -214,6 +317,16 @@ echo ""
 echo -e "  Para parar:"
 echo -e "  ${CYAN}bash ~/viax-system/stop.sh${NC}"
 echo ""
+if [[ "$GEOCODEBR_AVAILABLE" == true ]]; then
+  echo -e "  ${GREEN}GeocodeR BR disponivel!${NC} Para ativar (precisao maxima BR):"
+  echo -e "  ${CYAN}bash ~/viax-system/start-geocodebr.sh${NC}"
+  echo -e "  Depois configure em Configuracoes -> Instancias -> GeocodeR BR"
+  echo ""
+else
+  echo -e "  ${YELLOW}GeocodeR BR nao instalado.${NC} Para instalar manualmente:"
+  echo -e "  ${CYAN}pkg install r-base && bash ~/viax-system/install-geocodebr-r.sh${NC}"
+  echo ""
+fi
 echo -e "  Acesse no navegador do Android:"
 echo -e "  ${BOLD}http://127.0.0.1:${WEB_PORT}${NC}"
 echo ""

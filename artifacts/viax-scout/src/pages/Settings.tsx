@@ -45,8 +45,9 @@ export default function Settings() {
   const [aiProvider, setAiProvider] = useState("");
   const [aiApiKey, setAiApiKey] = useState("");
   const [toleranceMeters, setToleranceMeters] = useState(300);
-  const [instanceMode, setInstanceMode] = useState<"builtin" | "googlemaps">("builtin");
+  const [instanceMode, setInstanceMode] = useState<"builtin" | "geocodebr" | "googlemaps">("builtin");
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState("");
+  const [mapsKeyTouched, setMapsKeyTouched] = useState(false);
   const [valorPorRota, setValorPorRota] = useState("");
   const [cicloPagamentoDias, setCicloPagamentoDias] = useState(30);
   const [metaMensalRotas, setMetaMensalRotas] = useState("");
@@ -354,28 +355,116 @@ export default function Settings() {
                   <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "1.25rem", lineHeight: 1.6 }}>
                     Escolha o serviço usado para validar endereços. A instância afeta precisão e custo de processamento.
                   </p>
-                  <div className="instance-cards" style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
-                    {[
-                      { value: "builtin", label: "Padrão Gratuito", badge: "Grátis", badgeColor: "var(--ok)", badgeBg: "var(--ok-dim)", desc: "Nominatim/OSM + BrasilAPI + Photon. Zero custo adicional, rate limit de 1 req/s.", icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> },
-                      { value: "googlemaps", label: "Google Maps", badge: "Pay-per-use", badgeColor: "#1565c0", badgeBg: "rgba(21,101,192,0.1)", desc: "Google Maps Geocoding API. Maior precisão para endereços brasileiros. Requer chave de API.", icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> },
-                    ].map((opt) => (
-                      <button key={opt.value} onClick={() => setInstanceMode(opt.value as any)} style={{ flex: 1, padding: "1rem", borderRadius: 12, textAlign: "left", border: `2px solid ${instanceMode === opt.value ? "var(--accent)" : "var(--border-strong)"}`, background: instanceMode === opt.value ? "var(--accent-dim)" : "var(--surface-2)", cursor: "pointer", transition: "all 200ms" }}>
-                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                          <div style={{ color: instanceMode === opt.value ? "var(--accent)" : "var(--text-muted)" }}>{opt.icon}</div>
-                          <span style={{ fontSize: "0.62rem", fontWeight: 700, padding: "0.12rem 0.45rem", borderRadius: 99, background: opt.badgeBg, color: opt.badgeColor, letterSpacing: "0.05em" }}>{opt.badge}</span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem", marginBottom: "1.25rem" }}>
+                    {([
+                      {
+                        value: "builtin",
+                        label: "Padrão Gratuito",
+                        badge: "Grátis",
+                        badgeColor: "var(--ok)",
+                        badgeBg: "var(--ok-dim)",
+                        desc: "Photon + Overpass + Nominatim (OSM) + BrasilAPI. Zero custo, sem chave necessária.",
+                        icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+                      },
+                      {
+                        value: "geocodebr",
+                        label: "GeocodeR BR",
+                        badge: "Local / CNEFE",
+                        badgeColor: "#7c3aed",
+                        badgeBg: "rgba(124,58,237,0.1)",
+                        desc: "Microserviço R via CNEFE/IBGE. Precisão máxima para endereços brasileiros, roda localmente.",
+                        icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>,
+                      },
+                      {
+                        value: "googlemaps",
+                        label: "Google Maps",
+                        badge: "Pay-per-use",
+                        badgeColor: "#1565c0",
+                        badgeBg: "rgba(21,101,192,0.1)",
+                        desc: "Google Maps Geocoding API. Alta precisão global. Requer chave de API paga.",
+                        icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+                      },
+                    ] as const).map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => { setInstanceMode(opt.value as any); setMapsKeyTouched(false); }}
+                        style={{
+                          width: "100%", padding: "1rem", borderRadius: 12, textAlign: "left",
+                          border: `2px solid ${instanceMode === opt.value ? "var(--accent)" : "var(--border-strong)"}`,
+                          background: instanceMode === opt.value ? "var(--accent-dim)" : "var(--surface-2)",
+                          cursor: "pointer", transition: "all 200ms",
+                          display: "flex", alignItems: "flex-start", gap: "0.85rem",
+                        }}
+                      >
+                        <div style={{ color: instanceMode === opt.value ? "var(--accent)" : "var(--text-muted)", flexShrink: 0, marginTop: 2 }}>{opt.icon}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
+                            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: instanceMode === opt.value ? "var(--accent)" : "var(--text)" }}>{opt.label}</span>
+                            <span style={{ fontSize: "0.62rem", fontWeight: 700, padding: "0.12rem 0.45rem", borderRadius: 99, background: opt.badgeBg, color: opt.badgeColor, letterSpacing: "0.05em" }}>{opt.badge}</span>
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "var(--text-faint)", lineHeight: 1.5 }}>{opt.desc}</div>
                         </div>
-                        <div style={{ fontSize: "0.82rem", fontWeight: 700, marginBottom: "0.3rem", color: instanceMode === opt.value ? "var(--accent)" : "var(--text)" }}>{opt.label}</div>
-                        <div style={{ fontSize: "0.7rem", color: "var(--text-faint)", lineHeight: 1.5 }}>{opt.desc}</div>
                       </button>
                     ))}
                   </div>
-                  {instanceMode === "googlemaps" && (
-                    <div style={{ marginBottom: "1.5rem", padding: "1.1rem 1.2rem", borderRadius: 10, background: "var(--surface-2)", border: "1px solid var(--border-strong)" }}>
-                      <label style={labelStyle}>Chave de API do Google Maps</label>
-                      <input type="password" value={googleMapsApiKey} onChange={(e) => setGoogleMapsApiKey(e.target.value)} placeholder="AIzaSy..." style={inputStyle} />
-                      <p style={{ fontSize: "0.68rem", color: "var(--text-faint)", marginTop: "0.45rem", lineHeight: 1.5 }}>A chave é armazenada de forma segura. Habilite a <strong>Geocoding API</strong> no Google Cloud Console.</p>
+
+                  {/* Google Maps key */}
+                  {instanceMode === "googlemaps" && (() => {
+                    const keyError = mapsKeyTouched && googleMapsApiKey && !googleMapsApiKey.startsWith("AIza")
+                      ? 'A chave deve começar com "AIza".'
+                      : mapsKeyTouched && googleMapsApiKey && (googleMapsApiKey.length < 35 || googleMapsApiKey.length > 45)
+                      ? "Comprimento inválido. Verifique no Google Cloud Console."
+                      : null;
+                    return (
+                      <div style={{ marginBottom: "1.25rem", padding: "1.1rem 1.2rem", borderRadius: 10, background: "rgba(21,101,192,0.05)", border: "1px solid rgba(21,101,192,0.2)" }}>
+                        <label style={labelStyle}>Chave de API do Google Maps</label>
+                        <input
+                          type="password"
+                          value={googleMapsApiKey}
+                          onChange={(e) => setGoogleMapsApiKey(e.target.value)}
+                          onBlur={() => setMapsKeyTouched(true)}
+                          placeholder="AIzaSy..."
+                          style={{ ...inputStyle, borderColor: keyError ? "var(--accent)" : "var(--border-strong)" }}
+                        />
+                        {keyError && <div style={{ fontSize: "0.68rem", color: "var(--accent)", marginTop: "0.35rem" }}>{keyError}</div>}
+                        {!keyError && googleMapsApiKey && googleMapsApiKey.startsWith("AIza") && (
+                          <div style={{ fontSize: "0.68rem", color: "var(--ok)", marginTop: "0.35rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+                            Formato de chave válido
+                          </div>
+                        )}
+                        <p style={{ fontSize: "0.68rem", color: "var(--text-faint)", marginTop: "0.45rem", lineHeight: 1.5 }}>
+                          A chave é armazenada de forma segura. Habilite a <strong>Geocoding API</strong> no Google Cloud Console.
+                        </p>
+                      </div>
+                    );
+                  })()}
+
+                  {/* geocodebr info */}
+                  {instanceMode === "geocodebr" && (
+                    <div style={{ marginBottom: "1.25rem", padding: "1.1rem 1.2rem", borderRadius: 10, background: "rgba(124,58,237,0.05)", border: "1px solid rgba(124,58,237,0.2)" }}>
+                      <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#7c3aed", marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Como ativar o GeocodeR BR
+                      </div>
+                      <div style={{ fontSize: "0.72rem", color: "var(--text-faint)", lineHeight: 1.7 }}>
+                        O microserviço precisa estar rodando localmente na porta <strong>8002</strong>. Configure a variável de ambiente <code style={{ background: "var(--surface-2)", padding: "0 0.3rem", borderRadius: 4, fontSize: "0.68rem" }}>GEOCODEBR_URL=http://localhost:8002</code> no servidor da API.
+                        <br /><br />
+                        <strong>Via Docker:</strong>
+                        <br />
+                        <code style={{ background: "var(--surface-2)", padding: "0.2rem 0.5rem", borderRadius: 4, fontSize: "0.68rem", display: "block", marginTop: "0.3rem", wordBreak: "break-all" }}>
+                          docker run -p 8002:8002 -v geocodebr-cache:/root/.cache viax-geocodebr
+                        </code>
+                        <br />
+                        <strong>Via Termux (Android):</strong>
+                        <br />
+                        <code style={{ background: "var(--surface-2)", padding: "0.2rem 0.5rem", borderRadius: 4, fontSize: "0.68rem", display: "block", marginTop: "0.3rem" }}>
+                          bash ~/viax-system/start-geocodebr.sh
+                        </code>
+                      </div>
                     </div>
                   )}
+
                   <SaveBtn label="Salvar Instância" loading={updateSettingsMutation.isPending} onClick={handleSettingsSave} />
                 </>
               )}

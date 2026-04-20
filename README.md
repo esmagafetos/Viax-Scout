@@ -22,7 +22,7 @@
 
 ## Sobre o projeto
 
-O **ViaX: System** é uma plataforma SaaS de auditoria logística que verifica automaticamente se os endereços registrados em planilhas de rotas de entrega correspondem às coordenadas GPS coletadas em campo.
+O **ViaX:Trace** é uma plataforma SaaS de auditoria logística que verifica automaticamente se os endereços registrados em planilhas de rotas de entrega correspondem às coordenadas GPS coletadas em campo.
 
 O sistema detecta **nuances** — divergências entre o endereço informado e o local real de coleta — e gera relatórios operacionais detalhados, ajudando gestores de logística a identificar fraudes, erros de digitação e pontos de coleta incorretos em segundos.
 
@@ -42,8 +42,9 @@ Planilha XLSX/CSV → Parser de endereço → Geocodificação reversa → Compa
 | **Parser embutido** | Extrai logradouro, número, travessa, POI e CEP via regex adaptado ao português BR |
 | **Parser via IA** | Alternativa usando OpenAI, Anthropic ou Google Gemini |
 | **Geocodificação brasileira** | BrasilAPI v2 (IBGE/Correios) + AwesomeAPI CEP como fontes primárias |
-| **Geocodificação global** | Photon (sem rate limit), Overpass API e Nominatim como fallback |
-| **Google Maps premium** | Integração opcional para máxima precisão |
+| **Geocodificação global** | Photon (sem rate limit), Overpass API e Nominatim (OSM) como fallback |
+| **GeocodeR BR (CNEFE/IBGE)** | Microserviço R opcional — precisão máxima para endereços brasileiros via base CNEFE do IBGE |
+| **Google Maps premium** | Integração opcional para máxima precisão global |
 | **Detecção de nuances** | Similaridade bigram Jaccard + distância Haversine configurável |
 | **Tolerância configurável** | Raio de aceitação em metros ajustável por conta |
 | **Dashboard** | Visão geral de análises, nuances detectadas e controle financeiro |
@@ -126,13 +127,19 @@ CEP detectado?
   └─ NÃO → continua no fluxo global
 
 GPS fornecido? → Geocodificação reversa:
-  Photon (Komoot) → Overpass API → Nominatim OSM
+  Photon (Komoot) → Overpass API → Nominatim (OSM)
 
 Sem GPS ou reverso inconclusivo → Geocodificação direta:
   Photon → Nominatim (rate-limited 1 req/s)
+  └─ Fallback final: GeocodeR BR (CNEFE/IBGE) — se GEOCODEBR_URL configurado
+
+Modo GeocodeR BR (instância "geocodebr"):
+  Microserviço R local via pacote geocodebr do IPEA
+  Fonte: CNEFE — cadastro nacional de endereços do IBGE
+  Precisão máxima para cidades e municípios brasileiros
 
 Modo premium:
-  Google Maps API (reverso + direto, máxima precisão)
+  Google Maps API (reverso + direto, máxima precisão global)
 ```
 
 ---
@@ -163,6 +170,19 @@ iwr -useb https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install.
 ```bash
 curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install-termux.sh | bash
 ```
+
+O instalador Termux detecta automaticamente se R está disponível e instala os pacotes do GeocodeR BR. Para ativar o microserviço após a instalação:
+
+```bash
+# Inicia o microserviço GeocodeR BR (porta 8002)
+bash ~/viax-system/start-geocodebr.sh
+
+# Ou instale os pacotes R manualmente se necessário:
+pkg install r-base
+bash ~/viax-system/install-geocodebr-r.sh
+```
+
+Depois acesse **Configurações → Instâncias → GeocodeR BR** na interface.
 
 ---
 
@@ -216,6 +236,11 @@ SESSION_SECRET=sua_chave_secreta_aqui
 # Google Maps API (opcional — para modo premium)
 GOOGLE_MAPS_API_KEY=
 
+# GeocodeR BR — microserviço R/CNEFE (opcional — para máxima precisão em endereços BR)
+# Suba o container com: docker run -p 8002:8002 viax-geocodebr
+# Ou use o instalador Termux com R: bash ~/viax-system/start-geocodebr.sh
+GEOCODEBR_URL=
+
 # Parser via IA (opcional)
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
@@ -226,8 +251,9 @@ GOOGLE_AI_API_KEY=
 
 | Seção | Opção | Descrição |
 |---|---|---|
-| **Instâncias** | `builtin` | Geocodificação gratuita — alta precisão para BR |
-| **Instâncias** | `googlemaps` | Google Maps API — máxima precisão, pay-per-use |
+| **Instâncias** | `builtin` | Geocodificação gratuita — Photon + Overpass + Nominatim (OSM) |
+| **Instâncias** | `geocodebr` | GeocodeR BR — CNEFE/IBGE via microserviço R local (precisão máxima BR) |
+| **Instâncias** | `googlemaps` | Google Maps API — máxima precisão global, pay-per-use |
 | **Parser** | `embutido` | Regex otimizado para português BR |
 | **Parser** | `ia` | LLM para endereços complexos ou ambíguos |
 | **Tolerância** | raio em metros | Define o limiar de detecção de nuances |
@@ -336,8 +362,9 @@ PORT=5173 BASE_PATH=/ pnpm --filter @workspace/viax-scout run dev
 | Auth | express-session + bcryptjs | — |
 | Upload | Multer | — |
 | Parsing XLSX | xlsx | — |
-| **Geocodificação BR** | BrasilAPI v2 + AwesomeAPI | — |
-| **Geocodificação global** | Photon + Overpass + Nominatim | — |
+| **Geocodificação BR** | BrasilAPI v2 + AwesomeAPI CEP | — |
+| **Geocodificação global** | Photon + Overpass + Nominatim (OSM) | — |
+| **GeocodeR BR** | geocodebr (IPEA) + Plumber + R | 4.4+ |
 | API codegen | Orval | — |
 
 ---
