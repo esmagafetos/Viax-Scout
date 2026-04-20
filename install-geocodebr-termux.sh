@@ -93,44 +93,27 @@ inf "Atualizando listas de pacotes..."
 ubuntu "export DEBIAN_FRONTEND=noninteractive && apt-get update -qq" \
   || warn "apt-get update retornou erro — continuando..."
 
-inf "Instalando bibliotecas de sistema base..."
+inf "Instalando bibliotecas necessárias..."
 ubuntu "
   export DEBIAN_FRONTEND=noninteractive
   apt-get install -y --no-install-recommends \
-    r-base r-base-dev cmake \
+    r-base r-base-dev \
     libcurl4-openssl-dev libssl-dev libxml2-dev \
     libgdal-dev libgeos-dev libproj-dev libudunits2-dev \
     libuv1-dev libsodium-dev \
     libfontconfig1-dev libfreetype-dev \
     libharfbuzz-dev libfribidi-dev \
     libpng-dev libjpeg-dev \
-    libzstd-dev liblz4-dev libbrotli-dev libsnappy-dev \
     build-essential ca-certificates git pkg-config curl wget \
     2>&1 | grep -E '^(E:|Get:|Setting up|0 upgraded|[0-9]+ upgraded)' || true
 " || die "Falha crítica ao instalar dependências de sistema"
-
-# Instala libarrow-dev do repositório oficial do Apache Arrow
-# (biblioteca C++ pré-compilada para arm64 — essencial para o pacote R 'arrow')
-inf "Adicionando repositório oficial do Apache Arrow..."
-ubuntu "
-  export DEBIAN_FRONTEND=noninteractive
-  cd /tmp
-  # Usa o pacote APT source para noble (compatível com questing no arm64)
-  wget -q 'https://apache.jfrog.io/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb' \
-    -O apache-arrow.deb 2>&1 || true
-  if [[ -f apache-arrow.deb && -s apache-arrow.deb ]]; then
-    apt-get install -y ./apache-arrow.deb 2>&1 | tail -3
-    apt-get update -qq 2>&1 | tail -1
-    apt-get install -y --no-install-recommends \
-      libarrow-dev libarrow-dataset-dev libparquet-dev \
-      2>&1 | grep -E '^(E:|Get:|Setting up|0 upgraded|[0-9]+ upgraded)' || true
-    echo '[ok] libarrow-dev instalado do repositório oficial'
-  else
-    echo '[av] Download do APT source do Arrow falhou — arrow sera compilado do zero'
-  fi
-  rm -f apache-arrow.deb
-"
 ok "Dependências de sistema instaladas"
+
+# NOTA: NÃO instalamos libarrow-dev do sistema.
+# Motivo: a versão do apt (ex: 20.x) conflita com o pacote R arrow (23.x).
+# Quando as versões divergem, o arrow ignora o binário e compila do zero
+# causando OOM-kill pelo cmake. Com LIBARROW_BINARY=true + LIBARROW_BUILD=false
+# o pacote R baixa o binário arm64 pré-compilado do GitHub do Apache Arrow.
 
 # ---------------------------------------------------------------------------
 # PASSO 6 — Instala pacotes R via apt (binários prontos, sem compilação)
@@ -167,10 +150,11 @@ cat > "$UBUNTU_ROOT/root/viax-geocodebr/_install_pkgs.R" << RSCRIPT
 # LIBARROW_BINARY=true  → baixa binário C++ em vez de compilar (muito mais rápido)
 # NOT_CRAN=true         → habilita o download de binários do Apache Arrow
 Sys.setenv(
-  LIBARROW_BINARY        = "true",
-  NOT_CRAN               = "true",
-  ARROW_R_DEV            = "false",
-  LIBARROW_MINIMAL       = "false"
+  LIBARROW_BINARY  = "true",   # baixa binario C++ pre-compilado do GitHub do Apache
+  LIBARROW_BUILD   = "false",  # CRITICO: nao compila do zero (evita OOM-kill pelo cmake)
+  NOT_CRAN         = "true",   # habilita download de binarios
+  ARROW_R_DEV      = "false",
+  PKG_CONFIG_PATH  = ""        # evita que sistema libarrow conflite com a versao do R
 )
 
 # ── Configuração de repositórios ─────────────────────────────────────────────
