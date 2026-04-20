@@ -161,32 +161,10 @@ if command -v R &>/dev/null; then
   info "R já instalado: $(R --version | head -1)"
   GEOCODEBR_AVAILABLE=true
 else
-  info "Tentando instalar R no Termux..."
-  # Garantir que a lista de pacotes está atualizada antes de tentar r-base
-  pkg update -y 2>/dev/null || true
-  if pkg install -y r-base 2>/dev/null; then
-    success "R instalado com sucesso"
-    GEOCODEBR_AVAILABLE=true
-  else
-    warn "r-base não encontrado no mirror atual."
-    warn "Para instalar depois: bash $APP_DIR/install-geocodebr-termux.sh"
-  fi
-fi
-
-if [[ "$GEOCODEBR_AVAILABLE" == true ]]; then
-  info "Instalando pacotes R necessários (plumber, geocodebr, future)..."
-  info "Isso pode demorar 15-40 minutos (compilação no Android)..."
-  R --no-save --quiet <<'RSCRIPT' 2>/dev/null \
-    && success "Pacotes R instalados" \
-    || warn "Falha ao instalar pacotes R. Execute 'bash $APP_DIR/install-geocodebr-termux.sh' manualmente depois."
-options(repos = c(CRAN = "https://cran.rstudio.com/"))
-pkgs <- c("plumber", "geocodebr", "future", "promises", "jsonlite")
-for (p in pkgs) {
-  if (!requireNamespace(p, quietly=TRUE)) {
-    install.packages(p, dependencies=TRUE, quiet=TRUE)
-  }
-}
-RSCRIPT
+  info "r-base foi removido do repositório oficial do Termux."
+  info "Use o instalador standalone para instalar via proot-distro (Ubuntu):"
+  info "  bash $APP_DIR/install-geocodebr-termux.sh"
+  warn "O GeocodeR BR não será configurado agora. Execute o instalador acima depois."
 fi
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,192 @@
+~/viax-system $ bash ~/viax-system/install-geocodebr-termux.sh
+ViaX:Trace — Instalador GeocodeR BR
+  Motor  : CNEFE / IBGE (pacote geocodebr do IPEA)
+  Porta  : 8002
+
+[aviso] A instalação dos pacotes R pode demorar 15-40 minutos.
+[aviso] Certifique-se de ter pelo menos 3 GB de armazenamento disponível.
+
+[info] Diretório da aplicação: /data/data/com.termux/files/home/viax-system
+
+==> Atualizando repositórios
+[info] Atualizando lista de pacotes...
+Checking availability of current mirror:
+[*] https://mirrors.ravidwivedi.in/termux/termux-main: ok
+Hit:1 https://mirrors.ravidwivedi.in/termux/termux-main stable InRelease
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+
+==> Instalando R
+[info] Tentando instalar r-base...
+Checking availability of current mirror:
+[*] https://mirrors.ravidwivedi.in/termux/termux-main: ok
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+E: Unable to locate package r-base
+[aviso] Pacote 'r-base' não encontrado. Tentando mirror alternativo...
+[info] Tentando mirror: https://packages.termux.dev/apt/termux-main
+Checking availability of current mirror:
+[*] https://packages.termux.dev/apt/termux-main: ok
+Get:1 https://packages.termux.dev/apt/termux-main stable InRelease [14.0 kB]
+Get:2 https://packages.termux.dev/apt/termux-main stable/main aarch64 Packages [548 kB]
+Fetched 562 kB in 3s (163 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+Checking availability of current mirror:
+[*] https://packages.termux.dev/apt/termux-main: ok
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+E: Unable to locate package r-base
+[info] Tentando mirror: https://dl.bintray.com/termux/termux-packages-24
+Checking availability of current mirror:
+[*] https://dl.bintray.com/termux/termux-packages-24: bad
+Testing the available mirrors:
+[*] (10) https://packages-cf.termux.dev/apt/termux-main: ok
+[*] (1) https://linux.domainesia.com/applications/termux/termux-main: ok
+[*] (1) https://termux.niranjan.co/termux-main: ok
+[*] (1) https://mirror.bardia.tech/termux/termux-main: bad
+[*] (1) https://mirrors.saswata.cc/termux/termux-main: bad
+[*] (1) https://mirrors.ravidwivedi.in/termux/termux-main: ok
+[*] (1) https://mirror.textcord.xyz/termux/termux-main: bad
+[*] (1) https://mirrors.krnk.org/apt/termux/termux-main: ok
+[*] (1) https://mirror.rinarin.dev/termux/termux-main: ok
+[*] (1) https://mirror.jeonnam.school/termux/termux-main: ok
+[*] (1) https://mirrors.nguyenhoang.cloud/termux/termux-main: ok
+[*] (1) https://mirrors.cbrx.io/apt/termux/termux-main: ok
+[*] (1) https://tmx.xvx.my.id/apt/termux-main: ok
+[*] (1) https://mirror.albony.in/termux/termux-main: ok
+[*] (1) https://mirror.twds.com.tw/termux/termux-main: ok
+[*] (1) https://mirror.nevacloud.com/applications/termux/termux-main: bad
+[*] (1) https://mirror.meowsmp.net/termux/termux-main: bad
+[*] (1) https://mirror.freedif.org/termux/termux-main: ok
+[*] (1) https://mirrors.in.sahilister.net/termux/termux-main/: ok
+[*] (1) https://mirror.iscas.ac.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.sau.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.sdu.edu.cn/termux/termux-main: ok
+[*] (1) https://mirrors.aliyun.com/termux/termux-main: ok
+[*] (1) https://mirrors.cernet.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.cqupt.edu.cn/termux/termux-main: ok
+[*] (1) https://mirrors.sustech.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.bfsu.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.pku.edu.cn/termux/termux-main/: ok
+[*] (1) https://mirrors.hust.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.tuna.tsinghua.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirror.sjtu.edu.cn/termux/termux-main/: ok
+[*] (1) https://mirror.nyist.edu.cn/termux/apt/termux-main: ok
+[*] (1) https://mirrors.ustc.edu.cn/termux/termux-main: ok
+[*] (1) https://mirrors.zju.edu.cn/termux/apt/termux-main: bad
+[*] (1) https://mirrors.nju.edu.cn/termux/apt/termux-main: ok
+[*] (4) https://grimler.se/termux/termux-main: ok
+[*] (1) https://mirror.polido.pt/termux/termux-main: bad
+[*] (1) https://termux.3san.dev/termux/termux-main: ok
+[*] (1) https://mirrors.medzik.dev/termux/termux-main: bad
+[*] (1) https://mirror.accum.se/mirror/termux.dev/termux-main: ok
+[*] (1) https://mirror.mwt.me/termux/main: ok
+[*] (1) https://ro.mirror.flokinet.net/termux/termux-main: ok
+[*] (1) https://md.mirrors.hacktegic.com/termux/termux-main: bad
+[*] (1) https://is.mirror.flokinet.net/termux/termux-main: ok
+[*] (1) https://mirror.termux.dev/termux-main: bad
+[*] (1) https://termux.mentality.rip/termux-main: ok
+[*] (1) https://nl.mirror.flokinet.net/termux/termux-main: ok
+[*] (1) https://termux.cdn.lumito.net/termux-main: ok
+[*] (1) https://mirror.leitecastro.com/termux/termux-main: bad
+[*] (1) https://mirror.bouwhuis.network/termux/termux-main: ok
+[*] (1) https://termux.librehat.com/apt/termux-main: ok
+[*] (1) https://mirror.autkin.net/termux/termux-main: ok
+[*] (1) https://mirror.sunred.org/termux/termux-main: ok
+[*] (1) https://packages.termux.dev/apt/termux-main: ok
+[*] (1) https://ftp.agdsn.de/termux/termux-main: ok
+[*] (1) https://ftp.fau.de/termux/termux-main: ok
+[*] (1) https://mirrors.cfe.re/termux/termux-main: bad
+[*] (1) https://mirrors.de.sahilister.net/termux/termux-main: ok
+[*] (1) https://gnlug.org/pub/termux/termux-main: ok
+[*] (1) https://mirror.mwt.me/termux/main: ok
+[*] (1) https://mirror.quantum5.ca/termux/termux-main: ok
+[*] (1) https://mirrors.utermux.dev/termux/termux-main: ok
+[*] (1) https://plug-mirror.rcac.purdue.edu/termux/termux-main: ok
+[*] (1) https://mirror.vern.cc/termux/termux-main: ok
+[*] (1) https://dl.kcubeterm.com/termux-main: bad
+[*] (1) https://termux.danyael.xyz/termux/termux-main: ok
+[*] (1) https://mirror.csclub.uwaterloo.ca/termux/termux-main: ok
+[*] (1) https://mirror.fcix.net/termux/termux-main: ok
+[*] (1) https://mirrors.middlendian.com/termux/termux-main: ok
+[*] (1) https://repository.su/termux/termux-main/: ok
+[*] (1) http://mirror.mephi.ru/termux/termux-main: ok
+Picking mirror: (23) /data/data/com.termux/files/usr/etc/termux/mirrors/chinese_mainland/mirror.iscas.ac.cn
+Get:1 https://fast-mirror.isrc.ac.cn/termux/apt/termux-main stable InRelease [14.0 kB]
+Get:2 https://fast-mirror.isrc.ac.cn/termux/apt/termux-main stable/main aarch64 Packages [547 kB]
+Fetched 561 kB in 7s (84.8 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+Checking availability of current mirror:
+[*] https://mirror.iscas.ac.cn/termux/apt/termux-main: ok
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+E: Unable to locate package r-base
+[info] Tentando mirror: https://termux.mentality.rip/termux-main
+Checking availability of current mirror:
+[*] https://termux.mentality.rip/termux-main: ok
+Get:1 https://termux.mentality.rip/termux-main stable InRelease [14.0 kB]
+Get:2 https://termux.mentality.rip/termux-main stable/main aarch64 Packages [546 kB]
+Fetched 560 kB in 3s (177 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+Checking availability of current mirror:
+[*] https://termux.mentality.rip/termux-main: ok
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+E: Unable to locate package r-base
+[info] Tentando mirror: https://grimler.se/termux/termux-main
+Checking availability of current mirror:
+[*] https://grimler.se/termux/termux-main: ok
+Get:1 https://grimler.se/termux/termux-main stable InRelease [14.0 kB]
+Get:2 https://grimler.se/termux/termux-main stable/main aarch64 Packages [546 kB]
+Fetched 560 kB in 4s (149 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+Checking availability of current mirror:
+[*] https://grimler.se/termux/termux-main: ok
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+E: Unable to locate package r-base
+Checking availability of current mirror:
+[*] https://mirrors.ravidwivedi.in/termux/termux-main: ok
+Get:1 https://mirrors.ravidwivedi.in/termux/termux-main stable InRelease [14.0 kB]
+Get:2 https://mirrors.ravidwivedi.in/termux/termux-main stable/main aarch64 Packages [546 kB]
+Fetched 560 kB in 5s (121 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+
+Não foi possível instalar o R automaticamente.
+
+Soluções:
+  1. Trocar mirror e tentar de novo:
+     termux-change-repo
+     (Selecione: Albatross ou mirrors.pku.edu.cn)
+     pkg install r-base
+
+  2. Usar o microserviço via Docker (em outro dispositivo):
+     docker run -p 8002:8002 -v geocodebr-cache:/root/.cache viax-geocodebr
+     Configure GEOCODEBR_URL=http://IP-DO-SERVIDOR:8002 no .env
+
+  3. Usar o motor padrão OSM (Photon + Nominatim):
+     Acesse Configurações → Instâncias → Padrão Gratuito
+
+~/viax-system $

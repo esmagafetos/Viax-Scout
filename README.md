@@ -171,26 +171,28 @@ iwr -useb https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install.
 curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install-termux.sh | bash
 ```
 
-O instalador Termux detecta automaticamente se R está disponível. Para instalar o GeocodeR BR separadamente (ou se o instalador principal não encontrou o R):
+O instalador principal configura Node.js, PostgreSQL e a API. Para o motor **GeocodeR BR** (precisão máxima, fonte CNEFE/IBGE), execute o instalador standalone após a instalação principal:
 
 ```bash
-# Instalador standalone do GeocodeR BR para Termux
-curl -fsSL https://raw.githubusercontent.com/esmagafetos/Viax-Scout/main/install-geocodebr-termux.sh | bash
-
-# Ou, se já clonou o repositório:
 bash ~/viax-system/install-geocodebr-termux.sh
 ```
 
-> **Nota:** Se o Termux não encontrar o pacote `r-base`, execute `termux-change-repo` primeiro para selecionar um mirror válido (recomendado: Albatross), depois rode o instalador novamente.
+> **Por que um instalador separado?** O pacote `r-base` foi removido do repositório oficial do Termux. O instalador usa **proot-distro** para criar um ambiente Ubuntu dentro do Termux — sem necessidade de root — onde `apt install r-base` funciona normalmente. O processo leva 20-60 minutos incluindo compilação dos pacotes R.
 
-Após instalar, inicie o microserviço e ative na interface:
+Após instalar, inicie o microserviço:
 
 ```bash
-# Inicia o microserviço GeocodeR BR (porta 8002)
+# Inicia o GeocodeR BR (porta 8002, Ubuntu dentro do Termux)
 bash ~/viax-system/start-geocodebr.sh
 ```
 
-Depois acesse **Configurações → Instâncias → GeocodeR BR** e adicione `GEOCODEBR_URL=http://localhost:8002` ao `.env` do servidor.
+Ative na interface em **Configurações → Instâncias → GeocodeR BR** e adicione ao `.env` da API:
+
+```env
+GEOCODEBR_URL=http://localhost:8002
+```
+
+> **No primeiro início**, o geocodebr baixa os dados do CNEFE (~1-2 GB). Esse download ocorre uma única vez.
 
 ---
 
