@@ -177,7 +177,7 @@ O instalador principal configura Node.js, PostgreSQL e a API. Para o motor **Geo
 bash ~/viax-system/install-geocodebr-termux.sh
 ```
 
-> **Por que um instalador separado?** O pacote `r-base` foi removido do repositório oficial do Termux. O instalador usa **proot-distro** para criar um ambiente Ubuntu dentro do Termux — sem necessidade de root — onde `apt install r-base` funciona normalmente. O processo leva 20-60 minutos incluindo compilação dos pacotes R.
+> **Por que um instalador separado?** O pacote `r-base` foi removido do repositório oficial do Termux. O instalador usa **proot-distro** para criar um ambiente Ubuntu dentro do Termux — sem necessidade de root — instala R 4.5 e baixa todos os pacotes (`arrow`, `duckdb`, `geocodebr`, `sf`, `plumber`) como **binários ARM64 pré-compilados via r-universe**, eliminando qualquer compilação C++. O processo leva apenas 10-25 minutos.
 
 Após instalar, inicie o microserviço:
 
@@ -374,7 +374,7 @@ PORT=5173 BASE_PATH=/ pnpm --filter @workspace/viax-scout run dev
 | Parsing XLSX | xlsx | — |
 | **Geocodificação BR** | BrasilAPI v2 + AwesomeAPI CEP | — |
 | **Geocodificação global** | Photon + Overpass + Nominatim (OSM) | — |
-| **GeocodeR BR** | geocodebr (IPEA) + Plumber + R | 4.4+ |
+| **GeocodeR BR** | geocodebr (IPEA) + Plumber + R | 4.5+ |
 | API codegen | Orval | — |
 
 ---

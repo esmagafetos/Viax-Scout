@@ -70,7 +70,17 @@ pnpm workspace monorepo with React+Vite frontend and Express API backend.
 
 - `install.sh` — Linux & macOS (auto-installs Node, pnpm, PostgreSQL, configures DB, builds, creates `start.sh`)
 - `install-termux.sh` — Android via Termux (pkg install, pg_ctl setup, creates start/stop scripts)
+- `install-geocodebr-termux.sh` — Standalone installer for the **GeocodeR BR** microservice on Termux. Uses `proot-distro` Ubuntu Noble + R 4.5 from CRAN apt repo + **r-universe ARM64 prebuilt binaries** (arrow, duckdb, sf, plumber, geocodebr) — zero C++ compilation, ~10–25 min total
 - `install.ps1` — Windows PowerShell (winget/chocolatey, creates `start.bat`)
 - `docker-compose.yml` + `Dockerfile.api` + `Dockerfile.web` + `nginx.conf` — Docker full-stack deployment
+
+## GitHub Project Structure
+
+- `.github/ISSUE_TEMPLATE/{bug_report,feature_request}.md` + `config.yml` — issue forms
+- `.github/PULL_REQUEST_TEMPLATE.md` — PR template with Conventional Commits checklist
+- `.github/dependabot.yml` — weekly npm + monthly github-actions updates, grouped by ecosystem
+- `.github/workflows/ci.yml` — CI: typecheck + build + shellcheck on push/PR to main
+- `CONTRIBUTING.md` · `CODE_OF_CONDUCT.md` · `SECURITY.md` · `LICENSE` (MIT)
+- Banner image: `docs/banner.png` (README) and `artifacts/viax-scout/public/github-banner.png` (Docs page) — both share the same source asset
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
