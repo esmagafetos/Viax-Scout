@@ -40,3 +40,7 @@ Cole aqui os logs de erro (sem dados sensíveis como senhas ou tokens)
 ## Contexto adicional
 
 <!-- Capturas de tela, arquivos de exemplo (sem dados pessoais), etc. -->
+
+## Planilha de exemplo (se aplicável)
+
+<!-- Anexe um arquivo XLSX/CSV reduzido (sem dados pessoais) que reproduza o problema -->

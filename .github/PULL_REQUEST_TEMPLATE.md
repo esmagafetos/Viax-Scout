@@ -29,3 +29,9 @@
 ## Issues relacionadas
 
 Closes #
+
+## Checklist de segurança (para mudanças na API ou autenticação)
+
+- [ ] Nenhum dado sensível foi exposto em logs ou respostas de erro
+- [ ] Entradas do usuário são validadas via Zod antes de atingir o banco de dados
+- N/A — mudança de frontend/docs apenas
