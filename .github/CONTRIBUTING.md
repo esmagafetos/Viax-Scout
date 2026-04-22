@@ -1,4 +1,4 @@
-# Guia de Contribuição — ViaX:Trace
+# Guia de Contribuição — ViaX:Trace v8.0
 
 Obrigado por dedicar seu tempo a melhorar o ViaX:Trace. Este documento define o processo para contribuir com código, reportar bugs e propor novas funcionalidades.
 

@@ -1,5 +1,6 @@
 <div align="center">
 
+<!-- Banner: ViaX:Trace — docs/banner.png (947x245px) -->
 <img src="docs/banner.png" alt="ViaX:Trace — Auditoria Inteligente de Rotas Logísticas" width="100%" />
 
 <br/>
