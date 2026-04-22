@@ -876,7 +876,7 @@ Endereço: "${endereco}"`;
       logger.warn({ provider: aiProvider, status: resp.status }, "AI parser HTTP error");
       return null;
     }
-    const data = await resp.json();
+    const data = (await resp.json()) as any;
 
     let jsonStr = "";
     if (aiProvider === "openai") {
@@ -908,7 +908,7 @@ function montarQueryBusca(parsed: ParsedAddress): string {
 }
 
 function forwardConfirmaRua(parsed: ParsedAddress, result: GeoResult | null): boolean {
-  if (!isRuaConfiavel(result) || !parsed.rua_principal) return false;
+  if (!isRuaConfiavel(result) || !parsed.rua_principal || !result) return false;
   return calcularSimilaridade(parsed.rua_principal, result.rua) >= 0.6;
 }
 
