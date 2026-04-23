@@ -64,20 +64,32 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
         run: |
+          set -o pipefail
           eas build \
             --platform android \
             --profile preview \
             --non-interactive \
-            --no-wait=false \
-            --json > build-output.json
-          cat build-output.json
+            --json \
+            --wait 2>&1 | tee build-output.json
+          echo "---- last 5 lines of build-output.json ----"
+          tail -n 5 build-output.json
 
       - name: Download APK artifact
         run: |
-          APK_URL=$(node -p "JSON.parse(require('fs').readFileSync('build-output.json','utf8'))[0].artifacts.buildUrl")
+          APK_URL=$(node -e "
+            const fs = require('fs');
+            const raw = fs.readFileSync('build-output.json','utf8').trim();
+            const start = raw.indexOf('[');
+            const end = raw.lastIndexOf(']');
+            if (start === -1 || end === -1) { console.error('no JSON array in output'); process.exit(1); }
+            const builds = JSON.parse(raw.slice(start, end + 1));
+            const url = builds[0] && builds[0].artifacts && builds[0].artifacts.buildUrl;
+            if (!url) { console.error('no buildUrl in EAS response'); process.exit(1); }
+            console.log(url);
+          ")
           echo "APK URL: $APK_URL"
           mkdir -p out
-          curl -L "$APK_URL" -o "out/viax-trace-${{ steps.meta.outputs.short_sha }}.apk"
+          curl -fL "$APK_URL" -o "out/viax-trace-${{ steps.meta.outputs.short_sha }}.apk"
           ls -lh out
 
       - name: Create GitHub Release
