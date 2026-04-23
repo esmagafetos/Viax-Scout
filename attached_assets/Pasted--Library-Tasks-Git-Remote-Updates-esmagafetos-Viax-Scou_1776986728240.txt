@@ -1,0 +1,170 @@
+
+
+
+
+
+
+
+Library
+
+
+
+
+Tasks
+
+
+
+
+
+
+Git
+
+
+
+
+Remote Updates
+esmagafetos/Viax-Scout
+
+origin/main•upstreamlast fetched 9 min ago
+
+
+Commit
+Message
+
+Review Changes1 change
+1 changed file
+
+
+
+M
+Committing will automatically stage your changes.
+
+
+
+
+
+
+
+
+
+Preview
+
+
+
+
+Invite
+
+Invite
+
+
+Accessgaskonanimev1(You)
+Owner
+
+
+Private join linkAnyone with a link will have edit access
+
+
+
+
+
+Agent
+
+
+
+
+
+
+bom, fizemos nosso primeiro build da versão android do projeto essa semana mas precisamos ajustar algumas coisas.
+primeiro: design ui/ux e interface completa não conferem com a da versão web, ela deve copiar a versão web de forma idêntica mas com os pequenos ajustes de configurar servidor
+segundo: instalador do servidor do termux não é intuitivo e o readme também não está muito bem intuitivo para usuários comuns, vamos começar a planejar a estrutura visual de vitrine, utilize uma skill de engenheiro especializado nisso e ajuste isso.
+para a interface, utilize a skill de design para copiar e fazer a interface do app nativo exatamente igual a da web (com os designs desenvolvidos que estão anexados no projeto, tem tudo banner, logo, icon e etc só precisam ser recortados)
+19 minutes ago
+
+
+
+Antes de mergulhar, deixa eu confirmar o escopo com você porque os dois pedidos são bem grandes e quero entregar bem feito em vez de pela metade.
+Pedido 1 — Paridade visual mobile com a webHoje o app mobile usa componentes React Native próprios (Card, Button, Input em components/ui.tsx) com layout simples. A web tem 8 telas (Login, Register, Setup, Dashboard, Process, History, Settings, Docs) com glassmorphism, gradientes amber→roxo, dropdown de perfil, tabs, header frosted etc. Replicar tudo "idêntico" em React Native é um trabalho substancial — vai exigir reescrever os ~9 screens, criar um sistema de tokens compartilhado, recortar e empacotar os PNGs do logo/banner em assets/, e adaptar interações que na web são CSS hover/blur para equivalentes nativos.
+Pedido 2 — Vitrine do instalador Termux + READMEVocê disse "vamos começar a planejar" — então minha leitura é: primeiro entrego um documento de plano (estrutura visual da vitrine, fluxo do instalador passo-a-passo, nova arquitetura do README com seções para usuário comum), você aprova, e aí eu implemento.
+Como você quer que eu prossiga?
+Por onde começo agora?
+Começar pelo Pedido 1 — refazer o mobile inteiro batendo com a web (vou fazer em ondas: tokens+logo+Login/Register/Setup primeiro, depois Dashboard/Process/History/Settings)
+
+Sobre o Pedido 2 (vitrine), qual o nível de mudança que você quer no instalador?
+Refazer com um wizard interativo guiado (perguntas claras, barra de progresso, validações, mensagens em PT-BR amigáveis)
+17 minutes ago
+
+
+
+Beleza — vou na primeira onda do mobile: tokens compartilhados, recortar/empacotar logos e banner como assets, e refazer Login + Register + Setup batendo com a web. Deixa eu ler tudo o que preciso em paralelo primeiro.
+
+
+
+Agora tenho tudo. Vou começar executando a Onda 1: copiar os PNGs de marca para o app, criar provider de tema com toggle, e refazer Login + Register + Setup batendo com a versão web.
+
+
+
+Agora vou criar todos os arquivos novos em paralelo (theme provider, useColors atualizado, ViaXLogo nativo com PNGs, e componentes de UI estendidos).
+
+
+
+Agora vou atualizar o _layout.tsx com o ThemeProvider e reescrever as três telas em paralelo.
+
+
+
+Boa, descobri que o mobile estava mandando { username, password } mas a API espera { email, password } — isso já estava quebrado. Vou consertar isso enquanto refaço as telas.
+
+
+Agora as três telas em paralelo:
+
+
+
+Wave 1 (auth + setup screens + theme/logo system) está pronta. Vou atualizar a memória do projeto e reportar.
+
+
+
+Pronto — Onda 1 do Pedido 1 está finalizada:
+O que mudou no app mobile:
+Tema light/dark com toggle persistido — pílula flutuante no canto superior direito de cada tela, igual ao site
+Logos PNG reais vindos do design-exports/ (mesmo asset do site, sem aproximações)
+Biblioteca de componentes nova (components/ui.tsx): cartões com sombra suave, cabeçalho/corpo, rótulos em maiúsculas com letter-spacing, inputs com anel de foco laranja, campo de senha com olho mostrar/ocultar, medidor de força com 4 barras + checks (8+, letra, número, símbolo), botões pílula primário/fantasma/escuro com ícone à direita, pílulas de status, mensagens de erro inline
+Login redesenhado: cartão com cabeçalho ("Acessar conta" / subtítulo), aviso de servidor não configurado quando aplicável, link de cadastro, indicador discreto da URL atual
+Cadastro redesenhado: validação de email/senha em tempo real, medidor de força ao vivo, campo opcional de data de nascimento, agora envia { name, email, password, birthDate } no formato que a API espera
+Setup: Mantém a seção exclusiva "Configurar servidor" com 5 passos do Termux (cada comando em bloco copiável com long-press), botões "Testar conexão" e "Salvar" lado a lado com feedback visual; depois espelha o web Setup com seleção de Parser, Motor de Geocodificação (com badges Grátis/Local/Pay-per-use) e chips de tolerância (100m a 5000m)
+Bônus técnico: descobri que o login mobile estava quebrado contra a API real (mandava username em vez de email) — corrigi em lib/auth.tsx.
+Próximo passo é a Onda 2: aplicar o mesmo tratamento visual nas telas autenticadas (Dashboard, Processar, Histórico, Ajustes com 6 abas). Posso seguir agora?
+Em seguida, posso adicionar um botão "Copiar comando" real (com expo-clipboard) nos passos do Termux, para o usuário não precisar segurar o dedo. Quer que eu faça?
+
+
+
+
+
+You're out of credits.
+
+
+
+
+
+
+Make, test, iterate…
+
+
+
+
+
+
+
+
+Agent
+Agent can make changes, review its work, and debug itself automatically.
+
+
+
+
+
+
+
+
+
+
+
+
