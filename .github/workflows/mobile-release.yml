@@ -60,7 +60,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck mobile
-        run: pnpm run typecheck
+        run: pnpm --filter @workspace/viax-mobile run typecheck
+
+      - name: Run expo-doctor
+        run: npx --yes expo-doctor@latest
 
       - name: Resolve build metadata
         id: meta
