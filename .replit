@@ -24,6 +24,10 @@ args = "API Server"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Mobile Dev Server"
+
 [[workflows.workflow]]
 name = "API Server"
 author = "agent"
@@ -48,6 +52,18 @@ task = "shell.exec"
 args = "PORT=5173 BASE_PATH=/ pnpm --filter @workspace/viax-scout run dev"
 waitForPort = 5173
 
+[[workflows.workflow]]
+name = "Mobile Dev Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd artifacts/viax-mobile && EXPO_NO_TELEMETRY=1 RCT_METRO_PORT=8000 pnpm exec expo start --tunnel --port 8000 --non-interactive"
+waitForPort = 8000
+
 [agent]
 stack = "BEST_EFFORT_FALLBACK"
 expertMode = true
@@ -67,6 +83,10 @@ externalPort = 3003
 [[ports]]
 localPort = 5175
 externalPort = 4200
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
 
 [[ports]]
 localPort = 8080
