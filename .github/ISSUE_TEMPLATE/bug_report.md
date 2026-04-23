@@ -1,9 +1,9 @@
 ---
 name: 🐛 Bug Report
 about: Reportar um problema reproduzível no ViaX:Trace
-title: "[BUG] "
+title: "fix: "
 labels: ["bug", "triage"]
-assignees: []
+assignees: ["esmagafetos"]
 ---
 
 ## Descrição do bug
@@ -21,25 +21,36 @@ assignees: []
 ## Comportamento observado
 <!-- O que de fato aconteceu. Inclua mensagens de erro completas. -->
 
-## Screenshots / Logs
-<!-- Se aplicável, anexe screenshots ou cole logs (use blocos de código ```). -->
+## Logs relevantes
+```
+Cole aqui os logs de erro (sem dados sensíveis como senhas ou tokens)
+```
+
+## Screenshots
+<!-- Se aplicável, anexe screenshots. -->
 
 ## Ambiente
 - **Sistema operacional:** [ex: Ubuntu 24.04 / Windows 11 / Termux Android 14]
-- **Node.js:** [ex: 20.18.0]
-- **pnpm:** [ex: 9.12.0]
+- **Node.js:** [ex: 20.18.0] — `node -v`
+- **pnpm:** [ex: 9.12.0] — `pnpm -v`
 - **PostgreSQL:** [ex: 16.4]
 - **Navegador (se aplicável):** [ex: Chrome 130]
-- **Versão / commit:** [ex: v1.2.0 ou hash do commit]
+- **App mobile (se aplicável):** versão do APK / Expo SDK
+- **Versão / commit:** `git log --oneline -1`
 
 ## Componente afetado
-- [ ] Frontend (`viax-scout`)
+- [ ] Frontend web (`viax-scout`)
+- [ ] App mobile (`viax-mobile`)
 - [ ] API (`api-server`)
-- [ ] Geocodificação (BrasilAPI / Photon / Nominatim)
+- [ ] Geocodificação (BrasilAPI / Photon / Nominatim / Overpass)
 - [ ] GeocodeR BR (microserviço R / CNEFE)
 - [ ] Instalador (Linux / Windows / Termux)
 - [ ] Banco de dados / migrações
+- [ ] CI/CD (GitHub Actions)
 - [ ] Outro: ___________
+
+## Planilha de exemplo (se aplicável)
+<!-- Anexe um arquivo XLSX/CSV reduzido (sem dados pessoais) que reproduza o problema. -->
 
 ## Contexto adicional
 <!-- Qualquer outra informação relevante: tamanho da planilha, colunas usadas, configurações de tolerância, etc. -->

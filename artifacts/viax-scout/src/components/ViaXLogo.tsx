@@ -117,9 +117,10 @@ export default function ViaXLogo({
 }
 
 export function GitHubBanner() {
+  const REPO_URL = "https://github.com/esmagafetos/Viax-Scout";
   return (
     <a
-      href="https://github.com"
+      href={REPO_URL}
       target="_blank"
       rel="noopener noreferrer"
       style={{ display: "block", textDecoration: "none" }}
@@ -144,13 +145,12 @@ export function GitHubBanner() {
       >
         <img
           src="/github-banner.png"
-          alt="ViaX:Trace — GitHub"
+          alt="ViaX:Trace — Auditoria de Rotas"
           style={{
             width: "100%",
-            height: "clamp(180px, 25vw, 340px)",
             display: "block",
-            objectFit: "cover",
-            objectPosition: "center center",
+            objectFit: "contain",
+            background: "#0d0d0d",
           }}
         />
       </div>

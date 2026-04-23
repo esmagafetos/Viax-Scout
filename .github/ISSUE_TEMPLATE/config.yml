@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: 📚 Documentação
+    url: https://github.com/esmagafetos/Viax-Scout#readme
+    about: Leia o README e a documentação antes de abrir uma issue.
   - name: 💬 Discussões
     url: https://github.com/esmagafetos/Viax-Scout/discussions
     about: Para perguntas, ideias e conversas abertas, use Discussions.

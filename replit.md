@@ -38,6 +38,15 @@ pnpm workspace monorepo with React+Vite frontend and Express API backend.
 2. **ViaX Scout** (`artifacts/viax-scout`) — React+Vite frontend, port 5173
    - Proxy: `/api/*` → `http://localhost:8080` (Vite proxy config)
    - Pages: Login, Register, Setup, Dashboard, Process, History, Settings
+3. **ViaX Mobile** (`artifacts/viax-mobile`) — Expo (React Native) Android app, brand-matched to web
+   - Stack: Expo SDK 54 + expo-router (file-based routing) + TanStack Query + Poppins fonts
+   - Screens: Login, Register, **Setup**, Tabs (Dashboard, Processar, Histórico, Ajustes)
+   - **Mirrors the web Setup flow** (parser mode + geocoding instance + tolerance) and adds a mobile-only **"Configurar servidor"** section with step-by-step Termux install instructions and an **API Server** URL field
+   - API base URL is **set by the user in-app** and persisted in `expo-secure-store` (key `viax_api_url`). `lib/api.ts` exposes `initApiUrl/getApiUrl/setApiUrl/testApiUrl/hasApiUrl`. `EXPO_PUBLIC_API_URL` remains a build-time override fallback only.
+   - Auth: session cookie persisted in `expo-secure-store` (key `viax_session_cookie`)
+   - Build: EAS Build profiles `development`, `preview` (APK debuggable) and `production` (APK release with `autoIncrement` of `versionCode`)
+   - Release: GitHub Actions workflow `.github/workflows/mobile-release.yml` runs typecheck then builds APK on EAS and publishes a GitHub Release with the APK asset (uses `EXPO_TOKEN` secret). Supports `workflow_dispatch` with profile choice.
+   - Android permissions: `INTERNET`, `ACCESS_NETWORK_STATE`, `READ_EXTERNAL_STORAGE`; `usesCleartextTraffic: true` so it can talk to local Termux servers over `http://` LAN IPs.
 
 ## Stack
 
@@ -84,3 +93,11 @@ pnpm workspace monorepo with React+Vite frontend and Express API backend.
 - Banner image: `docs/banner.png` (README) and `artifacts/viax-scout/public/github-banner.png` (Docs page) — both share the same source asset
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## Engineering Notes
+
+- `artifacts/viax-scout/vite.config.ts` defaults `PORT=5173` and `BASE_PATH=/` during `vite build` so production builds work in CI without env vars; `vite dev`/`vite preview` still require `PORT` explicitly.
+- `artifacts/api-server/src/lib/condo-maps/index.ts` — `cursor` is explicitly typed as `{x:number;y:number}` so the nearest-neighbor loop can hold either `condo.entrada` or a `Quadra` without TS inference clashes.
+- Mobile version is the single source of truth in `artifacts/viax-mobile/app.json` (`1.1.0`); `package.json` is kept in sync because the GitHub release tag reads it.
+- CI (`.github/workflows/ci.yml`) runs typecheck + builds **both** api-server and viax-scout on every push/PR to `main`.
+- Mobile release (`.github/workflows/mobile-release.yml`) requires `EXPO_TOKEN` GitHub secret and is independent of CI.

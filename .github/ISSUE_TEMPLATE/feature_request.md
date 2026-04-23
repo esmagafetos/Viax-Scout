@@ -1,9 +1,9 @@
 ---
 name: ✨ Feature Request
 about: Sugerir uma nova funcionalidade ou melhoria para o ViaX:Trace
-title: "[FEAT] "
+title: "feat: "
 labels: ["enhancement", "triage"]
-assignees: []
+assignees: ["esmagafetos"]
 ---
 
 ## Problema / motivação
@@ -18,17 +18,21 @@ assignees: []
 ## Impacto esperado
 - [ ] Melhora a experiência de usuários finais (gestores logísticos)
 - [ ] Aumenta precisão da geocodificação
-- [ ] Reduz tempo de processamento
+- [ ] Reduz tempo de processamento (performance)
+- [ ] Reforça segurança / privacidade
 - [ ] Facilita instalação / setup
+- [ ] Suporte a novos tipos de dados ou integrações
 - [ ] Outro: ___________
 
 ## Componente envolvido
-- [ ] Frontend (`viax-scout`)
+- [ ] Frontend web (`viax-scout`)
+- [ ] App mobile (`viax-mobile`)
 - [ ] API (`api-server`)
 - [ ] Geocodificação
 - [ ] GeocodeR BR
 - [ ] Instalador
 - [ ] Documentação
+- [ ] CI/CD
 - [ ] Outro: ___________
 
 ## Contexto adicional
