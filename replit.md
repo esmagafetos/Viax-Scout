@@ -38,6 +38,13 @@ pnpm workspace monorepo with React+Vite frontend and Express API backend.
 2. **ViaX Scout** (`artifacts/viax-scout`) — React+Vite frontend, port 5173
    - Proxy: `/api/*` → `http://localhost:8080` (Vite proxy config)
    - Pages: Login, Register, Setup, Dashboard, Process, History, Settings
+3. **ViaX Mobile** (`artifacts/viax-mobile`) — Expo (React Native) Android app, brand-matched to web
+   - Stack: Expo SDK 54 + expo-router (file-based routing) + TanStack Query + Poppins fonts
+   - Screens: Login, Register, Tabs (Dashboard, Processar, Histórico, Ajustes)
+   - Talks to API via `EXPO_PUBLIC_API_URL` (set in EAS build profile / GitHub Actions)
+   - Auth: session cookie persisted in `expo-secure-store`
+   - Build: EAS Build (`preview` profile = APK), triggered by push to `main`
+   - Release: GitHub Actions workflow `.github/workflows/mobile-release.yml` builds APK on EAS and publishes a GitHub Release with the APK asset (uses `EXPO_TOKEN` secret)
 
 ## Stack
 

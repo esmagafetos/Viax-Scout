@@ -1,0 +1,100 @@
+name: Mobile Release (Android APK)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'artifacts/viax-mobile/**'
+      - '.github/workflows/mobile-release.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build & Release Android APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: artifacts/viax-mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Setup Expo & EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        working-directory: ${{ github.workspace }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve build metadata
+        id: meta
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          BUILD_TS=$(date -u +%Y%m%d-%H%M%S)
+          TAG="mobile-v$(node -p "require('./package.json').version")-${BUILD_TS}-${SHORT_SHA}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build APK on EAS (preview profile)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+        run: |
+          eas build \
+            --platform android \
+            --profile preview \
+            --non-interactive \
+            --no-wait=false \
+            --json > build-output.json
+          cat build-output.json
+
+      - name: Download APK artifact
+        run: |
+          APK_URL=$(node -p "JSON.parse(require('fs').readFileSync('build-output.json','utf8'))[0].artifacts.buildUrl")
+          echo "APK URL: $APK_URL"
+          mkdir -p out
+          curl -L "$APK_URL" -o "out/viax-trace-${{ steps.meta.outputs.short_sha }}.apk"
+          ls -lh out
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ViaX:Trace Mobile ${{ steps.meta.outputs.tag }}
+          body: |
+            Automated Android APK build.
+
+            - Commit: `${{ github.sha }}`
+            - Trigger: ${{ github.event_name }}
+            - Profile: `preview` (debuggable APK)
+
+            Install on Android devices with sideloading enabled.
+          files: artifacts/viax-mobile/out/*.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
