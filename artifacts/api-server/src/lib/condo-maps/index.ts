@@ -159,7 +159,7 @@ export function buildRoute(
 
   // Ordenação: nearest-neighbor a partir da entrada
   const visited = new Array(orderable.length).fill(false);
-  let cursor = condo.entrada;
+  let cursor: { x: number; y: number } = condo.entrada;
   const sequence: { row: DeliveryRow; quadra: Quadra }[] = [];
 
   while (sequence.length < orderable.length) {
