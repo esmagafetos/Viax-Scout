@@ -27,7 +27,7 @@
         "gradleCommand": ":app:assembleRelease"
       },
       "channel": "production",
-      "autoIncrement": "versionCode"
+      "autoIncrement": true
     }
   },
   "submit": {
