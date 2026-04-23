@@ -468,7 +468,7 @@ export default function Tool() {
         </div>
       )}
 
-      <ToastComponent />
+      {ToastComponent}
     </Layout>
   );
 }
