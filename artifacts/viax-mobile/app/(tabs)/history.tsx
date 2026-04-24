@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { MotiView } from 'moti';
+import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { apiRequest } from '@/lib/api';
 import { AppHeader } from '@/components/AppHeader';
@@ -109,11 +110,15 @@ export default function HistoryScreen() {
       .map((s) => ({ title: s.label, data: s.data }));
   }, [items]);
 
-  const requestDelete = (id: number) => setConfirmId(id);
+  const requestDelete = (id: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setConfirmId(id);
+  };
 
   const performDelete = async () => {
     if (confirmId == null) return;
     const id = confirmId;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
     setDeletingId(id);
     try {
       await apiRequest(`/api/analyses/${id}`, { method: 'DELETE' });

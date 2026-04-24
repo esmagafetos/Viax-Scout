@@ -19,6 +19,7 @@ import { initApiUrl } from '@/lib/api';
 import { ThemeProvider, useTheme } from '@/lib/theme';
 import { useColors } from '@/hooks/useColors';
 import { ToastProvider } from '@/components/Toast';
+import { OfflineBanner } from '@/components/OfflineBanner';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -47,6 +48,7 @@ function ThemedStack() {
         <Stack.Screen name="docs" />
         <Stack.Screen name="(tabs)" />
       </Stack>
+      <OfflineBanner />
     </>
   );
 }

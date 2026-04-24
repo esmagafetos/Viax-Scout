@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { Radius, Shadows } from '@/constants/colors';
 import { useTheme } from '@/lib/theme';
@@ -377,9 +378,13 @@ export function ThemeToggle() {
   const { dark, toggle } = useTheme();
   const c = useColors();
   const { rs } = useResponsive();
+  const onPress = () => {
+    Haptics.selectionAsync().catch(() => {});
+    toggle();
+  };
   return (
     <Pressable
-      onPress={toggle}
+      onPress={onPress}
       style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'center',

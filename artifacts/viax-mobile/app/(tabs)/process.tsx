@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
+import * as Haptics from 'expo-haptics';
 import Svg, { Circle, Text as SvgText } from 'react-native-svg';
 import { useColors } from '@/hooks/useColors';
 import { AppHeader } from '@/components/AppHeader';
@@ -120,6 +121,7 @@ export default function ProcessScreen() {
       toast.showToast('Formato inválido. Use .xlsx ou .csv');
       return;
     }
+    Haptics.selectionAsync().catch(() => {});
     setFile(asset);
     setResult(null);
     setSteps([]);
@@ -132,6 +134,7 @@ export default function ProcessScreen() {
       toast.showToast('Configure o servidor em Configurações antes de processar.');
       return;
     }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     setIsProcessing(true);
     setSteps([]);
     setResult(null);
