@@ -1,86 +1,55 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
+import React, { useEffect, useState } from 'react';
+import { View, Text } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
+import { MotiView, AnimatePresence } from 'moti';
 import { Ionicons } from '@expo/vector-icons';
-import { useColors } from '@/hooks/useColors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-/**
- * Mobile-only offline banner. Mounted globally inside `_layout.tsx`.
- *
- * Visible when NetInfo reports `isConnected === false` *or* when it has
- * verified internet reachability is `false`. We treat `null` (unknown) as
- * online to avoid a false-positive flash on cold start.
- */
-export function OfflineBanner() {
-  const c = useColors();
-  const insets = useSafeAreaInsets();
+export default function OfflineBanner() {
   const [offline, setOffline] = useState(false);
-  const translate = useRef(new Animated.Value(-80)).current;
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    const handle = (s: NetInfoState) => {
-      const connected = s.isConnected;
-      const reachable = s.isInternetReachable;
-      // null = unknown → treat as online (no banner). false = confirmed offline.
-      const isOffline = connected === false || reachable === false;
-      setOffline(isOffline);
-    };
-    const unsub = NetInfo.addEventListener(handle);
-    NetInfo.fetch().then(handle).catch(() => {});
+    const unsub = NetInfo.addEventListener((state) => {
+      const off =
+        state.isConnected === false ||
+        state.isInternetReachable === false;
+      setOffline(off);
+    });
     return () => unsub();
   }, []);
 
-  useEffect(() => {
-    Animated.timing(translate, {
-      toValue: offline ? 0 : -80,
-      duration: 220,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [offline, translate]);
-
   return (
-    <Animated.View
-      pointerEvents={offline ? 'auto' : 'none'}
-      style={[
-        styles.wrap,
-        {
-          paddingTop: insets.top + 8,
-          backgroundColor: '#dc2626',
-          transform: [{ translateY: translate }],
-        },
-      ]}
-    >
-      <View style={styles.inner}>
-        <Ionicons name="cloud-offline-outline" size={16} color="#fff" />
-        <Text style={styles.text}>Sem conexão com a internet</Text>
-      </View>
-    </Animated.View>
+    <AnimatePresence>
+      {offline && (
+        <MotiView
+          from={{ translateY: -50, opacity: 0 }}
+          animate={{ translateY: 0, opacity: 1 }}
+          exit={{ translateY: -50, opacity: 0 }}
+          transition={{ type: 'timing', duration: 220 }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 99999,
+            elevation: 100,
+            backgroundColor: '#dc2626',
+            paddingTop: insets.top + 8,
+            paddingBottom: 10,
+            paddingHorizontal: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+          }}
+        >
+          <Ionicons name="cloud-offline-outline" size={15} color="#fff" />
+          <Text style={{ color: '#fff', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>
+            Sem conexão · operando offline
+          </Text>
+        </MotiView>
+      )}
+    </AnimatePresence>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingBottom: 10,
-    paddingHorizontal: 16,
-    zIndex: 1000,
-    elevation: 1000,
-  },
-  inner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  text: {
-    color: '#fff',
-    fontFamily: 'Poppins_600SemiBold',
-    fontSize: 12.5,
-    letterSpacing: 0.2,
-  },
-});

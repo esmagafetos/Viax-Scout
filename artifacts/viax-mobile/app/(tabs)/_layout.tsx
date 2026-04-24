@@ -1,25 +1,17 @@
-import { Redirect, Tabs } from 'expo-router';
-import { useAuth } from '@/lib/auth';
+import React from 'react';
+import { View } from 'react-native';
+import { Slot } from 'expo-router';
+import AppHeader from '../../components/AppHeader';
+import { useColors } from '../../lib/theme';
 
 export default function TabsLayout() {
-  const { user, loading } = useAuth();
-
-  if (loading) return null;
-  if (!user) return <Redirect href="/" />;
-
+  const c = useColors();
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: { display: 'none' },
-        tabBarShowLabel: false,
-      }}
-    >
-      <Tabs.Screen name="dashboard" />
-      <Tabs.Screen name="process" />
-      <Tabs.Screen name="tool" />
-      <Tabs.Screen name="history" />
-      <Tabs.Screen name="settings" />
-    </Tabs>
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      <AppHeader />
+      <View style={{ flex: 1 }}>
+        <Slot />
+      </View>
+    </View>
   );
 }

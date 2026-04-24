@@ -1,193 +1,161 @@
-import { useState } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Text,
-} from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '@/lib/auth';
-import { useColors } from '@/hooks/useColors';
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  DateInput,
-  FieldError,
-  Input,
-  Label,
-  Muted,
-  PasswordInput,
-  PasswordStrength,
-  ThemeToggle,
-} from '@/components/ui';
-import { ViaXLogo } from '@/components/ViaXLogo';
-import { hasApiUrl } from '@/lib/api';
+import React, { useState } from 'react';
+import { View, Text, KeyboardAvoidingView, Platform, ScrollView, Pressable } from 'react-native';
+import { useRouter, Link } from 'expo-router';
+import { MotiView } from 'moti';
+import { useRegister, type AuthResponse } from '@workspace/api-client-react';
 
-function validateEmail(email: string): string | null {
-  if (!email) return 'Email é obrigatório.';
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  if (!re.test(email)) return 'Formato de email inválido.';
+import ViaXLogo from '../components/ViaXLogo';
+import ThemeToggle from '../components/ui/ThemeToggle';
+import { Card } from '../components/ui/Card';
+import { Input, PasswordInput, PasswordStrength } from '../components/ui/Input';
+import Button from '../components/ui/Button';
+import { useColors, useTheme } from '../lib/theme';
+import { useAuth } from '../lib/auth';
+import { useToast } from '../components/Toast';
+
+function validateEmail(v: string): string | null {
+  if (!v) return 'Email é obrigatório.';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return 'Formato de email inválido.';
   return null;
 }
 
-function validatePassword(password: string): string | null {
-  if (!password) return 'Senha é obrigatória.';
-  if (password.length < 8) return 'A senha deve ter pelo menos 8 caracteres.';
-  if (!/[A-Za-z]/.test(password)) return 'A senha deve conter pelo menos uma letra.';
-  if (!/[0-9]/.test(password)) return 'A senha deve conter pelo menos um número.';
+function validatePassword(p: string): string | null {
+  if (!p) return 'Senha é obrigatória.';
+  if (p.length < 8) return 'Mínimo 8 caracteres.';
+  if (!/[A-Za-z]/.test(p)) return 'Inclua pelo menos uma letra.';
+  if (!/[0-9]/.test(p)) return 'Inclua pelo menos um número.';
   return null;
 }
 
 export default function RegisterScreen() {
-  const c = useColors();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { register } = useAuth();
+  const { mode } = useTheme();
+  const c = useColors();
+  const { setUser } = useAuth();
+  const { showToast } = useToast();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [birthDate, setBirthDate] = useState('');
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
 
-  const emailError = touched.email ? validateEmail(email) : null;
-  const passwordError = touched.password ? validatePassword(password) : null;
-  const nameError = touched.name && !name.trim() ? 'Nome é obrigatório.' : null;
+  const registerMutation = useRegister();
 
-  const onSubmit = async () => {
+  const nameErr = touched.name && !name.trim() ? 'Nome é obrigatório.' : null;
+  const emailErr = touched.email ? validateEmail(email) : null;
+  const passwordErr = touched.password ? validatePassword(password) : null;
+
+  const handleSubmit = () => {
     setTouched({ name: true, email: true, password: true });
-    setServerError(null);
-
-    if (!hasApiUrl()) {
-      setServerError('Configure o servidor antes de criar conta.');
-      return;
-    }
     const eErr = validateEmail(email);
     const pErr = validatePassword(password);
     if (!name.trim() || eErr || pErr) {
-      setServerError(eErr ?? pErr ?? 'Preencha todos os campos obrigatórios.');
+      showToast(eErr ?? pErr ?? 'Preencha todos os campos.');
       return;
     }
-
-    setSubmitting(true);
-    try {
-      await register({ name: name.trim(), email: email.trim(), password, birthDate: birthDate || null });
-      router.replace('/setup');
-    } catch (e: any) {
-      setServerError(e?.message ?? 'Erro ao criar conta.');
-    } finally {
-      setSubmitting(false);
-    }
+    registerMutation.mutate(
+      { data: { name, email, password } },
+      {
+        onSuccess: (data: AuthResponse) => {
+          setUser(data.user);
+          router.replace('/setup');
+        },
+        onError: (e: any) => {
+          showToast(e?.data?.error ?? 'Erro ao criar conta.');
+        },
+      },
+    );
   };
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]} edges={['top', 'bottom', 'left', 'right']}>
-      <View style={[styles.toggleWrap, { top: insets.top + 12 }]}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <View style={{ position: 'absolute', top: 50, right: 16, zIndex: 10 }}>
         <ThemeToggle />
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <View style={styles.container}>
-          {!hasApiUrl() && (
-            <Card style={{ gap: 10, borderColor: c.accent, marginBottom: 14 }}>
-              <Text style={{ color: c.accent, fontFamily: 'Poppins_600SemiBold', fontSize: 13 }}>
-                Servidor não configurado
-              </Text>
-              <Muted>Configure o servidor antes de cadastrar sua conta.</Muted>
-              <Button onPress={() => router.push('/setup')}>Configurar servidor</Button>
-            </Card>
-          )}
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20, paddingTop: 90, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <MotiView
+          from={{ opacity: 0, translateY: 10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'timing', duration: 380 }}
+          style={{ alignItems: 'center', marginBottom: 20 }}
+        >
+          <ViaXLogo size="lg" dark={mode === 'dark'} showTagline />
+        </MotiView>
 
-          <Card style={{ padding: 0, overflow: 'hidden' }}>
-            <View style={{ paddingHorizontal: 18, paddingTop: 22, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: c.border, gap: 10 }}>
-              <ViaXLogo size="md" showTagline />
-              <Muted>Crie sua conta gratuita</Muted>
-            </View>
+        <Card animate delay={100} style={{ alignSelf: 'center', width: '100%', maxWidth: 440 }}>
+          <View style={{ paddingHorizontal: 20, paddingVertical: 20 }}>
+            <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 18, color: c.text, marginBottom: 2 }}>
+              Criar conta
+            </Text>
+            <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 12, color: c.textFaint, marginBottom: 18 }}>
+              Comece a auditar suas rotas em segundos.
+            </Text>
 
-            <CardBody>
+            <View style={{ gap: 14 }}>
+              <Input
+                label="Nome completo"
+                value={name}
+                onChangeText={setName}
+                onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+                placeholder="Seu nome"
+                error={nameErr}
+                autoComplete="name"
+                returnKeyType="next"
+              />
+              <Input
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                placeholder="seu@email.com"
+                autoCapitalize="none"
+                autoComplete="email"
+                keyboardType="email-address"
+                error={emailErr}
+                returnKeyType="next"
+              />
               <View>
-                <Label>Nome completo</Label>
-                <Input
-                  value={name}
-                  onChangeText={setName}
-                  onBlur={() => setTouched((t) => ({ ...t, name: true }))}
-                  placeholder="Seu nome"
-                  hasError={!!nameError}
-                />
-                <FieldError>{nameError}</FieldError>
-              </View>
-
-              <View>
-                <Label>Email</Label>
-                <Input
-                  value={email}
-                  onChangeText={setEmail}
-                  onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholder="seu@email.com"
-                  hasError={!!emailError}
-                />
-                <FieldError>{emailError}</FieldError>
-              </View>
-
-              <View>
-                <Label>Senha</Label>
                 <PasswordInput
+                  label="Senha"
                   value={password}
                   onChangeText={setPassword}
                   onBlur={() => setTouched((t) => ({ ...t, password: true }))}
                   placeholder="Mínimo 8 caracteres"
+                  autoComplete="password-new"
+                  error={passwordErr}
+                  returnKeyType="go"
+                  onSubmitEditing={handleSubmit}
                 />
                 <PasswordStrength password={password} />
-                <FieldError>{passwordError}</FieldError>
               </View>
+            </View>
 
-              <View>
-                <Label>
-                  Data de nascimento <Text style={{ fontWeight: '400', opacity: 0.6 }}>(opcional)</Text>
-                </Label>
-                <DateInput value={birthDate} onChange={setBirthDate} />
-              </View>
+            <View style={{ height: 18 }} />
 
-              {serverError && <FieldError>{serverError}</FieldError>}
+            <Button
+              label="Criar conta"
+              onPress={handleSubmit}
+              loading={registerMutation.isPending}
+              iconRight="arrow-forward"
+            />
 
-              <Button onPress={onSubmit} loading={submitting} disabled={!hasApiUrl()}>
-                Criar conta
-              </Button>
-
-              <View style={styles.footerRow}>
-                <Muted>Já tem conta?</Muted>
-                <Link href="/" asChild>
-                  <Pressable hitSlop={6}>
-                    <Text style={{ color: c.accent, fontFamily: 'Poppins_600SemiBold', fontSize: 13 }}>
-                      {' '}Entrar
-                    </Text>
-                  </Pressable>
-                </Link>
-              </View>
-            </CardBody>
-          </Card>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4, marginTop: 16 }}>
+              <Text style={{ fontSize: 12, color: c.textFaint, fontFamily: 'Poppins_400Regular' }}>
+                Já tem conta?
+              </Text>
+              <Link href="/" asChild>
+                <Pressable accessibilityRole="link">
+                  <Text style={{ fontSize: 12, color: c.accent, fontFamily: 'Poppins_600SemiBold' }}>Entrar</Text>
+                </Pressable>
+              </Link>
+            </View>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </Card>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  toggleWrap: { position: 'absolute', right: 14, zIndex: 10 },
-  scroll: { paddingHorizontal: 22, paddingVertical: 28, justifyContent: 'center', flexGrow: 1, alignItems: 'center' },
-  container: { width: '100%', maxWidth: 440 },
-  footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' },
-});

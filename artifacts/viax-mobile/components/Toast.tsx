@@ -1,9 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { View, Text, Pressable, Platform } from 'react-native';
+import { MotiView, AnimatePresence } from 'moti';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export type ToastType = 'error' | 'success' | 'info';
+type ToastType = 'error' | 'success' | 'info';
 
 interface ToastItem {
   id: number;
@@ -15,148 +16,109 @@ interface ToastContextValue {
   showToast: (message: string, type?: ToastType) => void;
 }
 
-const ToastContext = createContext<ToastContextValue | null>(null);
+const ToastContext = createContext<ToastContextValue>({ showToast: () => {} });
 
-let nextId = 1;
+let _id = 0;
 
-export function ToastProvider({ children }: { children: React.ReactNode }) {
+export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
-
-  const showToast = useCallback((message: string, type: ToastType = 'error') => {
-    const id = nextId++;
-    setToasts((cur) => [...cur, { id, message, type }]);
-  }, []);
+  const insets = useSafeAreaInsets();
 
   const dismiss = useCallback((id: number) => {
-    setToasts((cur) => cur.filter((t) => t.id !== id));
+    setToasts((t) => t.filter((x) => x.id !== id));
   }, []);
+
+  const showToast = useCallback(
+    (message: string, type: ToastType = 'error') => {
+      const id = ++_id;
+      setToasts((t) => [...t, { id, message, type }]);
+      setTimeout(() => dismiss(id), 4000);
+    },
+    [dismiss],
+  );
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <ToastViewport toasts={toasts} onDismiss={dismiss} />
+      <View
+        pointerEvents="box-none"
+        style={{
+          position: 'absolute',
+          top: insets.top + 8,
+          left: 12,
+          right: 12,
+          zIndex: 9999,
+          elevation: 99,
+          gap: 8,
+        }}
+      >
+        <AnimatePresence>
+          {toasts.map((t) => (
+            <MotiView
+              key={t.id}
+              from={{ opacity: 0, translateY: -10 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              exit={{ opacity: 0, translateY: -10 }}
+              transition={{ type: 'timing', duration: 250 }}
+            >
+              <ToastItemView item={t} onClose={() => dismiss(t.id)} />
+            </MotiView>
+          ))}
+        </AnimatePresence>
+      </View>
     </ToastContext.Provider>
   );
 }
 
-export function useToast(): ToastContextValue {
-  const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used inside <ToastProvider>');
-  return ctx;
-}
+function ToastItemView({ item, onClose }: { item: ToastItem; onClose: () => void }) {
+  const isError = item.type === 'error';
+  const isSuccess = item.type === 'success';
 
-function ToastViewport({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: (id: number) => void }) {
-  const insets = useSafeAreaInsets();
-  if (toasts.length === 0) return null;
+  let bg = '#2a1410';
+  let borderColor = 'rgba(212,82,26,0.4)';
+  let fg = '#f4a58a';
+  let icon: keyof typeof Ionicons.glyphMap = 'alert-circle-outline';
+
+  if (isSuccess) {
+    bg = '#0d2018';
+    borderColor = 'rgba(26,122,74,0.4)';
+    fg = '#86efac';
+    icon = 'checkmark-circle-outline';
+  } else if (!isError) {
+    bg = '#1c1b19';
+    borderColor = 'rgba(255,255,255,0.18)';
+    fg = '#f0ede8';
+    icon = 'information-circle-outline';
+  }
+
   return (
     <View
-      pointerEvents="box-none"
-      style={[styles.viewport, { paddingTop: insets.top + 12 }]}
+      style={{
+        backgroundColor: bg,
+        borderColor,
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        shadowColor: '#000',
+        shadowOpacity: Platform.OS === 'ios' ? 0.3 : 0,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 6,
+      }}
     >
-      {toasts.map((t) => (
-        <ToastCard key={t.id} item={t} onDismiss={onDismiss} />
-      ))}
+      <Ionicons name={icon} size={18} color={fg} />
+      <Text style={{ flex: 1, color: fg, fontSize: 12, fontFamily: 'Poppins_500Medium' }}>{item.message}</Text>
+      <Pressable onPress={onClose} hitSlop={10}>
+        <Ionicons name="close" size={16} color={fg} style={{ opacity: 0.6 }} />
+      </Pressable>
     </View>
   );
 }
 
-function ToastCard({ item, onDismiss }: { item: ToastItem; onDismiss: (id: number) => void }) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translate = useRef(new Animated.Value(-8)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(opacity, { toValue: 1, duration: 180, useNativeDriver: true }),
-      Animated.timing(translate, { toValue: 0, duration: 220, useNativeDriver: true }),
-    ]).start();
-
-    const timeout = setTimeout(() => {
-      Animated.parallel([
-        Animated.timing(opacity, { toValue: 0, duration: 180, useNativeDriver: true }),
-        Animated.timing(translate, { toValue: -8, duration: 180, useNativeDriver: true }),
-      ]).start(() => onDismiss(item.id));
-    }, 4000);
-
-    return () => clearTimeout(timeout);
-  }, [item.id, onDismiss, opacity, translate]);
-
-  const palette = TOAST_PALETTE[item.type];
-
-  return (
-    <Animated.View
-      style={[
-        styles.card,
-        {
-          backgroundColor: palette.bg,
-          borderColor: palette.border,
-          opacity,
-          transform: [{ translateY: translate }],
-        },
-      ]}
-    >
-      <Ionicons name={palette.icon} size={18} color={palette.fg} />
-      <Text
-        numberOfLines={3}
-        style={{
-          flex: 1,
-          color: palette.fg,
-          fontFamily: 'Poppins_500Medium',
-          fontSize: 13,
-          lineHeight: 18,
-        }}
-      >
-        {item.message}
-      </Text>
-      <Pressable hitSlop={8} onPress={() => onDismiss(item.id)}>
-        <Ionicons name="close" size={16} color={palette.fg} />
-      </Pressable>
-    </Animated.View>
-  );
+export function useToast() {
+  return useContext(ToastContext);
 }
-
-const TOAST_PALETTE: Record<ToastType, { bg: string; border: string; fg: string; icon: keyof typeof Ionicons.glyphMap }> = {
-  error: {
-    bg: '#2a1410',
-    border: 'rgba(212,82,26,0.4)',
-    fg: '#f4a58a',
-    icon: 'alert-circle-outline',
-  },
-  success: {
-    bg: '#0d2018',
-    border: 'rgba(26,122,74,0.4)',
-    fg: '#86efac',
-    icon: 'checkmark-circle-outline',
-  },
-  info: {
-    bg: '#0c1726',
-    border: 'rgba(59,130,246,0.4)',
-    fg: '#bfdbfe',
-    icon: 'information-circle-outline',
-  },
-};
-
-const styles = StyleSheet.create({
-  viewport: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 12,
-    gap: 8,
-    zIndex: 9999,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-  },
-});

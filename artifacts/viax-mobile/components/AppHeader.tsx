@@ -1,130 +1,87 @@
-import { useState } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Image,
-  ScrollView,
-  Modal,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, ScrollView, Modal, Image, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, usePathname } from 'expo-router';
-import { useColors } from '@/hooks/useColors';
-import { useTheme } from '@/lib/theme';
-import { useAuth } from '@/lib/auth';
-import { ViaXLogo } from '@/components/ViaXLogo';
-import { useResponsive } from '@/lib/responsive';
+import { Link, useRouter, usePathname } from 'expo-router';
+import { MotiView } from 'moti';
+import ViaXLogo from './ViaXLogo';
+import ThemeToggle from './ui/ThemeToggle';
+import { useColors, useTheme } from '../lib/theme';
+import { useAuth } from '../lib/auth';
 
-type NavLink = {
-  href: string;
+interface NavItem {
+  href: '/(tabs)/dashboard' | '/(tabs)/process' | '/(tabs)/tool' | '/(tabs)/history' | '/docs';
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
-};
+  match: string;
+}
 
-const NAV_LINKS: NavLink[] = [
-  { href: '/(tabs)/dashboard', label: 'Dashboard', icon: 'grid-outline' },
-  { href: '/(tabs)/process', label: 'Processar', icon: 'cloud-upload-outline' },
-  { href: '/(tabs)/tool', label: 'Ferramenta', icon: 'build-outline' },
-  { href: '/(tabs)/history', label: 'Histórico', icon: 'time-outline' },
+const NAV: NavItem[] = [
+  { href: '/(tabs)/dashboard', label: 'Dashboard', icon: 'grid-outline', match: '/dashboard' },
+  { href: '/(tabs)/process', label: 'Processar', icon: 'cloud-upload-outline', match: '/process' },
+  { href: '/(tabs)/tool', label: 'Ferramenta', icon: 'construct-outline', match: '/tool' },
+  { href: '/(tabs)/history', label: 'Histórico', icon: 'time-outline', match: '/history' },
 ];
 
-export function AppHeader() {
+export default function AppHeader() {
+  const insets = useSafeAreaInsets();
   const c = useColors();
-  const { dark, toggle } = useTheme();
+  const { mode } = useTheme();
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const { rs } = useResponsive();
-  const insets = useSafeAreaInsets();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const initial = (user?.name ?? user?.email ?? 'U').charAt(0).toUpperCase();
-  const dropdownTop = insets.top + 52 + 6;
-
-  const isActive = (href: string) => {
-    const segment = href.split('/').pop() ?? '';
-    return pathname.endsWith(`/${segment}`);
-  };
-
-  const closeMenu = () => setMenuOpen(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
     <View
-      style={[
-        styles.wrap,
-        {
-          backgroundColor: c.surface,
-          borderBottomColor: c.border,
-          paddingTop: insets.top + 4,
-        },
-      ]}
+      style={{
+        backgroundColor: mode === 'dark' ? 'rgba(28,27,25,0.92)' : 'rgba(250,249,246,0.92)',
+        borderBottomWidth: 1,
+        borderBottomColor: c.border,
+        paddingTop: insets.top,
+      }}
     >
-      {/* Brand row */}
-      <View style={styles.topRow}>
-        <Pressable
-          onPress={() => router.push('/(tabs)/dashboard')}
-          style={{ flexShrink: 1 }}
-          hitSlop={6}
-          accessibilityRole="link"
-          accessibilityLabel="Ir para o Dashboard"
-        >
-          <ViaXLogo size="sm" showTagline />
-        </Pressable>
-
-        <View style={styles.actions}>
-          <Pressable
-            onPress={toggle}
-            accessibilityRole="switch"
-            accessibilityLabel="Alternar tema"
-            accessibilityHint={dark ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
-            accessibilityState={{ checked: dark }}
-            style={({ pressed }) => [
-              styles.iconBtn,
-              {
-                borderColor: c.border,
-                backgroundColor: c.surface,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-            hitSlop={6}
-          >
-            <Ionicons
-              name={dark ? 'sunny-outline' : 'moon-outline'}
-              size={15}
-              color={c.textMuted}
-            />
+      {/* Row 1 — brand + actions */}
+      <View
+        style={{
+          height: 52,
+          paddingHorizontal: 14,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Link href="/(tabs)/dashboard" asChild>
+          <Pressable accessibilityRole="link" accessibilityLabel="ViaX:Trace, ir para Dashboard">
+            <ViaXLogo size="sm" dark={mode === 'dark'} showTagline />
           </Pressable>
+        </Link>
 
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <ThemeToggle variant="icon" />
           {user && (
             <Pressable
-              onPress={() => setMenuOpen(true)}
+              onPress={() => setProfileOpen(true)}
               accessibilityRole="button"
-              accessibilityLabel={`Menu do perfil de ${user.name ?? user.email ?? 'usuário'}`}
-              accessibilityHint="Abre opções de conta, configurações e logout"
-              accessibilityState={{ expanded: menuOpen }}
-              style={({ pressed }) => [
-                styles.avatar,
-                {
-                  backgroundColor: c.accentDim,
-                  borderColor: menuOpen ? c.accent : 'transparent',
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-              hitSlop={4}
+              accessibilityLabel="Abrir menu do perfil"
+              accessibilityState={{ expanded: profileOpen }}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: c.accentDim,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 2,
+                borderColor: profileOpen ? c.accent : 'transparent',
+                overflow: 'hidden',
+              }}
             >
               {user.avatarUrl ? (
-                <Image source={{ uri: user.avatarUrl }} style={styles.avatarImg} />
+                <Image source={{ uri: user.avatarUrl }} style={{ width: 34, height: 34 }} />
               ) : (
-                <Text
-                  style={{
-                    color: c.accent,
-                    fontFamily: 'Poppins_700Bold',
-                    fontSize: 13,
-                  }}
-                >
-                  {initial}
+                <Text style={{ color: c.accent, fontFamily: 'Poppins_700Bold', fontSize: 13 }}>
+                  {user.name.charAt(0).toUpperCase()}
                 </Text>
               )}
             </Pressable>
@@ -132,148 +89,128 @@ export function AppHeader() {
         </View>
       </View>
 
-      {/* Tab pills row */}
+      {/* Row 2 — horizontal nav pills */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabsRow}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 10, gap: 6 }}
       >
-        {NAV_LINKS.map((link) => {
-          const active = isActive(link.href);
+        {NAV.map((item) => {
+          const active = pathname.includes(item.match);
           return (
-            <Pressable
-              key={link.href}
-              onPress={() => router.push(link.href as any)}
-              accessibilityRole="tab"
-              accessibilityLabel={link.label}
-              accessibilityState={{ selected: active }}
-              style={({ pressed }) => [
-                styles.pill,
-                {
-                  backgroundColor: active ? c.accentDim : c.surface2,
-                  borderColor: active ? c.accent : c.border,
-                  opacity: pressed ? 0.75 : 1,
-                },
-              ]}
-            >
-              <Ionicons
-                name={link.icon}
-                size={14}
-                color={active ? c.accent : c.textMuted}
-              />
-              <Text
+            <Link key={item.href} href={item.href} asChild>
+              <Pressable
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={item.label}
                 style={{
-                  color: active ? c.accent : c.textMuted,
-                  fontFamily: active ? 'Poppins_600SemiBold' : 'Poppins_500Medium',
-                  fontSize: 12.5,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                  paddingHorizontal: 12,
+                  paddingVertical: 7,
+                  borderRadius: 99,
+                  backgroundColor: active ? c.accentDim : c.surface2,
                 }}
               >
-                {link.label}
-              </Text>
-            </Pressable>
+                <Ionicons
+                  name={item.icon}
+                  size={13}
+                  color={active ? c.accent : c.textMuted}
+                />
+                <Text
+                  style={{
+                    color: active ? c.accent : c.textMuted,
+                    fontFamily: active ? 'Poppins_600SemiBold' : 'Poppins_500Medium',
+                    fontSize: 12,
+                  }}
+                >
+                  {item.label}
+                </Text>
+              </Pressable>
+            </Link>
           );
         })}
       </ScrollView>
 
-      {/* Profile dropdown */}
+      {/* Profile dropdown modal */}
       <Modal
-        visible={menuOpen}
         transparent
+        visible={profileOpen}
         animationType="fade"
-        onRequestClose={closeMenu}
+        onRequestClose={() => setProfileOpen(false)}
       >
-        <TouchableWithoutFeedback onPress={closeMenu}>
-          <View style={[styles.modalOverlay, { paddingTop: dropdownTop }]}>
-            <TouchableWithoutFeedback>
-              <View
-                style={[
-                  styles.dropdown,
-                  {
-                    backgroundColor: c.surface,
-                    borderColor: c.border,
-                    shadowColor: '#000',
-                  },
-                ]}
-              >
-                <View
-                  style={[styles.dropdownHeader, { borderBottomColor: c.border }]}
-                >
-                  <Text
-                    numberOfLines={1}
-                    style={{
-                      color: c.text,
-                      fontFamily: 'Poppins_600SemiBold',
-                      fontSize: 13,
-                    }}
-                  >
-                    {user?.name ?? 'Usuário'}
-                  </Text>
-                  <Text
-                    numberOfLines={1}
-                    style={{
-                      color: c.textMuted,
-                      fontFamily: 'Poppins_400Regular',
-                      fontSize: 11,
-                      marginTop: 2,
-                    }}
-                  >
-                    {user?.email ?? ''}
-                  </Text>
-                </View>
-
+        <Pressable style={{ flex: 1 }} onPress={() => setProfileOpen(false)}>
+          <View pointerEvents="box-none" style={{ flex: 1 }}>
+            <MotiView
+              from={{ opacity: 0, translateY: -6 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: 'timing', duration: 150 }}
+              style={{
+                position: 'absolute',
+                top: insets.top + 52 + 4,
+                right: 12,
+                width: 240,
+                backgroundColor: c.surface,
+                borderColor: c.border,
+                borderWidth: 1,
+                borderRadius: 12,
+                overflow: 'hidden',
+                shadowColor: '#000',
+                shadowOpacity: 0.18,
+                shadowRadius: 24,
+                shadowOffset: { width: 0, height: 8 },
+                elevation: 12,
+              }}
+            >
+              <View style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: c.border }}>
+                <Text numberOfLines={1} style={{ color: c.text, fontFamily: 'Poppins_600SemiBold', fontSize: 13 }}>
+                  {user?.name}
+                </Text>
+                <Text numberOfLines={1} style={{ color: c.textMuted, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 2 }}>
+                  {user?.email}
+                </Text>
+              </View>
+              <View style={{ paddingVertical: 4 }}>
                 <DropdownItem
                   icon="settings-outline"
                   label="Configurações"
-                  color={c.text}
                   onPress={() => {
-                    closeMenu();
-                    router.push('/(tabs)/settings' as any);
+                    setProfileOpen(false);
+                    router.push('/(tabs)/settings');
                   }}
                 />
                 <DropdownItem
                   icon="person-outline"
                   label="Perfil"
-                  color={c.text}
                   onPress={() => {
-                    closeMenu();
-                    router.push({
-                      pathname: '/(tabs)/settings',
-                      params: { tab: 'perfil' },
-                    } as any);
+                    setProfileOpen(false);
+                    router.push('/(tabs)/settings?tab=perfil' as any);
                   }}
                 />
                 <DropdownItem
                   icon="document-text-outline"
                   label="Documentação"
-                  color={c.text}
                   onPress={() => {
-                    closeMenu();
-                    router.push('/docs' as any);
-                  }}
-                />
-
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: c.border,
-                    marginVertical: 4,
-                  }}
-                />
-
-                <DropdownItem
-                  icon="log-out-outline"
-                  label="Sair"
-                  color={c.accent}
-                  onPress={async () => {
-                    closeMenu();
-                    await logout();
-                    router.replace('/');
+                    setProfileOpen(false);
+                    router.push('/docs');
                   }}
                 />
               </View>
-            </TouchableWithoutFeedback>
+              <View style={{ borderTopWidth: 1, borderTopColor: c.border, paddingVertical: 4 }}>
+                <DropdownItem
+                  icon="log-out-outline"
+                  label="Sair"
+                  destructive
+                  onPress={() => {
+                    setProfileOpen(false);
+                    logout();
+                  }}
+                />
+              </View>
+            </MotiView>
           </View>
-        </TouchableWithoutFeedback>
+        </Pressable>
       </Modal>
     </View>
   );
@@ -282,116 +219,32 @@ export function AppHeader() {
 function DropdownItem({
   icon,
   label,
-  color,
   onPress,
+  destructive,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
-  color: string;
   onPress: () => void;
+  destructive?: boolean;
 }) {
   const c = useColors();
+  const color = destructive ? c.destructive : c.text;
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="menuitem"
       accessibilityLabel={label}
-      style={({ pressed }) => [
-        styles.dropdownItem,
-        { backgroundColor: pressed ? c.surface2 : 'transparent' },
-      ]}
+      style={({ pressed }) => ({
+        paddingHorizontal: 14,
+        paddingVertical: 9,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        backgroundColor: pressed ? c.surface2 : 'transparent',
+      })}
     >
       <Ionicons name={icon} size={15} color={color} />
-      <Text
-        style={{
-          color,
-          fontFamily: 'Poppins_500Medium',
-          fontSize: 13,
-        }}
-      >
-        {label}
-      </Text>
+      <Text style={{ color, fontSize: 13, fontFamily: 'Poppins_500Medium' }}>{label}</Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: {
-    borderBottomWidth: 1,
-    paddingTop: 4,
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 52,
-  },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  iconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  avatarImg: { width: '100%', height: '100%' },
-  tabsRow: {
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    paddingTop: 2,
-    gap: 6,
-  },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 99,
-    borderWidth: 1,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.25)',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    paddingRight: 12,
-  },
-  dropdown: {
-    minWidth: 220,
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: 'hidden',
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-  },
-  dropdownHeader: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
-  dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-});

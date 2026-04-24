@@ -1,15 +1,6 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
-import { useTheme } from '@/lib/theme';
-
-type Size = 'sm' | 'md' | 'lg' | 'xl';
-
-const SIZES: Record<Size, { icon: number; name: number; tag: number; gap: number }> = {
-  sm: { icon: 18, name: 14, tag: 8, gap: 6 },
-  md: { icon: 24, name: 17, tag: 9, gap: 9 },
-  lg: { icon: 32, name: 22, tag: 10, gap: 11 },
-  xl: { icon: 48, name: 32, tag: 13, gap: 16 },
-};
 
 interface LogoIconProps {
   size?: number;
@@ -30,7 +21,7 @@ export function LogoIcon({ size = 28, color = '#1a1917', accentColor = '#d4521a'
       />
       <Circle cx={7} cy={7} r={2.5} fill={color} />
       <Circle cx={21} cy={21} r={4.5} fill={accentColor} />
-      <Circle cx={21} cy={21} r={1.8} fill="#ffffff" />
+      <Circle cx={21} cy={21} r={1.8} fill="white" />
     </Svg>
   );
 }
@@ -40,11 +31,9 @@ interface AppIconProps {
   dark?: boolean;
 }
 
-export function AppIcon({ size = 40, dark }: AppIconProps) {
-  const { dark: themeDark } = useTheme();
-  const isDark = dark ?? themeDark;
-  const bg = isDark ? '#121110' : '#ffffff';
-  const fg = isDark ? '#f0ede8' : '#1a1917';
+export function AppIcon({ size = 40, dark = false }: AppIconProps) {
+  const bg = dark ? '#121110' : '#ffffff';
+  const fg = dark ? '#f0ede8' : '#1a1917';
   return (
     <Svg width={size} height={size} viewBox="0 0 40 40">
       <Rect width={40} height={40} rx={9} fill={bg} />
@@ -57,41 +46,45 @@ export function AppIcon({ size = 40, dark }: AppIconProps) {
       />
       <Circle cx={10} cy={10} r={3} fill={fg} />
       <Circle cx={30} cy={30} r={5.5} fill="#d4521a" />
-      <Circle cx={30} cy={30} r={2.2} fill="#ffffff" />
+      <Circle cx={30} cy={30} r={2.2} fill="white" />
     </Svg>
   );
 }
 
-export function LogoMark({ size = 28, dark }: LogoIconProps & { dark?: boolean }) {
-  const { dark: themeDark } = useTheme();
-  const isDark = dark ?? themeDark;
-  return <LogoIcon size={size} color={isDark ? '#f0ede8' : '#1a1917'} accentColor="#d4521a" />;
-}
-
 interface ViaXLogoProps {
-  size?: Size;
-  showTagline?: boolean;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   dark?: boolean;
+  showTagline?: boolean;
 }
 
-export function ViaXLogo({ size = 'md', showTagline = true, dark: darkProp }: ViaXLogoProps) {
-  const { dark: themeDark } = useTheme();
-  const dark = darkProp ?? themeDark;
+const SIZES = {
+  sm: { icon: 18, name: 13, tagline: 8, gap: 6 },
+  md: { icon: 24, name: 16, tagline: 9, gap: 9 },
+  lg: { icon: 32, name: 21, tagline: 10, gap: 11 },
+  xl: { icon: 48, name: 30, tagline: 12, gap: 16 },
+} as const;
+
+export default function ViaXLogo({
+  size = 'md',
+  dark = false,
+  showTagline = true,
+}: ViaXLogoProps) {
   const s = SIZES[size];
   const textColor = dark ? '#f0ede8' : '#1a1917';
   const mutedColor = dark ? 'rgba(240,237,232,0.4)' : 'rgba(26,25,23,0.4)';
+  const taglineColor = dark ? 'rgba(240,237,232,0.45)' : 'rgba(26,25,23,0.4)';
 
   return (
-    <View style={[styles.row, { gap: s.gap }]}>
-      <LogoIcon size={s.icon} color={textColor} accentColor="#d4521a" />
-      <View style={{ flexShrink: 1 }}>
+    <View className="flex-row items-center" style={{ gap: s.gap }}>
+      <LogoIcon size={s.icon} color={textColor} />
+      <View>
         <Text
           style={{
             fontFamily: 'Poppins_700Bold',
             fontSize: s.name,
-            letterSpacing: -0.3,
             color: textColor,
-            lineHeight: s.name * 1.15,
+            letterSpacing: -0.2,
+            lineHeight: showTagline ? s.name * 1.15 : s.name,
           }}
         >
           ViaX<Text style={{ color: mutedColor, fontFamily: 'Poppins_400Regular' }}>:</Text>Trace
@@ -99,30 +92,18 @@ export function ViaXLogo({ size = 'md', showTagline = true, dark: darkProp }: Vi
         {showTagline && (
           <Text
             style={{
+              fontSize: s.tagline,
+              color: taglineColor,
+              letterSpacing: 1.2,
               fontFamily: 'Poppins_600SemiBold',
-              fontSize: s.tag,
-              letterSpacing: 1.6,
-              color: mutedColor,
+              textTransform: 'uppercase',
               marginTop: 1,
             }}
           >
-            AUDITORIA DE ROTAS
+            Auditoria de Rotas
           </Text>
         )}
       </View>
     </View>
   );
 }
-
-export function FlatLogo({ width = 200, dark }: { width?: number; dark?: boolean }) {
-  const iconSize = Math.round(width * 0.14);
-  return (
-    <View style={{ width, alignItems: 'flex-start' }}>
-      <ViaXLogo size="lg" dark={dark} showTagline />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center' },
-});

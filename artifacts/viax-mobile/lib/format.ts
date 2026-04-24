@@ -1,29 +1,55 @@
 export function formatBRL(v: number | null | undefined): string {
-  if (v == null || isNaN(v)) return '—';
+  if (v == null || Number.isNaN(v)) return 'R$ 0,00';
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export function formatPct(v: number | null | undefined): string {
-  if (v == null || isNaN(v)) return '—';
-  return `${Math.round(v * 100)}%`;
+export function formatPct(v: number | null | undefined, digits = 0): string {
+  if (v == null || Number.isNaN(v)) return '0%';
+  return `${v.toFixed(digits)}%`;
 }
 
 export function formatMs(ms: number | null | undefined): string {
-  if (ms == null) return '—';
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-  const m = Math.floor(ms / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  return `${m}m${s.toString().padStart(2, '0')}s`;
+  if (ms == null || Number.isNaN(ms)) return '–';
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
 }
 
-export function formatDate(iso: string | null | undefined): string {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  return d.toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+export function formatDate(iso: string | Date | null | undefined): string {
+  if (!iso) return '–';
+  try {
+    const d = typeof iso === 'string' ? new Date(iso) : iso;
+    return d.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  } catch {
+    return '–';
+  }
 }
 
-export function formatShortDate(iso: string | null | undefined): string {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+export function formatDateTime(iso: string | Date | null | undefined): string {
+  if (!iso) return '–';
+  try {
+    const d = typeof iso === 'string' ? new Date(iso) : iso;
+    return d.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '–';
+  }
+}
+
+export function formatNumber(v: number | null | undefined): string {
+  if (v == null || Number.isNaN(v)) return '0';
+  return v.toLocaleString('pt-BR');
+}
+
+export function truncate(text: string, max = 32): string {
+  if (text.length <= max) return text;
+  return text.slice(0, max - 1) + '…';
 }

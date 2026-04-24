@@ -1,44 +1,33 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  ScrollView,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { useColors } from '@/hooks/useColors';
-import { AppHeader } from '@/components/AppHeader';
-import { useResponsive } from '@/lib/responsive';
-import { apiRequest, getApiUrl } from '@/lib/api';
-import { buildCsv, shareCsv } from '@/lib/csv';
-import { useToast } from '@/components/Toast';
+import { MotiView } from 'moti';
+import { Card } from '../../components/ui/Card';
+import { useColors } from '../../lib/theme';
+import { useToast } from '../../components/Toast';
+import { sseUpload, type SseFile } from '../../lib/sse-upload';
+import { getBaseUrl, getSessionCookieSync, loadSession } from '../../lib/api';
 
-type CondoSummary = {
+interface CondoSummary {
   id: string;
   nome: string;
   status: 'ativo' | 'em_desenvolvimento';
   totalLotes?: number;
-};
+}
 
-type Classificacao = 'ordenada' | 'encontrada_sem_condominio' | 'nuance';
-
-type DeliveryRow = {
+interface DeliveryRow {
   linha: number;
   enderecoOriginal: string;
   quadra: number | null;
   lote: number | null;
-  classificacao: Classificacao;
+  classificacao: 'ordenada' | 'encontrada_sem_condominio' | 'nuance';
   motivo: string;
   ordem?: number;
   instrucao?: string;
-};
+}
 
-type RouteResult = {
+interface RouteResult {
   condominio: { id: string; nome: string };
   totalLinhas: number;
   totalOrdenadas: number;
@@ -46,9 +35,9 @@ type RouteResult = {
   totalNuances: number;
   detalhes: DeliveryRow[];
   metricas: { tempo_ms: number };
-};
+}
 
-type Filter = 'all' | Classificacao;
+type Filter = 'all' | 'ordenada' | 'encontrada_sem_condominio' | 'nuance';
 
 const FILTER_LABEL: Record<Filter, string> = {
   all: 'Todos',
@@ -57,13 +46,7 @@ const FILTER_LABEL: Record<Filter, string> = {
   nuance: 'Nuances',
 };
 
-const CLASS_COLOR: Record<Classificacao, string> = {
-  ordenada: '#2ea863',
-  encontrada_sem_condominio: '#7c3aed',
-  nuance: '#d4521a',
-};
-
-const CLASS_LABEL: Record<Classificacao, string> = {
+const CLASS_LABEL: Record<DeliveryRow['classificacao'], string> = {
   ordenada: 'Ordenada',
   encontrada_sem_condominio: 'Sem condomínio',
   nuance: 'Nuance',
@@ -71,125 +54,92 @@ const CLASS_LABEL: Record<Classificacao, string> = {
 
 export default function ToolScreen() {
   const c = useColors();
-  const toast = useToast();
-  const { rs } = useResponsive();
+  const { showToast } = useToast();
+
+  const CLASS_COLOR: Record<DeliveryRow['classificacao'], string> = {
+    ordenada: c.ok,
+    encontrada_sem_condominio: '#7c3aed',
+    nuance: c.accent,
+  };
+
   const [condos, setCondos] = useState<CondoSummary[]>([]);
-  const [selectedId, setSelectedId] = useState<string>('bougainville-iii');
-  const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [selectedId, setSelectedId] = useState('bougainville-iii');
+  const [file, setFile] = useState<SseFile | null>(null);
+  const [fileSize, setFileSize] = useState<number | null>(null);
   const [steps, setSteps] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<RouteResult | null>(null);
   const [activeFilter, setActiveFilter] = useState<Filter>('all');
-  const stepsScrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    apiRequest<{ condominios: CondoSummary[] }>('/api/condominium/list')
-      .then((d) => setCondos(d.condominios ?? []))
-      .catch(() => setCondos([]));
+    (async () => {
+      try {
+        const cookie = getSessionCookieSync() ?? (await loadSession());
+        const r = await fetch(getBaseUrl().replace(/\/+$/, '') + '/api/condominium/list', {
+          headers: cookie ? { Cookie: cookie } : {},
+        });
+        const d = await r.json();
+        setCondos(d.condominios ?? []);
+      } catch {
+        setCondos([]);
+      }
+    })();
   }, []);
 
   const selected = condos.find((co) => co.id === selectedId);
   const canProcess = !!file && !isProcessing && selected?.status === 'ativo';
 
-  const addStep = (msg: string) => {
-    setSteps((prev) => [...prev.slice(-30), msg]);
-    setTimeout(() => stepsScrollRef.current?.scrollToEnd({ animated: true }), 50);
-  };
+  const addStep = (msg: string) => setSteps((prev) => [...prev.slice(-20), msg]);
 
   const pickFile = async () => {
-    const res = await DocumentPicker.getDocumentAsync({
-      type: [
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/csv',
-        '*/*',
-      ],
-      copyToCacheDirectory: true,
-    });
-    if (res.canceled || !res.assets?.[0]) return;
-    const asset = res.assets[0];
-    const ext = asset.name.split('.').pop()?.toLowerCase();
-    if (!['xlsx', 'csv'].includes(ext ?? '')) {
-      toast.showToast('Formato inválido. Use .xlsx ou .csv');
-      return;
+    try {
+      const r = await DocumentPicker.getDocumentAsync({
+        type: ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', '*/*'],
+        copyToCacheDirectory: true,
+      });
+      if (r.canceled || !r.assets?.[0]) return;
+      const a = r.assets[0];
+      const ext = a.name.split('.').pop()?.toLowerCase();
+      if (!['xlsx', 'csv'].includes(ext ?? '')) {
+        showToast('Formato inválido. Use .xlsx ou .csv');
+        return;
+      }
+      setFile({ uri: a.uri, name: a.name, mimeType: a.mimeType });
+      setFileSize(a.size ?? null);
+      setResult(null);
+      setSteps([]);
+    } catch (e: any) {
+      showToast('Erro ao selecionar arquivo: ' + (e?.message ?? String(e)));
     }
-    Haptics.selectionAsync().catch(() => {});
-    setFile(asset);
-    setResult(null);
-    setSteps([]);
   };
 
   const handleProcess = async () => {
     if (!file || !selected) return;
     if (selected.status !== 'ativo') {
-      toast.showToast('Este condomínio ainda está em desenvolvimento.');
+      showToast('Este condomínio ainda está em desenvolvimento.');
       return;
     }
-    const apiUrl = getApiUrl();
-    if (!apiUrl) {
-      toast.showToast('Configure o servidor em Configurações antes de processar.');
-      return;
-    }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     setIsProcessing(true);
     setSteps([]);
     setResult(null);
-    addStep('Enviando arquivo...');
-
     try {
-      const form = new FormData();
-      form.append('arquivo', {
-        uri: file.uri,
-        name: file.name,
-        type: file.mimeType ?? 'application/octet-stream',
-      } as any);
-      form.append('condominioId', selected.id);
-
-      const response = await fetch(`${apiUrl}/api/condominium/process`, {
-        method: 'POST',
-        body: form,
-        credentials: 'include',
+      await sseUpload({
+        path: '/api/condominium/process',
+        fieldName: 'arquivo',
+        file,
+        extraFields: { condominioId: selected.id },
+        onEvent: (event, data) => {
+          if (event === 'step' && data?.step) addStep(data.step);
+          else if (event === 'result' && data?.result) {
+            setResult(data.result as RouteResult);
+            addStep('✓ Sequência logística pronta!');
+          } else if (event === 'error' && data?.error) showToast(String(data.error));
+        },
+        onError: (msg) => showToast(msg),
+        onComplete: () => setIsProcessing(false),
       });
-
-      if (!response.ok || !response.body) {
-        toast.showToast(`Falha no processamento (HTTP ${response.status}).`);
-        return;
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split('\n\n');
-        buffer = parts.pop() ?? '';
-        for (const part of parts) {
-          const lines = part.split('\n');
-          let eventType = 'message';
-          let dataStr = '';
-          for (const line of lines) {
-            if (line.startsWith('event: ')) eventType = line.slice(7).trim();
-            else if (line.startsWith('data: ')) dataStr = line.slice(6).trim();
-          }
-          if (!dataStr) continue;
-          try {
-            const parsed = JSON.parse(dataStr);
-            if (eventType === 'step' && parsed.step) addStep(parsed.step);
-            else if (eventType === 'result' && parsed.result) {
-              setResult(parsed.result);
-              addStep('✓ Sequência logística pronta!');
-            } else if (eventType === 'error' && parsed.error) {
-              toast.showToast(parsed.error);
-            }
-          } catch {
-            // ignore
-          }
-        }
-      }
-    } catch (err: any) {
-      toast.showToast(`Erro de conexão: ${err?.message ?? String(err)}`);
-    } finally {
+    } catch (e: any) {
+      showToast('Erro de conexão: ' + (e?.message ?? String(e)));
       setIsProcessing(false);
     }
   };
@@ -199,54 +149,29 @@ export default function ToolScreen() {
       activeFilter === 'all' ? true : r.classificacao === activeFilter,
     ) ?? [];
 
-  const exportCsv = async () => {
-    if (!result) return;
-    try {
-      const header = ['Ordem', 'Linha', 'Quadra', 'Lote', 'Classificação', 'Endereço', 'Instrução', 'Motivo'];
-      const rows = result.detalhes.map((r) => [
-        r.ordem ?? '',
-        r.linha,
-        r.quadra ?? '',
-        r.lote ?? '',
-        CLASS_LABEL[r.classificacao],
-        r.enderecoOriginal,
-        r.instrucao ?? '',
-        r.motivo,
-      ]);
-      const csv = buildCsv(header, rows);
-      const baseName = (file?.name ?? 'rota').replace(/\.(xlsx|csv)$/i, '');
-      await shareCsv(`viax-${result.condominio.id}-${baseName}.csv`, csv);
-    } catch (e: any) {
-      toast.showToast(e?.message ?? 'Falha ao exportar CSV.');
-    }
-  };
-
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]} edges={['left', 'right']}>
-      <AppHeader />
-      <ScrollView
-        contentContainerStyle={[styles.scroll, { padding: rs(16), paddingBottom: rs(32), gap: rs(14) }]}
-      >
-        {/* Header */}
-        <View>
-          <Text style={[styles.h1, { color: c.text, fontSize: rs(20) }]}>Ferramenta de Condomínios</Text>
-          <Text style={[styles.h1sub, { color: c.textFaint, fontSize: rs(12) }]}>
-            Rastreamento interno de entregas em condomínios fechados — Nova Califórnia (Tamoios).
+    <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: 30 }}>
+      <View style={{ marginBottom: 14 }}>
+        <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 20, color: c.text, letterSpacing: -0.4 }}>
+          Ferramenta de Condomínios
+        </Text>
+        <Text style={{ fontFamily: 'Poppins_400Regular', fontSize: 12, color: c.textFaint, marginTop: 2 }}>
+          Rastreamento interno de entregas em condomínios fechados — Nova Califórnia (Tamoios).
+        </Text>
+      </View>
+
+      {/* Selector */}
+      <Card style={{ marginBottom: 12 }}>
+        <View style={{ paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.border }}>
+          <Text style={{ fontSize: 11, fontFamily: 'Poppins_700Bold', letterSpacing: 1.2, color: c.textFaint, textTransform: 'uppercase' }}>
+            Selecionar Condomínio
           </Text>
         </View>
-
-        {/* Selector */}
-        <View style={[styles.panel, { backgroundColor: c.surface, borderColor: c.borderStrong }]}>
-          <View style={[styles.panelHead, { borderBottomColor: c.border }]}>
-            <Text style={[styles.panelHeadLabel, { color: c.textFaint }]}>Selecionar condomínio</Text>
-          </View>
-          <View style={{ padding: rs(12), gap: 8 }}>
-            {condos.length === 0 && (
-              <Text style={{ color: c.textFaint, fontFamily: 'Poppins_400Regular', fontSize: 12 }}>
-                Carregando condomínios…
-              </Text>
-            )}
-            {condos.map((co) => {
+        <View style={{ padding: 10, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {condos.length === 0 ? (
+            <Text style={{ padding: 12, fontSize: 12, color: c.textFaint }}>Carregando condomínios...</Text>
+          ) : (
+            condos.map((co) => {
               const isActive = co.id === selectedId;
               const isAvail = co.status === 'ativo';
               return (
@@ -254,283 +179,240 @@ export default function ToolScreen() {
                   key={co.id}
                   onPress={() => isAvail && setSelectedId(co.id)}
                   disabled={!isAvail}
-                  style={({ pressed }) => [
-                    styles.condoCard,
-                    {
-                      borderColor: isActive ? c.accent : c.borderStrong,
-                      backgroundColor: isActive ? c.accentDim : c.surface2,
-                      opacity: !isAvail ? 0.55 : pressed ? 0.85 : 1,
-                    },
-                  ]}
+                  style={{
+                    flexBasis: '48%',
+                    flexGrow: 1,
+                    padding: 10,
+                    borderRadius: 10,
+                    borderWidth: 1.5,
+                    borderColor: isActive ? c.accent : c.borderStrong,
+                    backgroundColor: isActive ? c.accentDim : c.surface2,
+                    opacity: isAvail ? 1 : 0.6,
+                  }}
                 >
-                  <Text style={{ color: c.text, fontFamily: 'Poppins_700Bold', fontSize: 14 }}>
+                  <Text numberOfLines={1} style={{ fontSize: 13, fontFamily: 'Poppins_700Bold', color: c.text }}>
                     {co.nome}
                   </Text>
                   <Text
                     style={{
-                      color: isAvail ? c.ok : c.textFaint,
+                      fontSize: 9.5,
                       fontFamily: 'Poppins_600SemiBold',
-                      fontSize: 10,
+                      color: isAvail ? c.ok : c.textFaint,
                       letterSpacing: 0.5,
                       textTransform: 'uppercase',
-                      marginTop: 4,
+                      marginTop: 3,
                     }}
                   >
-                    {isAvail
-                      ? `Disponível${co.totalLotes ? ` · ${co.totalLotes} lotes` : ''}`
-                      : 'Em desenvolvimento'}
+                    {isAvail ? `Disponível${co.totalLotes ? ` · ${co.totalLotes} lotes` : ''}` : 'Em desenvolvimento'}
+                  </Text>
+                </Pressable>
+              );
+            })
+          )}
+        </View>
+      </Card>
+
+      {/* Upload card */}
+      <Card style={{ marginBottom: 16 }}>
+        <View style={{ paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.border }}>
+          <Text numberOfLines={1} style={{ fontSize: 11, fontFamily: 'Poppins_700Bold', letterSpacing: 1.2, color: c.textFaint, textTransform: 'uppercase' }}>
+            Importar Rota — {selected?.nome ?? '—'}
+          </Text>
+        </View>
+
+        <Pressable
+          onPress={pickFile}
+          style={{
+            margin: 10,
+            paddingVertical: 26,
+            paddingHorizontal: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            borderWidth: 2,
+            borderStyle: 'dashed',
+            borderColor: file ? c.accent : 'transparent',
+            borderRadius: 10,
+            backgroundColor: file ? c.accentDim : 'transparent',
+          }}
+        >
+          <View
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 12,
+              backgroundColor: c.accentDim,
+              borderWidth: 1,
+              borderColor: c.borderStrong,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="cloud-upload-outline" size={22} color={c.accent} />
+          </View>
+          <Text numberOfLines={1} style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: c.text, textAlign: 'center', maxWidth: '90%' }}>
+            {file ? file.name : 'Selecione a planilha'}
+          </Text>
+          <Text style={{ fontSize: 11, color: c.textFaint, textAlign: 'center' }}>
+            {file && fileSize ? `${(fileSize / 1024).toFixed(1)} KB` : 'XLSX ou CSV · máx 10MB'}
+          </Text>
+          <View
+            style={{
+              marginTop: 4,
+              backgroundColor: c.accent,
+              paddingHorizontal: 18,
+              paddingVertical: 9,
+              borderRadius: 99,
+            }}
+          >
+            <Text style={{ color: '#fff', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>
+              {file ? 'Trocar arquivo' : 'Selecionar arquivo'}
+            </Text>
+          </View>
+        </Pressable>
+
+        <View style={{ paddingHorizontal: 14, paddingBottom: 14 }}>
+          <Pressable
+            onPress={handleProcess}
+            disabled={!canProcess}
+            style={{
+              backgroundColor: c.text,
+              paddingVertical: 12,
+              borderRadius: 99,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+              gap: 6,
+              opacity: !canProcess ? 0.4 : 1,
+            }}
+          >
+            {isProcessing ? (
+              <ActivityIndicator size="small" color={c.bg} />
+            ) : (
+              <Ionicons name="flash-outline" size={15} color={c.bg} />
+            )}
+            <Text style={{ color: c.bg, fontFamily: 'Poppins_600SemiBold', fontSize: 13 }}>
+              {isProcessing ? 'Processando...' : 'Iniciar'}
+            </Text>
+          </Pressable>
+        </View>
+
+        {isProcessing && (
+          <View style={{ paddingHorizontal: 14, paddingBottom: 18, gap: 10 }}>
+            {steps.map((step, i) => (
+              <MotiView
+                key={i}
+                from={{ opacity: 0, translateX: -6 }}
+                animate={{ opacity: 1, translateX: 0 }}
+                transition={{ type: 'timing', duration: 200 }}
+                style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}
+              >
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c.accent, marginTop: 6 }} />
+                <Text style={{ flex: 1, fontSize: 11.5, color: c.textFaint, lineHeight: 16 }}>{step}</Text>
+              </MotiView>
+            ))}
+          </View>
+        )}
+      </Card>
+
+      {result && (
+        <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 280 }}>
+          {/* Stats */}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+            {[
+              { value: String(result.totalLinhas), label: 'Total', color: c.text, bar: c.border },
+              { value: String(result.totalOrdenadas), label: 'Ordenadas', color: c.ok, bar: c.ok },
+              { value: String(result.totalSemCondominio), label: 'Sem condomínio', color: '#7c3aed', bar: '#7c3aed' },
+              { value: String(result.totalNuances), label: 'Nuances', color: c.accent, bar: c.accent },
+            ].map((s) => (
+              <View
+                key={s.label}
+                style={{
+                  flexBasis: '47%',
+                  flexGrow: 1,
+                  backgroundColor: c.surface,
+                  borderColor: c.borderStrong,
+                  borderWidth: 1,
+                  borderRadius: 14,
+                  padding: 12,
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 19, color: s.color, letterSpacing: -0.4 }}>{s.value}</Text>
+                <Text
+                  style={{
+                    fontFamily: 'Poppins_600SemiBold',
+                    fontSize: 9.5,
+                    color: c.textFaint,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    marginTop: 2,
+                  }}
+                >
+                  {s.label}
+                </Text>
+                <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, backgroundColor: s.bar }} />
+              </View>
+            ))}
+          </View>
+
+          {/* Filters */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingVertical: 4, marginBottom: 8 }}>
+            {(Object.keys(FILTER_LABEL) as Filter[]).map((f) => {
+              const isActive = activeFilter === f;
+              const count = f === 'all' ? result.detalhes.length : result.detalhes.filter((r) => r.classificacao === f).length;
+              return (
+                <Pressable
+                  key={f}
+                  onPress={() => setActiveFilter(f)}
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 99,
+                    backgroundColor: isActive ? c.accent : c.surface2,
+                    borderWidth: 1,
+                    borderColor: isActive ? c.accent : c.borderStrong,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: isActive ? '#fff' : c.textMuted,
+                      fontFamily: 'Poppins_600SemiBold',
+                    }}
+                  >
+                    {FILTER_LABEL[f]} ({count})
                   </Text>
                 </Pressable>
               );
             })}
-          </View>
-        </View>
+          </ScrollView>
 
-        {/* Upload */}
-        <View style={[styles.panel, { backgroundColor: c.surface, borderColor: c.borderStrong }]}>
-          <View style={[styles.panelHead, { borderBottomColor: c.border }]}>
-            <Text style={[styles.panelHeadLabel, { color: c.textFaint }]}>
-              Importar rota — {selected?.nome ?? '—'}
-            </Text>
-          </View>
-          <Pressable
-            onPress={pickFile}
-            style={({ pressed }) => [
-              styles.dropzone,
-              {
-                margin: 12,
-                borderColor: file ? c.accent : c.borderStrong,
-                backgroundColor: file ? c.accentDim : 'transparent',
-                opacity: pressed ? 0.85 : 1,
-              },
-            ]}
-          >
-            <View
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 12,
-                backgroundColor: c.accentDim,
-                borderWidth: 1,
-                borderColor: c.borderStrong,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="cloud-upload-outline" size={22} color={c.accent} />
-            </View>
-            <Text
-              style={{ color: c.text, fontFamily: 'Poppins_600SemiBold', fontSize: 14, textAlign: 'center', marginTop: 10 }}
-            >
-              {file ? file.name : 'Toque para selecionar a planilha'}
-            </Text>
-            <Text
-              style={{
-                color: c.textFaint,
-                fontFamily: 'Poppins_400Regular',
-                fontSize: 11,
-                textAlign: 'center',
-                marginTop: 4,
-              }}
-            >
-              {file
-                ? file.size
-                  ? `${(file.size / 1024).toFixed(1)} KB`
-                  : ''
-                : 'XLSX ou CSV · coluna "Destination Address"'}
-            </Text>
-            <View
-              style={{
-                marginTop: 12,
-                paddingHorizontal: 18,
-                paddingVertical: 9,
-                borderRadius: 99,
-                backgroundColor: c.accent,
-              }}
-            >
-              <Text style={{ color: '#fff', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>
-                {file ? 'Trocar arquivo' : 'Selecionar arquivo'}
+          {/* Sequence list */}
+          <Card>
+            <View style={{ paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.border }}>
+              <Text numberOfLines={1} style={{ fontSize: 11, fontFamily: 'Poppins_700Bold', letterSpacing: 1.2, color: c.textMuted, textTransform: 'uppercase' }}>
+                Sequência de Entregas — {result.condominio.nome}
               </Text>
             </View>
-          </Pressable>
-
-          <View style={{ paddingHorizontal: 12, paddingBottom: 12 }}>
-            <Pressable
-              onPress={handleProcess}
-              disabled={!canProcess}
-              style={({ pressed }) => [
-                styles.startBtn,
-                {
-                  backgroundColor: c.text,
-                  opacity: !canProcess ? 0.4 : pressed ? 0.85 : 1,
-                },
-              ]}
-            >
-              {isProcessing ? (
-                <ActivityIndicator color={c.bg} />
-              ) : (
-                <Ionicons name="flash-outline" size={16} color={c.bg} />
-              )}
-              <Text style={{ color: c.bg, fontFamily: 'Poppins_600SemiBold', fontSize: 14 }}>
-                {isProcessing ? 'Processando…' : 'Iniciar'}
-              </Text>
-            </Pressable>
-          </View>
-
-          {(isProcessing || steps.length > 0) && (
-            <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
-              <ScrollView ref={stepsScrollRef} style={{ maxHeight: 180 }}>
-                {steps.map((step, i) => (
-                  <View
-                    key={i}
-                    style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', marginBottom: 6 }}
-                  >
-                    <View
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
-                        backgroundColor: c.accent,
-                        marginTop: 6,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        color: c.textFaint,
-                        fontFamily: 'Poppins_400Regular',
-                        fontSize: 12,
-                        flex: 1,
-                      }}
-                    >
-                      {step}
-                    </Text>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-        </View>
-
-        {/* Results */}
-        {result && (
-          <>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {[
-                { value: result.totalLinhas, label: 'Total', color: c.text },
-                { value: result.totalOrdenadas, label: 'Ordenadas', color: c.ok },
-                { value: result.totalSemCondominio, label: 'Sem condomínio', color: '#7c3aed' },
-                { value: result.totalNuances, label: 'Nuances', color: c.accent },
-              ].map((it) => (
-                <View
-                  key={it.label}
-                  style={[
-                    styles.statTile,
-                    { backgroundColor: c.surface, borderColor: c.borderStrong },
-                  ]}
-                >
-                  <Text style={{ color: it.color, fontFamily: 'Poppins_700Bold', fontSize: 22, letterSpacing: -0.5 }}>
-                    {it.value}
-                  </Text>
-                  <Text
-                    style={{
-                      color: c.textFaint,
-                      fontFamily: 'Poppins_600SemiBold',
-                      fontSize: 9,
-                      letterSpacing: 0.6,
-                      textTransform: 'uppercase',
-                      marginTop: 2,
-                    }}
-                  >
-                    {it.label}
-                  </Text>
-                  <View
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: 2,
-                      backgroundColor: it.color,
-                    }}
-                  />
-                </View>
-              ))}
-            </View>
-
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                {(Object.keys(FILTER_LABEL) as Filter[]).map((f) => {
-                  const isActive = activeFilter === f;
-                  const count =
-                    f === 'all'
-                      ? result.detalhes.length
-                      : result.detalhes.filter((r) => r.classificacao === f).length;
-                  return (
-                    <Pressable
-                      key={f}
-                      onPress={() => setActiveFilter(f)}
-                      style={({ pressed }) => [
-                        styles.filterChip,
-                        {
-                          backgroundColor: isActive ? c.accent : c.surface2,
-                          borderColor: isActive ? c.accent : c.borderStrong,
-                          opacity: pressed ? 0.85 : 1,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={{
-                          color: isActive ? '#fff' : c.textMuted,
-                          fontFamily: 'Poppins_600SemiBold',
-                          fontSize: 11,
-                        }}
-                      >
-                        {FILTER_LABEL[f]}{' '}
-                        <Text style={{ opacity: 0.7 }}>({count})</Text>
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+            {filteredRows.length === 0 ? (
+              <View style={{ padding: 32, alignItems: 'center' }}>
+                <Text style={{ color: c.textFaint, fontSize: 12 }}>Nenhum item para este filtro.</Text>
               </View>
-              <Pressable
-                onPress={exportCsv}
-                style={({ pressed }) => [
-                  styles.filterChip,
-                  {
-                    backgroundColor: c.surface2,
-                    borderColor: c.borderStrong,
-                    opacity: pressed ? 0.85 : 1,
-                  },
-                ]}
-              >
-                <Text style={{ color: c.text, fontFamily: 'Poppins_600SemiBold', fontSize: 11 }}>
-                  Exportar CSV
-                </Text>
-              </Pressable>
-            </View>
-
-            <View style={[styles.panel, { backgroundColor: c.surface, borderColor: c.borderStrong }]}>
-              <View style={[styles.panelHead, { borderBottomColor: c.border }]}>
-                <Text style={[styles.panelHeadLabel, { color: c.textMuted }]}>
-                  Sequência de entregas — {result.condominio.nome}
-                </Text>
-              </View>
-              {filteredRows.length === 0 ? (
-                <View style={{ padding: 32, alignItems: 'center' }}>
-                  <Text style={{ color: c.textFaint, fontFamily: 'Poppins_400Regular', fontSize: 13 }}>
-                    Nenhum item para este filtro.
-                  </Text>
-                </View>
-              ) : (
-                filteredRows.map((r, idx) => (
+            ) : (
+              filteredRows.map((r, idx) => {
+                const color = CLASS_COLOR[r.classificacao];
+                return (
                   <View
                     key={`${r.linha}-${idx}`}
                     style={{
-                      flexDirection: 'row',
-                      gap: 12,
-                      padding: 14,
+                      paddingHorizontal: 14,
+                      paddingVertical: 12,
                       borderTopWidth: idx === 0 ? 0 : 1,
                       borderTopColor: c.border,
+                      flexDirection: 'row',
+                      gap: 10,
                     }}
                   >
                     <View
@@ -538,153 +420,38 @@ export default function ToolScreen() {
                         width: 32,
                         height: 32,
                         borderRadius: 8,
-                        backgroundColor: `${CLASS_COLOR[r.classificacao]}28`,
+                        backgroundColor: color + '22',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Text
-                        style={{
-                          color: CLASS_COLOR[r.classificacao],
-                          fontFamily: 'Poppins_700Bold',
-                          fontSize: 12,
-                        }}
-                      >
-                        {r.ordem ?? '—'}
-                      </Text>
+                      <Text style={{ color, fontFamily: 'Poppins_700Bold', fontSize: 12 }}>{r.ordem ?? '—'}</Text>
                     </View>
                     <View style={{ flex: 1, minWidth: 0 }}>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 6,
-                          flexWrap: 'wrap',
-                          marginBottom: 4,
-                        }}
-                      >
-                        <Text style={{ color: c.text, fontFamily: 'Poppins_700Bold', fontSize: 13 }}>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center', marginBottom: 3 }}>
+                        <Text style={{ fontSize: 12, fontFamily: 'Poppins_700Bold', color: c.text }}>
                           {r.quadra !== null ? `Quadra ${r.quadra}` : 'Quadra ?'}
                           {r.lote !== null ? ` · Lote ${r.lote}` : ''}
                         </Text>
-                        <View
-                          style={{
-                            backgroundColor: `${CLASS_COLOR[r.classificacao]}28`,
-                            paddingHorizontal: 8,
-                            paddingVertical: 2,
-                            borderRadius: 99,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color: CLASS_COLOR[r.classificacao],
-                              fontFamily: 'Poppins_700Bold',
-                              fontSize: 9,
-                              letterSpacing: 0.5,
-                              textTransform: 'uppercase',
-                            }}
-                          >
+                        <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 99, backgroundColor: color + '22' }}>
+                          <Text style={{ fontSize: 9.5, color, fontFamily: 'Poppins_700Bold', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                             {CLASS_LABEL[r.classificacao]}
                           </Text>
                         </View>
                       </View>
                       {r.instrucao && (
-                        <Text
-                          style={{
-                            color: c.textMuted,
-                            fontFamily: 'Poppins_500Medium',
-                            fontSize: 12,
-                            marginBottom: 3,
-                            lineHeight: 17,
-                          }}
-                        >
-                          ➜ {r.instrucao}
-                        </Text>
+                        <Text style={{ fontSize: 11.5, color: c.textMuted, marginBottom: 2 }}>➜ {r.instrucao}</Text>
                       )}
-                      <Text
-                        style={{
-                          color: c.textFaint,
-                          fontFamily: 'Poppins_400Regular',
-                          fontSize: 11,
-                          marginBottom: 2,
-                        }}
-                      >
-                        {r.enderecoOriginal}
-                      </Text>
-                      <Text
-                        style={{
-                          color: c.textFaint,
-                          fontFamily: 'Poppins_400Regular',
-                          fontSize: 10,
-                          fontStyle: 'italic',
-                        }}
-                      >
-                        {r.motivo}
-                      </Text>
+                      <Text style={{ fontSize: 10.5, color: c.textFaint }}>{r.enderecoOriginal}</Text>
+                      <Text style={{ fontSize: 10, color: c.textFaint, fontStyle: 'italic', marginTop: 2 }}>{r.motivo}</Text>
                     </View>
                   </View>
-                ))
-              )}
-            </View>
-          </>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+                );
+              })
+            )}
+          </Card>
+        </MotiView>
+      )}
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  scroll: { padding: 16, paddingBottom: 32, gap: 14 },
-  h1: { fontFamily: 'Poppins_700Bold', letterSpacing: -0.5 },
-  h1sub: { fontFamily: 'Poppins_400Regular', marginTop: 4, lineHeight: 17 },
-  panel: { borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
-  panelHead: {
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    borderBottomWidth: 1,
-  },
-  panelHeadLabel: {
-    fontFamily: 'Poppins_700Bold',
-    fontSize: 10,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  condoCard: {
-    borderWidth: 1.5,
-    borderRadius: 10,
-    padding: 12,
-  },
-  dropzone: {
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderRadius: 12,
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  startBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 13,
-    paddingHorizontal: 20,
-    borderRadius: 99,
-  },
-  statTile: {
-    flexGrow: 1,
-    flexBasis: '45%',
-    borderWidth: 1,
-    borderRadius: 14,
-    padding: 14,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  filterChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 99,
-    borderWidth: 1,
-  },
-});

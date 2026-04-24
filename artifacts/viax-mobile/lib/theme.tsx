@@ -1,73 +1,101 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
-import { colorScheme as nwColorScheme } from 'nativewind';
+import React, { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { Appearance } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
+import { colorScheme as nwColorScheme } from 'nativewind';
 
 type Mode = 'light' | 'dark';
 
-interface ThemeCtx {
+interface ThemeContextValue {
   mode: Mode;
-  dark: boolean;
   toggle: () => void;
   setMode: (m: Mode) => void;
 }
 
-const Ctx = createContext<ThemeCtx | null>(null);
-const STORE_KEY = 'viax_theme_mode';
-/** Legacy key used before migrating from SecureStore → AsyncStorage. */
-const LEGACY_STORE_KEY = 'viax_theme_mode';
+const ThemeContext = createContext<ThemeContextValue>({
+  mode: 'light',
+  toggle: () => {},
+  setMode: () => {},
+});
 
-/** One-shot migration of an old SecureStore-stored theme → AsyncStorage. */
-async function migrateLegacyTheme(): Promise<Mode | null> {
-  try {
-    const legacy = await SecureStore.getItemAsync(LEGACY_STORE_KEY);
-    if (legacy !== 'light' && legacy !== 'dark') return null;
-    await AsyncStorage.setItem(STORE_KEY, legacy);
-    await SecureStore.deleteItemAsync(LEGACY_STORE_KEY);
-    return legacy;
-  } catch {
-    return null;
-  }
-}
+const STORAGE_KEY = 'viax_theme_mode';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const system = useColorScheme();
-  const [mode, setModeState] = useState<Mode>(system === 'dark' ? 'dark' : 'light');
-  const [hydrated, setHydrated] = useState(false);
+  const [mode, setModeState] = useState<Mode>(() => {
+    return (Appearance.getColorScheme() as Mode) || 'light';
+  });
 
+  // Load persisted mode on mount
   useEffect(() => {
-    (async () => {
-      try {
-        let v: string | null = await AsyncStorage.getItem(STORE_KEY);
-        if (!v) v = await migrateLegacyTheme();
-        if (v === 'light' || v === 'dark') setModeState(v);
-      } finally {
-        setHydrated(true);
-      }
-    })();
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then((v) => {
+        if (v === 'light' || v === 'dark') {
+          setModeState(v);
+          nwColorScheme.set(v);
+        } else {
+          nwColorScheme.set(mode);
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep NativeWind's color scheme in sync so `dark:` variants resolve
-  // against our explicit user selection (not just the OS preference).
-  useEffect(() => {
-    nwColorScheme.set(mode);
-  }, [mode]);
-
-  const setMode = (m: Mode) => {
+  const setMode = useCallback((m: Mode) => {
     setModeState(m);
-    AsyncStorage.setItem(STORE_KEY, m).catch(() => {});
-  };
+    nwColorScheme.set(m);
+    AsyncStorage.setItem(STORAGE_KEY, m).catch(() => {});
+  }, []);
 
-  const toggle = () => setMode(mode === 'dark' ? 'light' : 'dark');
+  const toggle = useCallback(() => {
+    setMode(mode === 'dark' ? 'light' : 'dark');
+  }, [mode, setMode]);
 
-  if (!hydrated) return null;
-
-  return <Ctx.Provider value={{ mode, dark: mode === 'dark', toggle, setMode }}>{children}</Ctx.Provider>;
+  return (
+    <ThemeContext.Provider value={{ mode, toggle, setMode }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
-export function useTheme(): ThemeCtx {
-  const ctx = useContext(Ctx);
-  if (!ctx) throw new Error('useTheme must be used inside ThemeProvider');
-  return ctx;
+export function useTheme() {
+  return useContext(ThemeContext);
+}
+
+// Raw color tokens that we sometimes need outside of NativeWind classes
+// (LinearGradient, SVG, charts).
+export const COLORS = {
+  light: {
+    bg: '#f4f3ef',
+    surface: '#faf9f6',
+    surface2: '#eeecea',
+    text: '#1a1917',
+    textMuted: '#6b6860',
+    textFaint: '#a09e9a',
+    accent: '#d4521a',
+    accentDim: 'rgba(212,82,26,0.12)',
+    ok: '#1a7a4a',
+    okDim: 'rgba(26,122,74,0.10)',
+    destructive: '#dc2626',
+    border: 'rgba(26,25,23,0.10)',
+    borderStrong: 'rgba(26,25,23,0.18)',
+  },
+  dark: {
+    bg: '#121110',
+    surface: '#1c1b19',
+    surface2: '#242320',
+    text: '#f0ede8',
+    textMuted: '#8a877f',
+    textFaint: '#504d48',
+    accent: '#e8703a',
+    accentDim: 'rgba(232,112,58,0.13)',
+    ok: '#2ea863',
+    okDim: 'rgba(46,168,99,0.10)',
+    destructive: '#ef4444',
+    border: 'rgba(240,237,232,0.08)',
+    borderStrong: 'rgba(240,237,232,0.14)',
+  },
+} as const;
+
+export function useColors() {
+  const { mode } = useTheme();
+  return COLORS[mode];
 }
