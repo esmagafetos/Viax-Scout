@@ -1,181 +1,62 @@
-import React, { useState, forwardRef } from 'react';
-import { TextInput, View, Text, type TextInputProps, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useColors } from '../../lib/theme';
+import React, { forwardRef } from "react";
+import { TextInput, View, Text, type TextInputProps, type ViewStyle } from "react-native";
+import { useTheme, radii } from "@/lib/theme";
 
-interface InputProps extends TextInputProps {
+type Props = TextInputProps & {
   label?: string;
-  error?: string | null;
   hint?: string;
-}
+  error?: string | null;
+  leftIcon?: React.ReactNode;
+  rightAdornment?: React.ReactNode;
+  containerStyle?: ViewStyle;
+};
 
-export const Input = forwardRef<TextInput, InputProps>(function Input(
-  { label, error, hint, style, onFocus, onBlur, ...rest },
-  ref,
+const Input = forwardRef<TextInput, Props>(function Input(
+  { label, hint, error, leftIcon, rightAdornment, containerStyle, style, ...rest },
+  ref
 ) {
-  const c = useColors();
-  const [focused, setFocused] = useState(false);
+  const t = useTheme();
   return (
-    <View>
+    <View style={[{ gap: 6 }, containerStyle]}>
       {label && (
-        <Text
-          style={{
-            fontFamily: 'Poppins_600SemiBold',
-            fontSize: 10,
-            color: c.textFaint,
-            letterSpacing: 1.2,
-            textTransform: 'uppercase',
-            marginBottom: 6,
-          }}
-        >
+        <Text style={{ fontFamily: "Poppins_500Medium", fontSize: 12, color: t.textMuted, letterSpacing: 0.2 }}>
           {label}
         </Text>
       )}
-      <TextInput
-        ref={ref}
-        placeholderTextColor={c.textFaint}
-        onFocus={(e) => {
-          setFocused(true);
-          onFocus?.(e);
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: t.surface,
+          borderColor: error ? t.accent : t.borderStrong,
+          borderWidth: 1,
+          borderRadius: radii.md,
+          paddingHorizontal: 14,
+          minHeight: 46,
         }}
-        onBlur={(e) => {
-          setFocused(false);
-          onBlur?.(e);
-        }}
-        style={[
-          {
-            backgroundColor: c.surface2,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: error ? c.accent : focused ? c.accent : c.borderStrong,
-            paddingHorizontal: 14,
-            paddingVertical: 12,
-            fontFamily: 'Poppins_400Regular',
+      >
+        {leftIcon && <View style={{ marginRight: 10 }}>{leftIcon}</View>}
+        <TextInput
+          ref={ref}
+          placeholderTextColor={t.textFaint}
+          style={[{
+            flex: 1,
+            fontFamily: "Poppins_400Regular",
             fontSize: 14,
-            color: c.text,
-          },
-          style as any,
-        ]}
-        {...rest}
-      />
-      {error && (
-        <Text style={{ fontSize: 11, color: c.accent, marginTop: 4, fontFamily: 'Poppins_500Medium' }}>{error}</Text>
-      )}
-      {!error && hint && (
-        <Text style={{ fontSize: 11, color: c.textFaint, marginTop: 4 }}>{hint}</Text>
-      )}
+            color: t.text,
+            paddingVertical: 10,
+          }, style]}
+          {...rest}
+        />
+        {rightAdornment}
+      </View>
+      {error ? (
+        <Text style={{ fontFamily: "Poppins_400Regular", fontSize: 12, color: t.accent }}>{error}</Text>
+      ) : hint ? (
+        <Text style={{ fontFamily: "Poppins_400Regular", fontSize: 11, color: t.textFaint }}>{hint}</Text>
+      ) : null}
     </View>
   );
 });
 
-interface PasswordInputProps extends Omit<InputProps, 'secureTextEntry'> {}
-
-export function PasswordInput({ label, error, hint, ...rest }: PasswordInputProps) {
-  const c = useColors();
-  const [show, setShow] = useState(false);
-  const [focused, setFocused] = useState(false);
-  return (
-    <View>
-      {label && (
-        <Text
-          style={{
-            fontFamily: 'Poppins_600SemiBold',
-            fontSize: 10,
-            color: c.textFaint,
-            letterSpacing: 1.2,
-            textTransform: 'uppercase',
-            marginBottom: 6,
-          }}
-        >
-          {label}
-        </Text>
-      )}
-      <View style={{ position: 'relative' }}>
-        <TextInput
-          placeholderTextColor={c.textFaint}
-          secureTextEntry={!show}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          style={{
-            backgroundColor: c.surface2,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: error ? c.accent : focused ? c.accent : c.borderStrong,
-            paddingHorizontal: 14,
-            paddingRight: 42,
-            paddingVertical: 12,
-            fontFamily: 'Poppins_400Regular',
-            fontSize: 14,
-            color: c.text,
-          }}
-          {...rest}
-        />
-        <Pressable
-          onPress={() => setShow((s) => !s)}
-          style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
-          accessibilityRole="button"
-          accessibilityLabel={show ? 'Ocultar senha' : 'Mostrar senha'}
-        >
-          <Ionicons name={show ? 'eye-off-outline' : 'eye-outline'} size={18} color={c.textFaint} />
-        </Pressable>
-      </View>
-      {error && (
-        <Text style={{ fontSize: 11, color: c.accent, marginTop: 4, fontFamily: 'Poppins_500Medium' }}>{error}</Text>
-      )}
-      {!error && hint && (
-        <Text style={{ fontSize: 11, color: c.textFaint, marginTop: 4 }}>{hint}</Text>
-      )}
-    </View>
-  );
-}
-
-export function PasswordStrength({ password }: { password: string }) {
-  const c = useColors();
-  if (!password) return null;
-  const checks = [
-    { ok: password.length >= 8, label: '8+' },
-    { ok: /[A-Za-z]/.test(password), label: 'Letra' },
-    { ok: /[0-9]/.test(password), label: 'Número' },
-    { ok: /[^A-Za-z0-9]/.test(password), label: 'Símbolo' },
-  ];
-  const score = checks.filter((c) => c.ok).length;
-  const levels = ['Muito fraca', 'Fraca', 'Razoável', 'Boa', 'Forte'];
-  const colors = [c.accent, c.accent, '#f59e0b', '#22c55e', '#16a34a'];
-  return (
-    <View style={{ marginTop: 8 }}>
-      <View style={{ flexDirection: 'row', gap: 4, marginBottom: 5 }}>
-        {[0, 1, 2, 3].map((i) => (
-          <View
-            key={i}
-            style={{
-              flex: 1,
-              height: 3,
-              borderRadius: 99,
-              backgroundColor: i < score ? colors[score] : c.borderStrong,
-            }}
-          />
-        ))}
-      </View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
-        <Text style={{ fontSize: 10, color: score >= 3 ? '#22c55e' : c.textFaint, fontFamily: 'Poppins_500Medium' }}>
-          {levels[score]}
-        </Text>
-        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
-          {checks.map((ck) => (
-            <Text
-              key={ck.label}
-              style={{
-                fontSize: 9,
-                color: ck.ok ? '#22c55e' : c.textFaint,
-                fontFamily: ck.ok ? 'Poppins_600SemiBold' : 'Poppins_400Regular',
-              }}
-            >
-              {ck.ok ? '✓ ' : '· '}
-              {ck.label}
-            </Text>
-          ))}
-        </View>
-      </View>
-    </View>
-  );
-}
+export default Input;

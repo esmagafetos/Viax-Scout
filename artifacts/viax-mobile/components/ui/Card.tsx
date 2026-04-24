@@ -1,64 +1,87 @@
-import React from 'react';
-import { View, type ViewProps } from 'react-native';
-import { MotiView } from 'moti';
-import { useColors } from '../../lib/theme';
+import React from "react";
+import { View, Text, type ViewStyle } from "react-native";
+import { useTheme, radii } from "@/lib/theme";
 
-interface CardProps extends ViewProps {
-  padding?: number;
-  animate?: boolean;
-  delay?: number;
-}
-
-export function Card({ children, style, padding = 0, animate = false, delay = 0, ...rest }: CardProps) {
-  const c = useColors();
-  const Component: any = animate ? MotiView : View;
-  const animProps = animate
-    ? {
-        from: { opacity: 0, translateY: 8 },
-        animate: { opacity: 1, translateY: 0 },
-        transition: { type: 'timing' as const, duration: 280, delay },
-      }
-    : {};
-  return (
-    <Component
-      {...animProps}
-      {...rest}
-      style={[
-        {
-          backgroundColor: c.surface,
-          borderColor: c.borderStrong,
-          borderWidth: 1,
-          borderRadius: 14,
-          padding,
-          shadowColor: '#000',
-          shadowOpacity: 0.06,
-          shadowRadius: 8,
-          shadowOffset: { width: 0, height: 2 },
-          elevation: 1,
-          overflow: 'hidden',
-        },
-        style as any,
-      ]}
-    >
-      {children}
-    </Component>
-  );
-}
-
-export function CardHeader({ children, style }: ViewProps) {
-  const c = useColors();
+export function Card({ children, style, padded = true }: { children: React.ReactNode; style?: ViewStyle; padded?: boolean }) {
+  const t = useTheme();
   return (
     <View
-      style={[
-        { paddingHorizontal: 18, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.border },
-        style as any,
-      ]}
+      style={[{
+        backgroundColor: t.surface,
+        borderColor: t.borderStrong,
+        borderWidth: 1,
+        borderRadius: radii.lg,
+        padding: padded ? 16 : 0,
+        shadowColor: "#000",
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 2,
+      }, style]}
     >
       {children}
     </View>
   );
 }
 
-export function CardBody({ children, style, padding = 18 }: ViewProps & { padding?: number }) {
-  return <View style={[{ padding }, style as any]}>{children}</View>;
+export function CardHeader({ title, subtitle, right }: { title: string; subtitle?: string; right?: React.ReactNode }) {
+  const t = useTheme();
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontFamily: "Poppins_700Bold", fontSize: 11, color: t.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>
+          {title}
+        </Text>
+        {subtitle && (
+          <Text style={{ fontFamily: "Poppins_400Regular", fontSize: 12, color: t.textFaint, marginTop: 4 }}>
+            {subtitle}
+          </Text>
+        )}
+      </View>
+      {right}
+    </View>
+  );
+}
+
+export function StatTile({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }) {
+  const t = useTheme();
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: t.surface,
+        borderColor: t.borderStrong,
+        borderWidth: 1,
+        borderRadius: radii.lg,
+        padding: 14,
+        minWidth: 140,
+      }}
+    >
+      <Text style={{ fontFamily: "Poppins_500Medium", fontSize: 10, color: t.textFaint, letterSpacing: 1.2, textTransform: "uppercase" }}>
+        {label}
+      </Text>
+      <Text style={{ fontFamily: "Poppins_800ExtraBold", fontSize: 24, color: accent ? t.accent : t.text, marginTop: 6, letterSpacing: -0.5 }}>
+        {value}
+      </Text>
+      {hint && (
+        <Text style={{ fontFamily: "Poppins_400Regular", fontSize: 11, color: t.textFaint, marginTop: 2 }}>
+          {hint}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+export function Pill({ label, tone = "neutral" }: { label: string; tone?: "neutral" | "ok" | "accent" }) {
+  const t = useTheme();
+  const tones = {
+    neutral: { bg: t.surface2, fg: t.textMuted },
+    ok: { bg: t.okDim, fg: t.ok },
+    accent: { bg: t.accentDim, fg: t.accent },
+  }[tone];
+  return (
+    <View style={{ backgroundColor: tones.bg, borderRadius: radii.pill, paddingHorizontal: 10, paddingVertical: 3, alignSelf: "flex-start" }}>
+      <Text style={{ fontFamily: "Poppins_500Medium", fontSize: 11, color: tones.fg, letterSpacing: 0.2 }}>{label}</Text>
+    </View>
+  );
 }

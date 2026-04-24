@@ -1,98 +1,91 @@
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
-import {
-  useGetMe,
-  useLogout,
-  getGetMeQueryKey,
-  type User,
-} from '@workspace/api-client-react';
-import { clearSession, loadBaseUrl, loadSession, setUnauthorizedHandler } from './api';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { api, ApiError, clearSession, cookieJar, getBaseUrl, loadBaseUrl } from "./api";
+import { getJSON, remove, setJSON, STORAGE_KEYS } from "./storage";
+import type { User } from "./types";
 
-interface AuthContextValue {
+type AuthState = {
   user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  isReady: boolean;
-  setUser: (u: User | null) => void;
-  logout: () => void;
-}
+  loading: boolean;
+  serverUrl: string | null;
+  refreshUser: () => Promise<User | null>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (data: { name: string; email: string; password: string; birthDate?: string }) => Promise<User>;
+  logout: () => Promise<void>;
+  setServerUrl: (url: string) => Promise<void>;
+};
 
-const AuthContext = createContext<AuthContextValue>({
-  user: null,
-  isLoading: true,
-  isAuthenticated: false,
-  isReady: false,
-  setUser: () => {},
-  logout: () => {},
-});
+const AuthContext = createContext<AuthState | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isReady, setIsReady] = useState(false);
-  const queryClient = useQueryClient();
-  const router = useRouter();
-  const logoutMutation = useLogout();
+  const [loading, setLoading] = useState(true);
+  const [serverUrl, setServerUrlState] = useState<string | null>(null);
 
-  // Bootstrap: load base URL + cookie before any API call
-  useEffect(() => {
-    Promise.all([loadBaseUrl(), loadSession()])
-      .catch(() => {})
-      .finally(() => setIsReady(true));
+  const refreshUser = useCallback(async (): Promise<User | null> => {
+    try {
+      const me = await api<User>("/auth/me");
+      setUser(me);
+      await setJSON(STORAGE_KEYS.user, me);
+      return me;
+    } catch (e) {
+      if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+        setUser(null);
+        await remove(STORAGE_KEYS.user);
+      }
+      return null;
+    }
   }, []);
 
-  // Once we have a cookie, ask the server who we are
-  const { data, isLoading, error } = useGetMe<User>({
-    query: {
-      enabled: isReady,
-      retry: false,
-      queryKey: getGetMeQueryKey(),
-    },
-  });
-
   useEffect(() => {
-    if (data) setUser(data);
-    if (error) setUser(null);
-  }, [data, error]);
+    (async () => {
+      try {
+        const url = await loadBaseUrl();
+        setServerUrlState(url);
+        await cookieJar.load();
+        const cached = await getJSON<User>(STORAGE_KEYS.user);
+        if (cached) setUser(cached);
+        if (url) await refreshUser();
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [refreshUser]);
 
-  // Global 401 handler: clear session + redirect home
-  useEffect(() => {
-    setUnauthorizedHandler(() => {
-      clearSession().catch(() => {});
-      setUser(null);
-      queryClient.clear();
-      router.replace('/');
-    });
-    return () => setUnauthorizedHandler(null);
-  }, [queryClient, router]);
+  const login = useCallback(async (email: string, password: string): Promise<User> => {
+    const res = await api<{ user: User }>("/auth/login", { method: "POST", body: { email, password } });
+    setUser(res.user);
+    await setJSON(STORAGE_KEYS.user, res.user);
+    return res.user;
+  }, []);
 
-  const logout = () => {
-    logoutMutation.mutate(undefined, {
-      onSettled: async () => {
-        await clearSession();
-        setUser(null);
-        queryClient.clear();
-        router.replace('/');
-      },
-    });
-  };
+  const register = useCallback(async (data: { name: string; email: string; password: string; birthDate?: string }): Promise<User> => {
+    const res = await api<{ user: User }>("/auth/register", { method: "POST", body: data });
+    setUser(res.user);
+    await setJSON(STORAGE_KEYS.user, res.user);
+    return res.user;
+  }, []);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isAuthenticated: !!user,
-        isReady,
-        setUser,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const logout = useCallback(async (): Promise<void> => {
+    try { await api("/auth/logout", { method: "POST" }); } catch {}
+    await clearSession();
+    setUser(null);
+  }, []);
+
+  const setServerUrl = useCallback(async (url: string): Promise<void> => {
+    const { setBaseUrl } = await import("./api");
+    await setBaseUrl(url);
+    setServerUrlState(getBaseUrl());
+  }, []);
+
+  const value = useMemo<AuthState>(() => ({
+    user, loading, serverUrl, refreshUser, login, register, logout, setServerUrl,
+  }), [user, loading, serverUrl, refreshUser, login, register, logout, setServerUrl]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
+export function useAuth(): AuthState {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }

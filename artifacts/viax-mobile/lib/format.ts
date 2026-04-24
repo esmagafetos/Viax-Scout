@@ -1,55 +1,38 @@
-export function formatBRL(v: number | null | undefined): string {
-  if (v == null || Number.isNaN(v)) return 'R$ 0,00';
-  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-export function formatPct(v: number | null | undefined, digits = 0): string {
-  if (v == null || Number.isNaN(v)) return '0%';
+export function formatPct(value: number, digits = 1): string {
+  if (!Number.isFinite(value)) return "0%";
+  const v = value > 1.5 ? value : value * 100;
   return `${v.toFixed(digits)}%`;
 }
 
-export function formatMs(ms: number | null | undefined): string {
-  if (ms == null || Number.isNaN(ms)) return '–';
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
+export function formatMs(ms: number): string {
+  if (!ms || ms < 1000) return `${Math.round(ms ?? 0)}ms`;
+  const s = ms / 1000;
+  if (s < 60) return `${s.toFixed(1)}s`;
+  const m = Math.floor(s / 60);
+  const r = Math.round(s - m * 60);
+  return `${m}m ${r}s`;
 }
 
-export function formatDate(iso: string | Date | null | undefined): string {
-  if (!iso) return '–';
-  try {
-    const d = typeof iso === 'string' ? new Date(iso) : iso;
-    return d.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  } catch {
-    return '–';
-  }
+export function formatDate(iso: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-export function formatDateTime(iso: string | Date | null | undefined): string {
-  if (!iso) return '–';
-  try {
-    const d = typeof iso === 'string' ? new Date(iso) : iso;
-    return d.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return '–';
-  }
+export function formatDateTime(iso: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return `${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
-export function formatNumber(v: number | null | undefined): string {
-  if (v == null || Number.isNaN(v)) return '0';
-  return v.toLocaleString('pt-BR');
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-export function truncate(text: string, max = 32): string {
-  if (text.length <= max) return text;
-  return text.slice(0, max - 1) + '…';
+export function formatCurrency(value: number): string {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }

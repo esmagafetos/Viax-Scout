@@ -1,103 +1,78 @@
-import React from 'react';
-import { Pressable, Text, ActivityIndicator, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { MotiView } from 'moti';
-import { useColors } from '../../lib/theme';
+import React from "react";
+import { ActivityIndicator, Pressable, Text, View, type PressableProps, type ViewStyle } from "react-native";
+import * as Haptics from "expo-haptics";
+import { useTheme, radii } from "@/lib/theme";
 
-type Variant = 'primary' | 'ghost' | 'dark' | 'destructive';
-type Size = 'sm' | 'md' | 'lg';
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "outline";
 
-interface ButtonProps {
+type Props = Omit<PressableProps, "children" | "style"> & {
   label: string;
-  onPress?: () => void;
   variant?: Variant;
-  size?: Size;
   loading?: boolean;
-  disabled?: boolean;
-  iconLeft?: keyof typeof Ionicons.glyphMap;
-  iconRight?: keyof typeof Ionicons.glyphMap;
   fullWidth?: boolean;
-}
+  size?: "sm" | "md" | "lg";
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  style?: ViewStyle;
+};
 
 export default function Button({
-  label,
-  onPress,
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  disabled = false,
-  iconLeft,
-  iconRight,
-  fullWidth = true,
-}: ButtonProps) {
-  const c = useColors();
+  label, variant = "primary", loading, fullWidth, size = "md",
+  leftIcon, rightIcon, onPress, disabled, style, ...rest
+}: Props) {
+  const t = useTheme();
   const isDisabled = disabled || loading;
 
+  const palette = {
+    primary: { bg: t.accent, fg: "#fff", border: t.accent },
+    secondary: { bg: t.surface2, fg: t.text, border: t.borderStrong },
+    ghost: { bg: "transparent", fg: t.text, border: "transparent" },
+    danger: { bg: "transparent", fg: t.accent, border: t.accent },
+    outline: { bg: "transparent", fg: t.text, border: t.borderStrong },
+  }[variant];
+
   const sizes = {
-    sm: { py: 8, px: 14, fontSize: 12, iconSize: 13 },
-    md: { py: 12, px: 18, fontSize: 13, iconSize: 14 },
-    lg: { py: 14, px: 20, fontSize: 14, iconSize: 16 },
-  } as const;
-  const sz = sizes[size];
-
-  let bg: string = c.accent;
-  let fg: string = '#ffffff';
-  let borderColor: string = 'transparent';
-  let borderWidth = 0;
-  let shadow: any = { shadowColor: c.accent, shadowOpacity: 0.3, shadowRadius: 12, shadowOffset: { width: 0, height: 2 } };
-
-  if (variant === 'ghost') {
-    bg = 'transparent';
-    fg = c.textMuted;
-    borderColor = c.borderStrong;
-    borderWidth = 1;
-    shadow = {};
-  } else if (variant === 'dark') {
-    bg = c.text;
-    fg = c.bg;
-    shadow = {};
-  } else if (variant === 'destructive') {
-    bg = c.destructive;
-    fg = '#ffffff';
-    shadow = {};
-  }
+    sm: { py: 8, px: 14, fs: 13 },
+    md: { py: 12, px: 18, fs: 14 },
+    lg: { py: 14, px: 22, fs: 15 },
+  }[size];
 
   return (
-    <Pressable onPress={onPress} disabled={isDisabled} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: isDisabled, busy: loading }}>
-      {({ pressed }) => (
-        <MotiView
-          animate={{ opacity: isDisabled ? 0.6 : pressed ? 0.85 : 1, scale: pressed && !isDisabled ? 0.98 : 1 }}
-          transition={{ type: 'timing', duration: 120 }}
-          style={[
-            {
-              backgroundColor: bg,
-              borderColor,
-              borderWidth,
-              borderRadius: 99,
-              paddingVertical: sz.py,
-              paddingHorizontal: sz.px,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              alignSelf: fullWidth ? 'stretch' : 'flex-start',
-              elevation: shadow.shadowOpacity ? 2 : 0,
-            },
-            shadow,
-          ]}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={fg} />
-          ) : (
-            <>
-              {iconLeft && <Ionicons name={iconLeft} size={sz.iconSize} color={fg} />}
-              <Text style={{ color: fg, fontFamily: 'Poppins_600SemiBold', fontSize: sz.fontSize, letterSpacing: 0.1 }}>
-                {label}
-              </Text>
-              {iconRight && <Ionicons name={iconRight} size={sz.iconSize} color={fg} />}
-            </>
-          )}
-        </MotiView>
+    <Pressable
+      {...rest}
+      disabled={isDisabled}
+      onPress={(e) => {
+        if (!isDisabled) {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          onPress?.(e);
+        }
+      }}
+      style={({ pressed }) => [{
+        backgroundColor: palette.bg,
+        borderColor: palette.border,
+        borderWidth: 1,
+        borderRadius: radii.pill,
+        paddingVertical: sizes.py,
+        paddingHorizontal: sizes.px,
+        opacity: isDisabled ? 0.55 : pressed ? 0.85 : 1,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        alignSelf: fullWidth ? "stretch" : "flex-start",
+        ...style,
+      }]}
+    >
+      {loading ? (
+        <ActivityIndicator size="small" color={palette.fg} />
+      ) : (
+        <>
+          {leftIcon}
+          <Text style={{ fontFamily: "Poppins_600SemiBold", fontSize: sizes.fs, color: palette.fg, letterSpacing: 0.2 }}>
+            {label}
+          </Text>
+          {rightIcon}
+        </>
       )}
     </Pressable>
   );

@@ -1,145 +1,142 @@
-/**
- * API helper layer.
- *
- * The generated client (@workspace/api-client-react) sets `credentials: 'include'`
- * which works for browser cookies. React Native's fetch has NO cookie jar, so we
- * persist the session cookie ourselves in SecureStore and inject it on every
- * request via a `Cookie` header.
- */
-import * as SecureStore from 'expo-secure-store';
-import { setBaseUrl } from '@workspace/api-client-react';
+import { get, set, remove, STORAGE_KEYS } from "./storage";
 
-const COOKIE_KEY = 'viax_session_cookie';
-const BASE_URL_KEY = 'viax_base_url';
-export const DEFAULT_BASE_URL = 'http://127.0.0.1:8080';
-
-let _sessionCookie: string | null = null;
-let _baseUrl: string = DEFAULT_BASE_URL;
-let _unauthorizedHandler: (() => void) | null = null;
-
-// ── Public typed errors ────────────────────────────────────────────────────
-export class NetworkError extends Error {
-  constructor(message?: string) {
-    super(message ?? 'Sem conexão. Verifique a rede ou o servidor.');
-    this.name = 'NetworkError';
-  }
-}
-
-export class HttpError extends Error {
-  readonly status: number;
-  readonly data: unknown;
-  constructor(status: number, message: string, data?: unknown) {
+export class ApiError extends Error {
+  status: number;
+  body: unknown;
+  constructor(status: number, message: string, body: unknown) {
     super(message);
-    this.name = 'HttpError';
     this.status = status;
-    this.data = data;
+    this.body = body;
   }
 }
 
-export class UnauthorizedError extends HttpError {
-  constructor(message = 'Sessão expirada. Faça login novamente.', data?: unknown) {
-    super(401, message, data);
-    this.name = 'UnauthorizedError';
-  }
-}
+class CookieJar {
+  private value: string | null = null;
+  private loaded = false;
 
-// ── Session cookie ─────────────────────────────────────────────────────────
-export async function loadSession(): Promise<string | null> {
-  if (_sessionCookie) return _sessionCookie;
-  try {
-    _sessionCookie = await SecureStore.getItemAsync(COOKIE_KEY);
-  } catch {
-    _sessionCookie = null;
-  }
-  return _sessionCookie;
-}
-
-export async function saveSession(cookie: string | null) {
-  _sessionCookie = cookie;
-  try {
-    if (cookie) await SecureStore.setItemAsync(COOKIE_KEY, cookie);
-    else await SecureStore.deleteItemAsync(COOKIE_KEY);
-  } catch {
-    // Best-effort
-  }
-}
-
-// ── Base URL ───────────────────────────────────────────────────────────────
-export async function loadBaseUrl(): Promise<string> {
-  try {
-    const stored = await SecureStore.getItemAsync(BASE_URL_KEY);
-    if (stored) _baseUrl = stored;
-  } catch {}
-  setBaseUrl(_baseUrl);
-  return _baseUrl;
-}
-
-export async function setApiBaseUrl(url: string) {
-  _baseUrl = url.replace(/\/+$/, '');
-  setBaseUrl(_baseUrl);
-  try {
-    await SecureStore.setItemAsync(BASE_URL_KEY, _baseUrl);
-  } catch {}
-}
-
-export function getBaseUrl(): string {
-  return _baseUrl;
-}
-
-export function getSessionCookieSync(): string | null {
-  return _sessionCookie;
-}
-
-// ── Unauthorized handler (called on 401 from any request) ─────────────────
-export function setUnauthorizedHandler(fn: (() => void) | null) {
-  _unauthorizedHandler = fn;
-}
-
-// ── Patched fetch ─────────────────────────────────────────────────────────
-// We monkey-patch global fetch (RN-side) so the generated orval client
-// transparently sends the stored session cookie and we can capture set-cookie
-// from auth responses.
-const originalFetch = (globalThis as any).fetch.bind(globalThis);
-
-(globalThis as any).fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
-  const headers = new Headers(init.headers || {});
-
-  // Inject Cookie if we have one and none provided
-  if (_sessionCookie && !headers.has('Cookie') && !headers.has('cookie')) {
-    headers.set('Cookie', _sessionCookie);
+  async load(): Promise<void> {
+    if (this.loaded) return;
+    this.value = await get(STORAGE_KEYS.cookies);
+    this.loaded = true;
   }
 
-  let response: Response;
-  try {
-    response = await originalFetch(input, { ...init, headers });
-  } catch (err: any) {
-    throw new NetworkError(err?.message);
+  async set(cookie: string): Promise<void> {
+    this.value = cookie;
+    await set(STORAGE_KEYS.cookies, cookie);
   }
 
-  // Capture set-cookie on auth endpoints
-  const setCookie =
-    response.headers.get('set-cookie') ?? response.headers.get('Set-Cookie');
-  if (setCookie) {
-    // Express-session sends `connect.sid=...; Path=/; HttpOnly`
-    // We only want the `name=value` portion.
-    const firstPair = setCookie.split(/,\s*(?=[A-Za-z0-9_]+=)/)[0]?.split(';')[0]?.trim();
-    if (firstPair) {
-      // Don't await — fire and forget
-      saveSession(firstPair).catch(() => {});
+  async clear(): Promise<void> {
+    this.value = null;
+    await remove(STORAGE_KEYS.cookies);
+  }
+
+  current(): string | null {
+    return this.value;
+  }
+
+  capture(setCookieHeader: string | null): void {
+    if (!setCookieHeader) return;
+    const parts = setCookieHeader.split(/,(?=[^;]+=[^;]+)/g);
+    const jar = new Map<string, string>();
+    if (this.value) {
+      for (const seg of this.value.split("; ")) {
+        const [k, v] = seg.split("=");
+        if (k && v !== undefined) jar.set(k, v);
+      }
     }
+    for (const part of parts) {
+      const head = part.split(";")[0]!.trim();
+      const [k, v] = head.split("=");
+      if (k && v !== undefined) jar.set(k.trim(), v.trim());
+    }
+    const flat = Array.from(jar.entries()).map(([k, v]) => `${k}=${v}`).join("; ");
+    this.value = flat;
+    void set(STORAGE_KEYS.cookies, flat);
   }
+}
 
-  if (response.status === 401 && _unauthorizedHandler) {
-    // Async clear so the in-flight callsite can still react.
-    Promise.resolve().then(() => _unauthorizedHandler?.());
-  }
+export const cookieJar = new CookieJar();
 
-  return response;
+let baseUrl: string | null = null;
+
+export async function loadBaseUrl(): Promise<string | null> {
+  baseUrl = await get(STORAGE_KEYS.serverUrl);
+  return baseUrl;
+}
+
+export async function setBaseUrl(url: string): Promise<void> {
+  const cleaned = url.trim().replace(/\/+$/, "");
+  baseUrl = cleaned;
+  await set(STORAGE_KEYS.serverUrl, cleaned);
+}
+
+export function getBaseUrl(): string | null {
+  return baseUrl;
+}
+
+export async function clearSession(): Promise<void> {
+  await cookieJar.clear();
+  await remove(STORAGE_KEYS.user);
+}
+
+export type RequestOpts = {
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  body?: unknown;
+  formData?: FormData;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
 };
 
-export async function clearSession() {
-  await saveSession(null);
+export async function api<T = unknown>(path: string, opts: RequestOpts = {}): Promise<T> {
+  if (!baseUrl) throw new ApiError(0, "URL do servidor não configurada.", null);
+  await cookieJar.load();
+
+  const url = `${baseUrl}/api${path.startsWith("/") ? path : `/${path}`}`;
+  const headers: Record<string, string> = { Accept: "application/json", ...(opts.headers ?? {}) };
+
+  const cookie = cookieJar.current();
+  if (cookie) headers["Cookie"] = cookie;
+
+  let body: BodyInit | undefined;
+  if (opts.formData) {
+    body = opts.formData as unknown as BodyInit;
+  } else if (opts.body !== undefined) {
+    headers["Content-Type"] = "application/json";
+    body = JSON.stringify(opts.body);
+  }
+
+  const res = await fetch(url, {
+    method: opts.method ?? (body ? "POST" : "GET"),
+    headers,
+    body,
+    signal: opts.signal,
+  });
+
+  const setCookie = res.headers.get("set-cookie");
+  if (setCookie) cookieJar.capture(setCookie);
+
+  const text = await res.text();
+  let parsed: unknown = null;
+  if (text) {
+    try { parsed = JSON.parse(text); } catch { parsed = text; }
+  }
+
+  if (!res.ok) {
+    const msg =
+      (parsed && typeof parsed === "object" && "error" in parsed && typeof (parsed as any).error === "string")
+        ? (parsed as any).error
+        : `Erro ${res.status}`;
+    throw new ApiError(res.status, msg, parsed);
+  }
+
+  return parsed as T;
 }
 
-// ── Re-exports ─────────────────────────────────────────────────────────────
-export { setBaseUrl };
+export function buildSseUrl(path: string): string {
+  if (!baseUrl) throw new ApiError(0, "URL do servidor não configurada.", null);
+  return `${baseUrl}/api${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+export function getCookieHeader(): string | null {
+  return cookieJar.current();
+}
