@@ -18,6 +18,57 @@ const LEGACY_API_URL_KEY = 'viax_api_url';
 
 let cachedApiUrl: string = DEFAULT_API_URL;
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Typed errors
+ *
+ *  `NetworkError`     — `fetch` rejected (offline, DNS, server unreachable).
+ *  `HttpError`        — server responded with a non-2xx status.
+ *  `UnauthorizedError`— specifically a 401 (used by the global interceptor).
+ * ────────────────────────────────────────────────────────────────────────── */
+
+export class NetworkError extends Error {
+  readonly cause?: unknown;
+  constructor(message = 'Falha de conexão. Verifique sua internet ou se o servidor está acessível.', cause?: unknown) {
+    super(message);
+    this.name = 'NetworkError';
+    this.cause = cause;
+  }
+}
+
+export class HttpError extends Error {
+  readonly status: number;
+  readonly body?: unknown;
+  constructor(status: number, message: string, body?: unknown) {
+    super(message);
+    this.name = 'HttpError';
+    this.status = status;
+    this.body = body;
+  }
+}
+
+export class UnauthorizedError extends HttpError {
+  constructor(message = 'Sessão expirada. Faça login novamente.', body?: unknown) {
+    super(401, message, body);
+    this.name = 'UnauthorizedError';
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  401 interceptor — registered by AuthProvider on mount.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+type UnauthorizedHandler = (err: UnauthorizedError) => void;
+let onUnauthorized: UnauthorizedHandler | null = null;
+
+/** Register a handler invoked exactly once per 401 response. */
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  onUnauthorized = handler;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  API URL persistence + helpers
+ * ────────────────────────────────────────────────────────────────────────── */
+
 function normalizeUrl(raw: string): string {
   let v = raw.trim();
   if (!v) return '';
@@ -86,6 +137,10 @@ export async function testApiUrl(value: string): Promise<{ ok: boolean; status?:
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Session cookie persistence
+ * ────────────────────────────────────────────────────────────────────────── */
+
 async function getSession(): Promise<string | null> {
   try {
     return await SecureStore.getItemAsync(SESSION_KEY);
@@ -103,6 +158,14 @@ async function setSession(value: string | null): Promise<void> {
   }
 }
 
+export async function clearSession(): Promise<void> {
+  await setSession(null);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Core request
+ * ────────────────────────────────────────────────────────────────────────── */
+
 export async function apiRequest<T = unknown>(
   path: string,
   init: RequestInit = {}
@@ -119,29 +182,42 @@ export async function apiRequest<T = unknown>(
   };
   if (cookie) headers['Cookie'] = cookie;
 
-  const res = await fetch(url, { ...init, headers, credentials: 'include' });
+  let res: Response;
+  try {
+    res = await fetch(url, { ...init, headers, credentials: 'include' });
+  } catch (e: any) {
+    // Network-layer failure (offline, DNS, refused, aborted before response).
+    if (e?.name === 'AbortError') throw e; // let callers handle their own cancellation
+    throw new NetworkError(undefined, e);
+  }
 
   const setCookie = res.headers.get('set-cookie');
   if (setCookie) {
+    // Pick only the first sid pair; we don't support multi-cookie sessions yet.
     const sid = setCookie.split(';')[0];
-    await setSession(sid);
+    if (sid) await setSession(sid);
   }
 
   const text = await res.text();
   const data = text ? safeJson(text) : null;
 
   if (!res.ok) {
-    const msg =
-      (data && typeof data === 'object' && 'message' in data && (data as any).message) ||
-      (data && typeof data === 'object' && 'error' in data && (data as any).error) ||
-      `HTTP ${res.status}`;
-    throw new Error(String(msg));
+    const msg = extractMessage(data) ?? `HTTP ${res.status}`;
+    if (res.status === 401) {
+      const err = new UnauthorizedError(msg, data);
+      // Run interceptor exactly once. Wrap in setTimeout(0) so the call
+      // stack of the failing request unwinds before we touch app state.
+      if (onUnauthorized) {
+        const handler = onUnauthorized;
+        setTimeout(() => {
+          try { handler(err); } catch { /* ignore */ }
+        }, 0);
+      }
+      throw err;
+    }
+    throw new HttpError(res.status, msg, data);
   }
   return data as T;
-}
-
-export async function clearSession(): Promise<void> {
-  await setSession(null);
 }
 
 /** Uploads an avatar image via multipart/form-data to /api/users/avatar. */
@@ -158,32 +234,51 @@ export async function uploadAvatar(localUri: string, mimeType: string, fileName:
     type: mimeType,
   } as unknown as Blob);
 
-  const res = await fetch(`${base}/api/users/avatar`, {
-    method: 'POST',
-    headers: {
-      ...(cookie ? { Cookie: cookie } : {}),
-      Accept: 'application/json',
-      // NB: do NOT set Content-Type — RN auto-sets the multipart boundary
-    },
-    body: form as any,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${base}/api/users/avatar`, {
+      method: 'POST',
+      headers: {
+        ...(cookie ? { Cookie: cookie } : {}),
+        Accept: 'application/json',
+        // NB: do NOT set Content-Type — RN auto-sets the multipart boundary
+      },
+      body: form as any,
+    });
+  } catch (e: any) {
+    if (e?.name === 'AbortError') throw e;
+    throw new NetworkError(undefined, e);
+  }
 
   const setCookie = res.headers.get('set-cookie');
   if (setCookie) {
     const sid = setCookie.split(';')[0];
-    await setSession(sid);
+    if (sid) await setSession(sid);
   }
 
   const text = await res.text();
   const data = text ? safeJson(text) : null;
   if (!res.ok) {
-    const msg =
-      (data && typeof data === 'object' && 'message' in data && (data as any).message) ||
-      (data && typeof data === 'object' && 'error' in data && (data as any).error) ||
-      `HTTP ${res.status}`;
-    throw new Error(String(msg));
+    const msg = extractMessage(data) ?? `HTTP ${res.status}`;
+    if (res.status === 401) {
+      const err = new UnauthorizedError(msg, data);
+      if (onUnauthorized) {
+        const handler = onUnauthorized;
+        setTimeout(() => { try { handler(err); } catch { /* ignore */ } }, 0);
+      }
+      throw err;
+    }
+    throw new HttpError(res.status, msg, data);
   }
   return data as { avatarUrl: string };
+}
+
+function extractMessage(data: unknown): string | null {
+  if (!data || typeof data !== 'object') return null;
+  const obj = data as Record<string, unknown>;
+  if (typeof obj.message === 'string') return obj.message;
+  if (typeof obj.error === 'string') return obj.error;
+  return null;
 }
 
 function safeJson(text: string): unknown {
