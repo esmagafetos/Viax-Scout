@@ -10,12 +10,13 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClientProvider } from "@tanstack/react-query";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, Poppins_800ExtraBold } from "@expo-google-fonts/poppins";
-import { useColorScheme, View } from "react-native";
+import { useColorScheme } from "react-native";
 
 import { AuthProvider } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
 import { ToastProvider } from "@/components/Toast";
 import { lightTheme, darkTheme } from "@/lib/theme";
+import SplashLoader from "@/components/SplashLoader";
 
 void SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -38,7 +39,7 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: t.bg }} />;
+    return <SplashLoader />;
   }
 
   return (
