@@ -35,6 +35,27 @@ Planilha XLSX/CSV  →  Parser de endereço  →  Geocodificação reversa  → 
 
 ---
 
+## 🚀 Comece em 5 minutos
+
+> Primeira vez no ViaX:Trace? Não comece pela documentação técnica — siga o **guia visual passo-a-passo**, da instalação à sua primeira auditoria, sem jargão.
+
+<div align="center">
+
+### **➡️ [Abrir o Guia "Comece Aqui"](docs/COMECE-AQUI.md)**
+
+</div>
+
+O guia tem bifurcação no início: se o sistema já está rodando, você pula direto para o login; se vai instalar agora, ele te leva pelo PC ou pelo Termux do celular conforme sua escolha.
+
+| Quero… | Vá para |
+|---|---|
+| 🆕 Instalar e usar pela primeira vez | [docs/COMECE-AQUI.md](docs/COMECE-AQUI.md) |
+| 📱 Apenas conectar o app Android a um servidor que já existe | [Passo 5 do guia](docs/COMECE-AQUI.md#passo-5--conecte-o-app-ao-servidor-só-mobile) |
+| 🛠️ Resolver "Servidor inacessível" no app | [Seção "Deu problema?"](docs/COMECE-AQUI.md#app-não-conecta-no-termux) |
+| 🧑‍💻 Ler a documentação técnica completa | Continue rolando esta página |
+
+---
+
 ## Funcionalidades
 
 | Funcionalidade | Descrição |
