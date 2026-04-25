@@ -48,7 +48,7 @@ export default function LoginScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
           <LinearGradient
             colors={t.heroGradient as unknown as readonly [string, string, ...string[]]}
