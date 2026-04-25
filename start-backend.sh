@@ -129,5 +129,5 @@ echo ""
 echo -e "  Pressione Ctrl+C para encerrar o servidor."
 echo ""
 
-trap "kill \$API_PID 2>/dev/null; pg_ctl stop -D \"$PG_DATA\" -m fast 2>/dev/null; echo -e \"${NC}Servidor encerrado.\"" EXIT INT TERM
+trap 'kill "$API_PID" 2>/dev/null; pg_ctl stop -D "$PG_DATA" -m fast 2>/dev/null; echo "Servidor encerrado."' EXIT INT TERM
 wait "$API_PID"
