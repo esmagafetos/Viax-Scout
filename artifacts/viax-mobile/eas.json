@@ -7,7 +7,10 @@
     "base": {
       "node": "20.18.0",
       "env": {
-        "EXPO_NO_TELEMETRY": "1"
+        "EXPO_NO_TELEMETRY": "1",
+        "NPM_CONFIG_NODE_LINKER": "hoisted",
+        "NPM_CONFIG_SHAMEFULLY_HOIST": "true",
+        "NPM_CONFIG_AUTO_INSTALL_PEERS": "true"
       }
     },
     "development": {
