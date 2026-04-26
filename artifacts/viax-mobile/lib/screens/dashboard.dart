@@ -275,19 +275,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: _moneyCell(
-                          'Receita\nEstimada', fmtBRL.format(receita), context.ok),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _moneyCell('Despesas\nFixas', fmtBRL.format(despesas),
-                          context.accent),
-                    ),
-                  ],
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: _moneyCell(
+                            'Receita\nEstimada', fmtBRL.format(receita), context.ok),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _moneyCell('Despesas\nFixas', fmtBRL.format(despesas),
+                            context.accent),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _lucroBrutoCell(
