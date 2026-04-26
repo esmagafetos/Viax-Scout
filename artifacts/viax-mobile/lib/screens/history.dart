@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -84,6 +85,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
             total > 0 ? '$total análise${total != 1 ? "s" : ""} encontrada${total != 1 ? "s" : ""}' : 'Nenhuma análise ainda.',
             style: TextStyle(fontSize: 13, color: context.textFaint),
           ),
+          const SizedBox(height: 4),
+          Text(
+            'Análises ficam disponíveis por 3 dias.',
+            style: TextStyle(fontSize: 11, color: context.textFaint),
+          ),
           const SizedBox(height: 16),
           if (_loading)
             const Padding(padding: EdgeInsets.symmetric(vertical: 60), child: Center(child: AppSpinner()))
@@ -148,62 +154,110 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _historyRow(Map<String, dynamic> a, bool first, DateFormat fmt) {
     final nuances = (a['nuances'] as num?)?.toInt() ?? 0;
     final created = DateTime.tryParse(a['createdAt']?.toString() ?? '');
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(border: first ? null : Border(top: BorderSide(color: context.border))),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final id = (a['id'] as num).toInt();
+    final daysLeft = _daysUntilExpiration(created);
+    return InkWell(
+      onTap: () => context.go('/history/$id'),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+            border: first
+                ? null
+                : Border(top: BorderSide(color: context.border))),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(a['fileName']?.toString() ?? '',
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: context.text),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      _chip('${a['totalAddresses']}', 'endereços'),
+                      _chip('${a['geocodeSuccess']}', 'geo'),
+                      _chip(
+                          '${(((a['similarityAvg'] as num?) ?? 0) * 100).toStringAsFixed(0)}%',
+                          'sim'),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(created != null ? fmt.format(created.toLocal()) : '',
+                          style: TextStyle(
+                              fontSize: 10.5, color: context.textFaint)),
+                      if (daysLeft != null) ...[
+                        const SizedBox(width: 6),
+                        Text('•',
+                            style: TextStyle(
+                                fontSize: 10.5, color: context.textFaint)),
+                        const SizedBox(width: 6),
+                        Text(
+                          daysLeft <= 0
+                              ? 'expira hoje'
+                              : daysLeft == 1
+                                  ? 'expira em 1 dia'
+                                  : 'expira em $daysLeft dias',
+                          style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: daysLeft <= 1
+                                  ? context.accent
+                                  : context.textFaint),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(a['fileName']?.toString() ?? '',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: context.text),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: [
-                    _chip('${a['totalAddresses']}', 'endereços'),
-                    _chip('${a['geocodeSuccess']}', 'geo'),
-                    _chip('${(((a['similarityAvg'] as num?) ?? 0) * 100).toStringAsFixed(0)}%', 'sim'),
-                  ],
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: nuances > 0 ? context.accentDim : context.okDim,
+                    borderRadius: BorderRadius.circular(AppRadii.pill),
+                  ),
+                  child: Text('$nuances nuances',
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: nuances > 0 ? context.accent : context.ok)),
                 ),
-                const SizedBox(height: 4),
-                Text(created != null ? fmt.format(created.toLocal()) : '',
-                    style: TextStyle(fontSize: 10.5, color: context.textFaint)),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _delete(id),
+                  icon: Icon(Icons.delete_outline,
+                      color: context.textFaint, size: 18),
+                ),
               ],
             ),
-          ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: nuances > 0 ? context.accentDim : context.okDim,
-                  borderRadius: BorderRadius.circular(AppRadii.pill),
-                ),
-                child: Text('$nuances nuances',
-                    style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: nuances > 0 ? context.accent : context.ok)),
-              ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: () => _delete((a['id'] as num).toInt()),
-                icon: Icon(Icons.delete_outline, color: context.textFaint, size: 18),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  int? _daysUntilExpiration(DateTime? created) {
+    if (created == null) return null;
+    final expires = created.add(const Duration(days: 3));
+    final mins = expires.difference(DateTime.now()).inMinutes;
+    if (mins <= 0) return 0;
+    return (mins / (60 * 24)).ceil();
   }
 
   Widget _chip(String value, String label) => Container(

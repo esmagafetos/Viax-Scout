@@ -37,22 +37,32 @@ p = sys.argv[1]
 src = open(p, encoding='utf-8').read()
 orig = src
 
-# 1. Garantir permissões de rede ANTES do <application>.
+# 1. Garantir permissões ANTES do <application>.
+#    Inclui permissões de rede e as exigidas pelo flutter_foreground_task
+#    (notificação persistente + serviço em foreground enquanto roda o SSE
+#    + redirecionamento para desabilitar otimização de bateria).
 needed_perms = [
     'android.permission.INTERNET',
     'android.permission.ACCESS_NETWORK_STATE',
+    'android.permission.WAKE_LOCK',
+    'android.permission.FOREGROUND_SERVICE',
+    'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
+    'android.permission.POST_NOTIFICATIONS',
+    'android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS',
+    'android.permission.SYSTEM_ALERT_WINDOW',
 ]
 perm_block = ''
+added = []
 for perm in needed_perms:
     if perm not in src:
         perm_block += f'    <uses-permission android:name="{perm}"/>\n'
+        added.append(perm)
 
 if perm_block:
-    # Insere imediatamente antes da tag <application
     src = re.sub(r'(\s*)<application\b', r'\n' + perm_block.rstrip('\n') + r'\1<application', src, count=1)
-    print(f"[apply-android-overrides] permissões adicionadas: {[p for p in needed_perms if p in perm_block]}")
+    print(f"[apply-android-overrides] permissões adicionadas: {added}")
 else:
-    print("[apply-android-overrides] permissões de rede já presentes.")
+    print("[apply-android-overrides] permissões já presentes.")
 
 # 2. Patchar <application> com networkSecurityConfig + usesCleartextTraffic.
 def patch_app(m):
@@ -63,6 +73,21 @@ def patch_app(m):
     return tag.replace('<application', '<application' + inserts, 1)
 
 src = re.sub(r'<application\b', patch_app, src, count=1)
+
+# 3. Declarar o serviço do flutter_foreground_task dentro de <application>.
+#    Necessário para que o startService() dispare o serviço em foreground
+#    com tipo `dataSync` (compatível com Android 14+).
+fg_service = (
+    '        <service\n'
+    '            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"\n'
+    '            android:foregroundServiceType="dataSync"\n'
+    '            android:exported="false" />\n'
+)
+if 'flutter_foreground_task.service.ForegroundService' not in src:
+    src = re.sub(r'(</application>)', fg_service + r'\1', src, count=1)
+    print("[apply-android-overrides] foreground service declarado.")
+else:
+    print("[apply-android-overrides] foreground service já declarado.")
 
 if src != orig:
     open(p, 'w', encoding='utf-8').write(src)

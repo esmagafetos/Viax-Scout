@@ -163,6 +163,12 @@ class ApiClient {
     return Map<String, dynamic>.from(r.data as Map);
   }
 
+  Future<Map<String, dynamic>> getAnalysis(int id) async {
+    final r = await dio.get('/analyses/$id');
+    if (r.statusCode == 200) return Map<String, dynamic>.from(r.data as Map);
+    throw ApiError(r.statusCode ?? 0, _err(r.data));
+  }
+
   Future<void> deleteAnalysis(int id) async {
     final r = await dio.delete('/analyses/$id');
     if (r.statusCode != 200 && r.statusCode != 204) {

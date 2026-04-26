@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'screens/analysis_detail.dart';
 import 'screens/dashboard.dart';
 import 'screens/docs.dart';
 import 'screens/history.dart';
@@ -36,6 +37,13 @@ GoRouter createRouter(AuthProvider auth) {
       GoRoute(path: '/process', builder: (_, __) => const ProcessScreen()),
       GoRoute(path: '/tool', builder: (_, __) => const ToolScreen()),
       GoRoute(path: '/history', builder: (_, __) => const HistoryScreen()),
+      GoRoute(
+        path: '/history/:id',
+        builder: (_, st) {
+          final id = int.tryParse(st.pathParameters['id'] ?? '') ?? 0;
+          return AnalysisDetailScreen(id: id);
+        },
+      ),
       GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
       GoRoute(path: '/docs', builder: (_, __) => const DocsScreen()),
     ],

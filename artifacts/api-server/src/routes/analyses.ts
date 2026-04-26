@@ -1,7 +1,15 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, and, count, avg, sum } from "drizzle-orm";
+import { eq, desc, and, count, gte } from "drizzle-orm";
 import { db, analysesTable } from "@workspace/db";
 import { CreateAnalysisBody, ListAnalysesQueryParams, GetAnalysisParams, DeleteAnalysisParams } from "@workspace/api-zod";
+
+// Análises expiram após 3 dias: o histórico esconde itens antigos e o
+// endpoint de detalhes os trata como inexistentes. (Limpeza física fica para
+// um job futuro — por enquanto basta filtrar.)
+const RETENTION_DAYS = 3;
+function retentionCutoff(): Date {
+  return new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000);
+}
 
 const router: IRouter = Router();
 
@@ -41,15 +49,21 @@ router.get("/analyses", async (req, res): Promise<void> => {
   const limit = params.success ? (params.data.limit ?? 10) : 10;
   const offset = (page - 1) * limit;
 
+  const cutoff = retentionCutoff();
+  const filter = and(
+    eq(analysesTable.userId, userId),
+    gte(analysesTable.createdAt, cutoff),
+  );
+
   const [totalResult] = await db
     .select({ count: count() })
     .from(analysesTable)
-    .where(eq(analysesTable.userId, userId));
+    .where(filter);
 
   const items = await db
     .select()
     .from(analysesTable)
-    .where(eq(analysesTable.userId, userId))
+    .where(filter)
     .orderBy(desc(analysesTable.createdAt))
     .limit(limit)
     .offset(offset);
@@ -95,11 +109,15 @@ router.get("/analyses/:id", async (req, res): Promise<void> => {
   const [analysis] = await db
     .select()
     .from(analysesTable)
-    .where(and(eq(analysesTable.id, id), eq(analysesTable.userId, userId)))
+    .where(and(
+      eq(analysesTable.id, id),
+      eq(analysesTable.userId, userId),
+      gte(analysesTable.createdAt, retentionCutoff()),
+    ))
     .limit(1);
 
   if (!analysis) {
-    res.status(404).json({ error: "Análise não encontrada." });
+    res.status(404).json({ error: "Análise não encontrada ou expirada." });
     return;
   }
 

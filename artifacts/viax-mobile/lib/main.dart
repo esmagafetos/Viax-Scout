@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'api/api_client.dart';
 import 'router.dart';
 import 'state/auth_provider.dart';
+import 'state/foreground_processing.dart';
 import 'state/processing_service.dart';
 import 'state/server_config.dart';
 import 'state/settings_provider.dart';
@@ -15,6 +16,7 @@ import 'theme/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  ForegroundProcessing.initialize();
   await initializeDateFormatting('pt_BR', null);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../api/api_client.dart';
+import '../state/foreground_processing.dart';
 import '../state/processing_service.dart';
 import '../theme/theme.dart';
 import '../widgets/layout.dart';
@@ -23,7 +24,6 @@ class _ToolScreenState extends State<ToolScreen> {
   int? _fileSize;
   bool _loading = true;
   String _activeFilter = 'all';
-  bool _runInBackground = false;
   String? _shownErrorOnce;
 
   @override
@@ -34,12 +34,8 @@ class _ToolScreenState extends State<ToolScreen> {
 
   @override
   void dispose() {
-    if (!_runInBackground) {
-      final svc = context.read<ProcessingService>();
-      if (svc.kind == 'condominium' && svc.active) {
-        Future.microtask(svc.cancel);
-      }
-    }
+    // O processamento sempre roda em foreground service: ele continua vivo
+    // mesmo se o usuário sair desta tela ou fechar o app.
     super.dispose();
   }
 
@@ -87,6 +83,15 @@ class _ToolScreenState extends State<ToolScreen> {
     final api = context.read<ApiClient>();
     final svc = context.read<ProcessingService>();
     setState(() => _shownErrorOnce = null);
+
+    await ForegroundProcessing.ensureNotificationPermission();
+    final batteryOk =
+        await ForegroundProcessing.ensureBatteryOptimizationDisabled();
+    if (!batteryOk && mounted) {
+      showToast(context,
+          'Para acompanhar o processamento em tempo real mesmo com o app fechado, desabilite a otimização de bateria do ViaX:Trace.');
+    }
+
     await svc.start(
       api: api,
       endpointPath: '/condominium/process',
@@ -159,8 +164,6 @@ class _ToolScreenState extends State<ToolScreen> {
               children: [
                 _dropzone(processing),
                 const SizedBox(height: 12),
-                _backgroundToggle(processing),
-                const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -229,6 +232,7 @@ class _ToolScreenState extends State<ToolScreen> {
               color: _filePath != null
                   ? context.accent
                   : context.borderStrong,
+              style: BorderStyle.solid,
               width: 1.4),
         ),
         child: Column(
@@ -275,56 +279,6 @@ class _ToolScreenState extends State<ToolScreen> {
               child: Text(_filePath == null
                   ? 'Selecionar arquivo'
                   : 'Trocar arquivo'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _backgroundToggle(bool processing) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
-      onTap: () => setState(() => _runInBackground = !_runInBackground),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: _runInBackground ? context.accentDim : context.surface2,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: _runInBackground
-                ? context.accent.withValues(alpha: 0.5)
-                : context.border,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              _runInBackground
-                  ? Icons.check_box
-                  : Icons.check_box_outline_blank,
-              size: 18,
-              color: _runInBackground ? context.accent : context.textMuted,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Executar em segundo plano',
-                      style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: context.text)),
-                  const SizedBox(height: 2),
-                  Text(
-                    _runInBackground
-                        ? 'Você pode navegar em outras telas — o processamento continua.'
-                        : 'O processamento será interrompido se você sair desta tela.',
-                    style: TextStyle(fontSize: 10.5, color: context.textFaint),
-                  ),
-                ],
-              ),
             ),
           ],
         ),

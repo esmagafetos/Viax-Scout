@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../api/api_client.dart';
 import '../api/sse_client.dart';
+import 'foreground_processing.dart';
 
 /// Holds the state of a single in-flight upload+SSE job, so it can keep
 /// running while the user navigates between screens. The associated screen
@@ -51,6 +52,13 @@ class ProcessingService extends ChangeNotifier {
     _cancelled = false;
     notifyListeners();
 
+    // Inicia o serviço em foreground para que o processo continue mesmo se
+    // o usuário sair do app, exibindo notificação persistente com o progresso.
+    unawaited(ForegroundProcessing.start(
+      title: label,
+      text: 'Iniciando processamento…',
+    ));
+
     final stream = uploadAndStream(
       api: api,
       endpointPath: endpointPath,
@@ -62,17 +70,23 @@ class ProcessingService extends ChangeNotifier {
       (ev) {
         if (_cancelled) return;
         if (ev.event == 'step' && ev.data is Map && ev.data['step'] is String) {
-          _steps.add(ev.data['step'] as String);
+          final step = ev.data['step'] as String;
+          _steps.add(step);
           if (_steps.length > 30) _steps.removeAt(0);
+          unawaited(ForegroundProcessing.update(title: _label, text: step));
           notifyListeners();
         } else if (ev.event == 'result' && ev.data is Map && ev.data['result'] is Map) {
           _result = Map<String, dynamic>.from(ev.data['result'] as Map);
-          _steps.add(kind == 'condominium'
+          final doneText = kind == 'condominium'
               ? '✓ Sequência logística pronta!'
-              : '✓ Análise concluída!');
+              : '✓ Análise concluída!';
+          _steps.add(doneText);
+          unawaited(ForegroundProcessing.update(title: _label, text: doneText));
           notifyListeners();
         } else if (ev.event == 'error' && ev.data is Map && ev.data['error'] is String) {
           _error = ev.data['error'] as String;
+          unawaited(ForegroundProcessing.update(
+              title: _label, text: 'Erro: ${_error!}'));
           notifyListeners();
         }
       },
@@ -80,11 +94,13 @@ class ProcessingService extends ChangeNotifier {
         if (_cancelled) return;
         _error = 'Erro de conexão: $e';
         _active = false;
+        unawaited(ForegroundProcessing.stop());
         notifyListeners();
       },
       onDone: () {
         if (_cancelled) return;
         _active = false;
+        unawaited(ForegroundProcessing.stop());
         notifyListeners();
       },
       cancelOnError: false,
@@ -107,6 +123,7 @@ class ProcessingService extends ChangeNotifier {
       _active = false;
       notifyListeners();
     }
+    unawaited(ForegroundProcessing.stop());
   }
 
   /// Clears the finished result/error so the banner disappears and the
