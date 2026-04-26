@@ -52,10 +52,15 @@ pg_ctl start -D "$PG_DATA" -l "$PG_DATA/postgresql.log" -w -t 30 2>/dev/null \
 # Auto-migração: aplica novos schemas sem destruir dados
 # ---------------------------------------------------------------------------
 info "Verificando schema do banco de dados..."
-if DATABASE_URL="$DATABASE_URL" pnpm --filter @workspace/db run push 2>&1 | grep -qiE "no changes|already"; then
+DB_PUSH_OUT=$(DATABASE_URL="$DATABASE_URL" pnpm --filter @workspace/db run push 2>&1) && DB_PUSH_OK=true || DB_PUSH_OK=false
+if [[ "$DB_PUSH_OK" == "false" ]]; then
+  warn "Falha ao aplicar schema do banco. Verifique o PostgreSQL e DATABASE_URL."
+  warn "Detalhes: $DB_PUSH_OUT"
+  warn "O servidor vai tentar iniciar mesmo assim — algumas funcionalidades podem falhar."
+elif echo "$DB_PUSH_OUT" | grep -qiE "no schema changes|no changes|up to date|already"; then
   success "Schema já está atualizado."
 else
-  success "Schema aplicado com sucesso."
+  success "Schema aplicado com sucesso (coluna results + outras alterações)."
 fi
 
 # ---------------------------------------------------------------------------

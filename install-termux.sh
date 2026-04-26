@@ -143,8 +143,11 @@ pnpm install --no-frozen-lockfile
 success "Dependências instaladas"
 
 header "Aplicando schema"
-DATABASE_URL="$DATABASE_URL" pnpm --filter @workspace/db run push || warn "Falha ao aplicar schema — verifique o PostgreSQL e DATABASE_URL"
-success "Schema aplicado"
+if DATABASE_URL="$DATABASE_URL" pnpm --filter @workspace/db run push; then
+  success "Schema aplicado (inclui coluna results para histórico de análises)"
+else
+  warn "Falha ao aplicar schema — verifique se o PostgreSQL está rodando e DATABASE_URL está correto"
+fi
 
 header "Compilando API"
 pnpm --filter @workspace/api-server run build
