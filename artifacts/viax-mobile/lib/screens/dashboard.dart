@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
 import '../state/auth_provider.dart';
@@ -18,55 +17,24 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  static const _heroSeenKey = 'dashboard_hero_seen_v1';
-
   Map<String, dynamic>? _summary;
   List<dynamic>? _recent;
   Map<String, dynamic>? _financial;
   bool _loadingSummary = true;
   bool _loadingRecent = true;
   bool _loadingFinancial = true;
-  bool _heroDismissed = true; // hide until we've checked prefs to avoid flicker
-  bool _heroChecked = false;
+  bool _heroDismissed = false;
 
   @override
   void initState() {
     super.initState();
-    _loadHeroState();
     _load();
-  }
-
-  Future<void> _loadHeroState() async {
-    final prefs = await SharedPreferences.getInstance();
-    final seen = prefs.getBool(_heroSeenKey) ?? false;
-    if (!mounted) return;
-    setState(() {
-      _heroDismissed = seen;
-      _heroChecked = true;
-    });
-  }
-
-  Future<void> _markHeroSeen() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_heroSeenKey, true);
-  }
-
-  void _dismissHero() {
-    setState(() => _heroDismissed = true);
-    _markHeroSeen();
   }
 
   Future<void> _load() async {
     final api = context.read<ApiClient>();
     api.dashboardSummary().then((v) {
-      if (!mounted) return;
-      setState(() { _summary = v; _loadingSummary = false; });
-      // Auto-dismiss hero after first analysis ever — persists forever.
-      final total = (v['totalAnalyses'] as num?) ?? 0;
-      if (total > 0 && !_heroDismissed) {
-        setState(() => _heroDismissed = true);
-        _markHeroSeen();
-      }
+      if (mounted) setState(() { _summary = v; _loadingSummary = false; });
     }).catchError((_) {
       if (mounted) setState(() => _loadingSummary = false);
     });
@@ -94,14 +62,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (_heroChecked && !_heroDismissed) ...[
+          if (!_heroDismissed)
             _HeroBanner(
               userName: firstName,
-              onDismiss: _dismissHero,
+              onDismiss: () => setState(() => _heroDismissed = true),
               onPrimary: () => context.go('/process'),
             ),
-            const SizedBox(height: 18),
-          ],
+          if (!_heroDismissed) const SizedBox(height: 18),
           _header(context),
           const SizedBox(height: 18),
           if (_loadingSummary)
@@ -452,25 +419,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color.withValues(alpha: 0.10),
-            context.surface2,
-            context.surface2,
-          ],
-          stops: const [0.0, 0.6, 1.0],
-        ),
+        color: context.surface2,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.22)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.10),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: context.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,23 +455,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color.withValues(alpha: 0.16),
-            color.withValues(alpha: 0.04),
-          ],
-        ),
+        color: color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.28)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
