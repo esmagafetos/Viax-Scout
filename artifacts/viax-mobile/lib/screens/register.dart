@@ -6,7 +6,7 @@ import '../api/api_client.dart';
 import '../state/auth_provider.dart';
 import '../theme/theme.dart';
 import '../widgets/toast.dart';
-import '../widgets/viax_logo.dart';
+import '../widgets/brand_mark.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -89,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 8),
-                  const ViaXLogo(fontSize: 26, showSubtitle: true),
+                  const BrandLockup(markSize: 72, wordmarkSize: 24, showSubtitle: true),
                   const SizedBox(height: 22),
                   Container(
                     padding: const EdgeInsets.all(22),

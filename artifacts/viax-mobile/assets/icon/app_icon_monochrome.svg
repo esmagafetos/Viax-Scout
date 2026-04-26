@@ -2,6 +2,6 @@
   <g transform="translate(512, 512)">
     <line x1="-150" y1="-150" x2="150" y2="150" stroke="#ffffff" stroke-width="100" stroke-linecap="round"/>
     <line x1="150" y1="-150" x2="-150" y2="150" stroke="#ffffff" stroke-width="100" stroke-linecap="round"/>
-    <circle cx="180" cy="180" r="46" fill="#d4521a"/>
+    <circle cx="180" cy="180" r="46" fill="#ffffff"/>
   </g>
 </svg>

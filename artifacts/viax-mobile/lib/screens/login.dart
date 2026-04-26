@@ -6,7 +6,7 @@ import '../api/api_client.dart';
 import '../state/auth_provider.dart';
 import '../theme/theme.dart';
 import '../widgets/toast.dart';
-import '../widgets/viax_logo.dart';
+import '../widgets/brand_mark.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 12),
-                  const ViaXLogo(fontSize: 28, showSubtitle: true),
+                  const BrandLockup(markSize: 76, wordmarkSize: 26, showSubtitle: true),
                   const SizedBox(height: 28),
                   Container(
                     padding: const EdgeInsets.all(22),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../theme/theme.dart';
-import '../widgets/viax_logo.dart';
+import '../widgets/brand_mark.dart';
 
 class SetupScreen extends StatelessWidget {
   const SetupScreen({super.key});
@@ -18,7 +18,7 @@ class SetupScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const ViaXLogo(fontSize: 32, showSubtitle: true),
+                const BrandLockup(markSize: 88, wordmarkSize: 30, showSubtitle: true),
                 const SizedBox(height: 36),
                 Container(
                   padding: const EdgeInsets.all(24),

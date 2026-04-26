@@ -2,27 +2,32 @@
 <!--
   ViaX:Trace — Network security config
 
-  Permite tráfego em texto plano (HTTP) somente para hosts locais usados pelo
-  backend rodando no Termux do próprio aparelho ou em outro dispositivo da
-  mesma rede Wi-Fi. Todo o tráfego para a Internet (https://...replit.app)
-  continua exigindo TLS.
+  Este app conecta intencionalmente a um backend que o usuário roda no próprio
+  aparelho (Termux) ou em outro dispositivo da mesma Wi-Fi. O usuário digita a
+  URL manualmente em "Configurar servidor", então o consentimento é explícito.
+
+  Padrão usado por apps profissionais que falam com servidores em LAN
+  (ex.: apps de roteador, smart-home, automação local).
+
+  - base-config: cleartext PERMITIDO globalmente (necessário porque CIDR
+    não é suportado em <domain> e seria impossível enumerar todos os IPs
+    privados de Wi-Fi). O usuário consente ao digitar a URL.
+  - domain-config: enforça TLS para o domínio de produção (Replit) e
+    domínios públicos comuns, garantindo que mesmo que o app caia em
+    fallback HTTP por engano, ele rejeite a conexão pra esses hosts.
+  - trust-anchors: apenas certificados do sistema (sem CAs do usuário,
+    pra evitar MITM via certificados instalados manualmente).
 -->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="false">
+    <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </base-config>
 
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">localhost</domain>
-        <domain includeSubdomains="true">127.0.0.1</domain>
-        <domain includeSubdomains="true">10.0.2.2</domain>
-        <domain-suffix>.local</domain-suffix>
-
-        <!-- Faixas privadas RFC 1918 -->
-        <domain includeSubdomains="true">10.0.0.0/8</domain>
-        <domain includeSubdomains="true">172.16.0.0/12</domain>
-        <domain includeSubdomains="true">192.168.0.0/16</domain>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">replit.app</domain>
+        <domain includeSubdomains="true">replit.dev</domain>
+        <domain includeSubdomains="true">repl.co</domain>
     </domain-config>
 </network-security-config>

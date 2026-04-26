@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../api/api_client.dart';
 import '../state/server_config.dart';
 import '../theme/theme.dart';
+import '../widgets/brand_mark.dart';
 import '../widgets/viax_logo.dart';
 
 class ServerSetupScreen extends StatefulWidget {
@@ -89,7 +90,11 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(children: [const ViaXLogo(fontSize: 22, showSubtitle: false)]),
+              Row(children: [
+                const BrandMark(size: 36),
+                const SizedBox(width: 10),
+                const ViaXLogo(fontSize: 22, showSubtitle: false),
+              ]),
               const SizedBox(height: 24),
               Container(
                 padding: const EdgeInsets.all(20),
