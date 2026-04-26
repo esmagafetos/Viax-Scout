@@ -220,32 +220,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                LayoutBuilder(builder: (ctx, c) {
-                  final wide = c.maxWidth > 520;
-                  final children = [
-                    _moneyCell('Receita Estimada', fmtBRL.format(receita), context.ok),
-                    _moneyCell('Despesas Fixas', fmtBRL.format(despesas), context.accent),
-                    _moneyCell('Lucro Bruto', fmtBRL.format(lucro), lucro >= 0 ? context.ok : context.accent),
-                  ];
-                  if (wide) {
-                    return Row(
-                      children: [
-                        for (int i = 0; i < children.length; i++) ...[
-                          Expanded(child: children[i]),
-                          if (i < children.length - 1) const SizedBox(width: 10),
-                        ],
-                      ],
-                    );
-                  }
-                  return Column(
-                    children: [
-                      for (int i = 0; i < children.length; i++) ...[
-                        children[i],
-                        if (i < children.length - 1) const SizedBox(height: 10),
-                      ],
-                    ],
-                  );
-                }),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _moneyCell(
+                          'Receita\nEstimada', fmtBRL.format(receita), context.ok),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _moneyCell('Despesas\nFixas', fmtBRL.format(despesas),
+                          context.accent),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _moneyCell(
+                          'Lucro\nBruto',
+                          fmtBRL.format(lucro),
+                          lucro >= 0 ? context.ok : context.accent),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 18),
                 LayoutBuilder(builder: (ctx, c) {
                   final wide = c.maxWidth > 520;
@@ -367,7 +362,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _moneyCell(String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
         color: context.surface2,
         borderRadius: BorderRadius.circular(10),
@@ -377,15 +372,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value,
-              style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w800, color: color, letterSpacing: -0.2)),
-          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(value,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                    letterSpacing: -0.3,
+                    height: 1.1)),
+          ),
+          const SizedBox(height: 4),
           Text(label.toUpperCase(),
               style: TextStyle(
-                  fontSize: 9.5,
+                  fontSize: 9,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 0.6,
+                  letterSpacing: 0.5,
+                  height: 1.2,
                   color: context.textFaint)),
         ],
       ),

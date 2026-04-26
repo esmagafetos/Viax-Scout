@@ -7,6 +7,7 @@ import '../state/foreground_processing.dart';
 import '../state/processing_service.dart';
 import '../state/settings_provider.dart';
 import '../theme/theme.dart';
+import '../widgets/analysis_chart.dart';
 import '../widgets/layout.dart';
 import '../widgets/spinner.dart';
 import '../widgets/toast.dart';
@@ -356,6 +357,8 @@ class _ProcessScreenState extends State<ProcessScreen> {
             StatTile(value: _formatMs(tempoMs), label: 'Tempo'),
           ],
         ),
+        const SizedBox(height: 14),
+        AnalysisChart(total: total, nuances: nuances, detalhes: detalhes),
         const SizedBox(height: 14),
         Row(
           children: [
