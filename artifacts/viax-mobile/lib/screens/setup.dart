@@ -18,7 +18,12 @@ class SetupScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const BrandLockup(markSize: 88, wordmarkSize: 30, showSubtitle: true),
+                const BrandLockup(
+                  markSize: 88,
+                  wordmarkSize: 30,
+                  showSubtitle: true,
+                  horizontal: false,
+                ),
                 const SizedBox(height: 36),
                 Container(
                   padding: const EdgeInsets.all(24),

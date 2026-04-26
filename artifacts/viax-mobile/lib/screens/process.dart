@@ -131,7 +131,7 @@ class _ProcessScreenState extends State<ProcessScreen> {
                           child: Icon(Icons.upload_file_outlined, color: context.accent, size: 26),
                         ),
                         const SizedBox(height: 10),
-                        Text(_fileName ?? 'Escolher arquivo',
+                        Text(_fileName ?? 'Selecionar arquivo',
                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: context.text),
                             textAlign: TextAlign.center),
                         const SizedBox(height: 4),

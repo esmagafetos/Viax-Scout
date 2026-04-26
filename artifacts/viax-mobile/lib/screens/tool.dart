@@ -161,7 +161,7 @@ class _ToolScreenState extends State<ToolScreen> {
                           child: Icon(Icons.description_outlined, color: context.accent),
                         ),
                         const SizedBox(height: 8),
-                        Text(_fileName ?? 'Escolher planilha',
+                        Text(_fileName ?? 'Arraste a planilha aqui',
                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: context.text)),
                         const SizedBox(height: 4),
                         Text(_fileSize == null ? 'XLSX ou CSV' : '${(_fileSize! / 1024).toStringAsFixed(1)} KB',
@@ -246,8 +246,8 @@ class _ToolScreenState extends State<ToolScreen> {
                     const SizedBox(height: 2),
                     Text(
                       isAvail
-                          ? 'DISPONÍVEL${c['totalLotes'] != null ? " · ${c['totalLotes']} lotes" : ""}'
-                          : 'EM DESENVOLVIMENTO',
+                          ? 'Disponível${c['totalLotes'] != null ? " · ${c['totalLotes']} lotes" : ""}'
+                          : 'Em desenvolvimento',
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../api/api_client.dart';
 import '../state/auth_provider.dart';
+import '../state/theme_provider.dart';
 import '../theme/theme.dart';
 import '../widgets/toast.dart';
 import '../widgets/brand_mark.dart';
@@ -18,17 +19,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
-  final _confirmPassword = TextEditingController();
   String _birthDate = '';
   bool _loading = false;
+  final Map<String, bool> _touched = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _password.addListener(() => setState(() {}));
+    _email.addListener(() => setState(() {}));
+    _name.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
     _name.dispose();
     _email.dispose();
     _password.dispose();
-    _confirmPassword.dispose();
     super.dispose();
+  }
+
+  // Mirrors web: validateEmail / validatePassword in Register.tsx
+  String? _validateEmail(String e) {
+    if (e.isEmpty) return 'Email é obrigatório.';
+    final re = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$');
+    if (!re.hasMatch(e)) return 'Formato de email inválido.';
+    return null;
+  }
+
+  String? _validatePassword(String p) {
+    if (p.isEmpty) return 'Senha é obrigatória.';
+    if (p.length < 8) return 'A senha deve ter pelo menos 8 caracteres.';
+    if (!RegExp(r'[A-Za-z]').hasMatch(p)) return 'A senha deve conter pelo menos uma letra.';
+    if (!RegExp(r'[0-9]').hasMatch(p)) return 'A senha deve conter pelo menos um número.';
+    return null;
   }
 
   Future<void> _pickDate() async {
@@ -46,18 +70,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _submit() async {
-    if (_name.text.trim().isEmpty || _email.text.trim().isEmpty || _password.text.isEmpty) {
-      showToast(context, 'Preencha todos os campos obrigatórios.');
+    setState(() {
+      _touched['name'] = true;
+      _touched['email'] = true;
+      _touched['password'] = true;
+    });
+
+    final emailErr = _validateEmail(_email.text.trim());
+    final pwdErr = _validatePassword(_password.text);
+    if (_name.text.trim().isEmpty || emailErr != null || pwdErr != null) {
+      showToast(context, emailErr ?? pwdErr ?? 'Preencha todos os campos obrigatórios.');
       return;
     }
-    if (_password.text.length < 6) {
-      showToast(context, 'Senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
-    if (_password.text != _confirmPassword.text) {
-      showToast(context, 'As senhas não coincidem.');
-      return;
-    }
+
     setState(() => _loading = true);
     try {
       await context.read<AuthProvider>().register(
@@ -66,7 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _password.text,
             birthDate: _birthDate.isEmpty ? null : _birthDate,
           );
-      if (mounted) context.go('/dashboard');
+      if (mounted) context.go('/setup');
     } on ApiError catch (e) {
       if (mounted) showToast(context, e.message);
     } catch (_) {
@@ -78,111 +103,332 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProv = context.watch<ThemeProvider>();
+    final dark = themeProv.dark;
+
+    final nameError = (_touched['name'] ?? false) && _name.text.trim().isEmpty
+        ? 'Nome é obrigatório.'
+        : null;
+    final emailError =
+        (_touched['email'] ?? false) ? _validateEmail(_email.text.trim()) : null;
+    final passwordError =
+        (_touched['password'] ?? false) ? _validatePassword(_password.text) : null;
+
     return Scaffold(
       backgroundColor: context.bg,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  const BrandLockup(markSize: 72, wordmarkSize: 24, showSubtitle: true),
-                  const SizedBox(height: 22),
-                  Container(
-                    padding: const EdgeInsets.all(22),
+        child: Stack(
+          children: [
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Container(
                     decoration: BoxDecoration(
                       color: context.surface,
-                      borderRadius: BorderRadius.circular(AppRadii.lg),
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: context.borderStrong),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.09),
+                            blurRadius: 40,
+                            offset: const Offset(0, 12)),
+                      ],
                     ),
+                    clipBehavior: Clip.antiAlias,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('Criar conta',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: context.text)),
-                        const SizedBox(height: 4),
-                        Text('Comece a auditar suas rotas em segundos',
-                            style: TextStyle(fontSize: 12, color: context.textFaint)),
-                        const SizedBox(height: 18),
-                        _label(context, 'NOME'),
-                        TextField(controller: _name, decoration: const InputDecoration(hintText: 'Seu nome')),
-                        const SizedBox(height: 12),
-                        _label(context, 'EMAIL'),
-                        TextField(
-                            controller: _email,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(hintText: 'voce@exemplo.com')),
-                        const SizedBox(height: 12),
-                        _label(context, 'DATA DE NASCIMENTO (OPCIONAL)'),
-                        InkWell(
-                          onTap: _pickDate,
-                          child: InputDecorator(
-                            decoration: const InputDecoration(),
-                            child: Text(
-                              _birthDate.isEmpty ? 'Selecione uma data' : _birthDate,
-                              style: TextStyle(
-                                color: _birthDate.isEmpty ? context.textFaint : context.text,
-                                fontSize: 14,
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(28, 28, 28, 20),
+                          decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(color: context.border)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(bottom: 12),
+                                child: BrandLockup(
+                                  markSize: 28,
+                                  wordmarkSize: 22,
+                                  showSubtitle: true,
+                                  horizontal: true,
+                                ),
                               ),
-                            ),
+                              Text('Crie sua conta gratuita',
+                                  style: TextStyle(fontSize: 13, color: context.textFaint)),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        _label(context, 'SENHA'),
-                        TextField(
-                            controller: _password,
-                            obscureText: true,
-                            decoration: const InputDecoration(hintText: 'Mínimo 6 caracteres')),
-                        const SizedBox(height: 12),
-                        _label(context, 'CONFIRMAR SENHA'),
-                        TextField(
-                            controller: _confirmPassword,
-                            obscureText: true,
-                            onSubmitted: (_) => _submit(),
-                            decoration: const InputDecoration(hintText: '••••••••')),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: _loading ? null : _submit,
-                            child: _loading
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                                : const Text('Criar conta'),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(28, 24, 28, 28),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _label(context, 'Nome completo'),
+                              const SizedBox(height: 6),
+                              _input(
+                                controller: _name,
+                                hint: 'Seu nome',
+                                error: nameError,
+                                onBlur: () => setState(() => _touched['name'] = true),
+                              ),
+                              if (nameError != null) _err(context, nameError),
+                              const SizedBox(height: 16),
+                              _label(context, 'Email'),
+                              const SizedBox(height: 6),
+                              _input(
+                                controller: _email,
+                                hint: 'seu@email.com',
+                                error: emailError,
+                                keyboardType: TextInputType.emailAddress,
+                                onBlur: () => setState(() => _touched['email'] = true),
+                              ),
+                              if (emailError != null) _err(context, emailError),
+                              const SizedBox(height: 16),
+                              _label(context, 'Senha'),
+                              const SizedBox(height: 6),
+                              _input(
+                                controller: _password,
+                                hint: 'Mínimo 8 caracteres',
+                                error: passwordError,
+                                obscure: true,
+                                onBlur: () => setState(() => _touched['password'] = true),
+                              ),
+                              if (_password.text.isNotEmpty)
+                                _PasswordStrength(password: _password.text),
+                              if (passwordError != null) _err(context, passwordError),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  _label(context, 'Data de nascimento'),
+                                  const SizedBox(width: 6),
+                                  Text('(opcional)',
+                                      style: TextStyle(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w400,
+                                          color: context.textFaint.withValues(alpha: 0.7))),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              InkWell(
+                                onTap: _pickDate,
+                                child: InputDecorator(
+                                  decoration: const InputDecoration(),
+                                  child: Text(
+                                    _birthDate.isEmpty ? 'mm/dd/aaaa' : _birthDate,
+                                    style: TextStyle(
+                                      color:
+                                          _birthDate.isEmpty ? context.textFaint : context.text,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 22),
+                              SizedBox(
+                                height: 46,
+                                child: ElevatedButton(
+                                  onPressed: _loading ? null : _submit,
+                                  style: ElevatedButton.styleFrom(
+                                    shape: const StadiumBorder(),
+                                    backgroundColor: context.accent,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                  ),
+                                  child: Text(
+                                    _loading ? 'Criando conta...' : 'Criar conta',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600, fontSize: 13.5),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Já tem conta? ',
+                                      style: TextStyle(fontSize: 12.5, color: context.textFaint)),
+                                  GestureDetector(
+                                    onTap: () => context.go('/login'),
+                                    child: Text('Entrar',
+                                        style: TextStyle(
+                                            fontSize: 12.5,
+                                            color: context.accent,
+                                            fontWeight: FontWeight.w700)),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('Já tem conta? ', style: TextStyle(fontSize: 12, color: context.textFaint)),
-                            GestureDetector(
-                              onTap: () => context.go('/login'),
-                              child: Text('Entrar',
-                                  style: TextStyle(fontSize: 12, color: context.accent, fontWeight: FontWeight.w700)),
-                            ),
-                          ],
                         ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            Positioned(
+              top: 12,
+              right: 16,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(99),
+                  onTap: themeProv.toggle,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: context.surface,
+                      borderRadius: BorderRadius.circular(99),
+                      border: Border.all(color: context.borderStrong),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          dark ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
+                          size: 13,
+                          color: context.textMuted,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(dark ? 'Claro' : 'Escuro',
+                            style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w500,
+                                color: context.textMuted)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _label(BuildContext c, String t) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Text(t,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.2, color: c.textFaint)),
+  Widget _label(BuildContext c, String t) => Text(
+        t.toUpperCase(),
+        style: TextStyle(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
+          color: c.textFaint,
+        ),
       );
+
+  Widget _input({
+    required TextEditingController controller,
+    required String hint,
+    String? error,
+    bool obscure = false,
+    TextInputType? keyboardType,
+    VoidCallback? onBlur,
+  }) {
+    return Focus(
+      onFocusChange: (has) {
+        if (!has && onBlur != null) onBlur();
+      },
+      child: TextField(
+        controller: controller,
+        obscureText: obscure,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          hintText: hint,
+          enabledBorder: error != null
+              ? OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: context.accent),
+                )
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _err(BuildContext c, String message) => Padding(
+        padding: const EdgeInsets.only(top: 5),
+        child: Text(message,
+            style: TextStyle(fontSize: 11, color: c.accent, fontWeight: FontWeight.w500)),
+      );
+}
+
+/// Mirrors web `<PasswordStrength>` from Register.tsx — 4-segment bar plus
+/// inline checks (8+ caracteres / Letra / Número / Símbolo).
+class _PasswordStrength extends StatelessWidget {
+  final String password;
+  const _PasswordStrength({required this.password});
+
+  @override
+  Widget build(BuildContext context) {
+    final checks = [
+      _Check('8+ caracteres', password.length >= 8),
+      _Check('Letra', RegExp(r'[A-Za-z]').hasMatch(password)),
+      _Check('Número', RegExp(r'[0-9]').hasMatch(password)),
+      _Check('Símbolo', RegExp(r'[^A-Za-z0-9]').hasMatch(password)),
+    ];
+    final score = checks.where((c) => c.ok).length;
+    const levels = ['Muito fraca', 'Fraca', 'Razoável', 'Boa', 'Forte'];
+    final segColors = [
+      context.accent,
+      context.accent,
+      const Color(0xFFF59E0B),
+      const Color(0xFF22C55E),
+      const Color(0xFF16A34A),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: List.generate(4, (i) {
+              return Expanded(
+                child: Container(
+                  height: 3,
+                  margin: EdgeInsets.only(right: i < 3 ? 4 : 0),
+                  decoration: BoxDecoration(
+                    color: i < score ? segColors[score] : context.borderStrong,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(levels[score],
+                  style: TextStyle(
+                      fontSize: 10.5,
+                      color: score >= 3 ? const Color(0xFF22C55E) : context.textFaint)),
+              for (final c in checks)
+                Text(
+                  '${c.ok ? '✓' : '·'} ${c.label}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: c.ok ? const Color(0xFF22C55E) : context.textFaint,
+                    fontWeight: c.ok ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Check {
+  final String label;
+  final bool ok;
+  _Check(this.label, this.ok);
 }

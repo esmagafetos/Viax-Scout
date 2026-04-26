@@ -114,53 +114,94 @@ class _BrandMarkPainter extends CustomPainter {
       old.accentColor != accentColor;
 }
 
-/// Logotipo composto: brand mark + wordmark "ViaX:Trace" empilhados.
-/// Usado nas telas de boas-vindas/login/cadastro.
+/// Logotipo composto: brand mark + wordmark "ViaX:Trace".
+/// - [horizontal] = true → mark à esquerda, wordmark à direita com tagline
+///   logo abaixo (formato compacto, igual ao `<ViaXLogo size="md">` do web).
+/// - [horizontal] = false → mark acima, wordmark centralizado embaixo.
+///
+/// O subtítulo agora é "AUDITORIA DE ROTAS" (uppercase + letter-spacing 0.12em),
+/// idêntico ao web `ViaXLogo`.
 class BrandLockup extends StatelessWidget {
   final double markSize;
   final double wordmarkSize;
   final bool showSubtitle;
+  final bool horizontal;
+  final bool dark;
 
   const BrandLockup({
     super.key,
-    this.markSize = 64,
-    this.wordmarkSize = 26,
+    this.markSize = 28,
+    this.wordmarkSize = 22,
     this.showSubtitle = true,
+    this.horizontal = true,
+    this.dark = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final wordmark = RichText(
+      textAlign: horizontal ? TextAlign.left : TextAlign.center,
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: wordmarkSize,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
+          color: context.text,
+          height: 1.05,
+        ),
+        children: [
+          const TextSpan(text: 'ViaX'),
+          TextSpan(
+            text: ':',
+            style: TextStyle(color: context.textFaint, fontWeight: FontWeight.w300),
+          ),
+          const TextSpan(text: 'Trace'),
+        ],
+      ),
+    );
+
+    final tagline = Text(
+      'AUDITORIA DE ROTAS',
+      style: TextStyle(
+        fontSize: 9,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 1.4,
+        color: context.textFaint,
+      ),
+    );
+
+    if (horizontal) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          BrandMark(size: markSize, withBackground: false),
+          const SizedBox(width: 10),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              wordmark,
+              if (showSubtitle) ...[
+                const SizedBox(height: 2),
+                tagline,
+              ],
+            ],
+          ),
+        ],
+      );
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         BrandMark(size: markSize),
         const SizedBox(height: 14),
-        RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            style: TextStyle(
-              fontSize: wordmarkSize,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
-              color: context.text,
-            ),
-            children: [
-              const TextSpan(text: 'ViaX'),
-              TextSpan(
-                text: ':',
-                style: TextStyle(color: context.textFaint, fontWeight: FontWeight.w300),
-              ),
-              TextSpan(text: 'Trace', style: TextStyle(color: context.accent)),
-            ],
-          ),
-        ),
+        wordmark,
         if (showSubtitle)
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              'Auditoria inteligente de rotas',
-              style: TextStyle(fontSize: 12, color: context.textFaint),
-            ),
+            child: tagline,
           ),
       ],
     );
