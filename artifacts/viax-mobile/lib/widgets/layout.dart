@@ -106,14 +106,29 @@ class _Header extends StatelessWidget {
     final compact = width < 760;
 
     // Glassy header — espelha o `.header-glass` do web (surface 85%
-     // + backdrop-filter blur(12px)).
+     // + backdrop-filter blur(12px)) com blur reforçado e gradiente
+     // vertical pra dar profundidade real de "vidro fosco".
     return ClipRect(
       child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
         child: DecoratedBox(
       decoration: BoxDecoration(
-        color: context.surface.withValues(alpha: 0.85),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            context.surface.withValues(alpha: 0.92),
+            context.surface.withValues(alpha: 0.74),
+          ],
+        ),
         border: Border(bottom: BorderSide(color: context.border)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: SafeArea(
         bottom: false,
@@ -317,19 +332,28 @@ class _ProfileMenu extends StatelessWidget {
       position: PopupMenuPosition.under,
       offset: const Offset(0, 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: context.border),
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: context.accent.withValues(alpha: 0.30), width: 1.2),
       ),
-      color: context.surface,
-      elevation: 6,
+      color: context.surface.withValues(alpha: 0.97),
+      elevation: 14,
+      shadowColor: context.accent.withValues(alpha: 0.30),
       padding: EdgeInsets.zero,
       itemBuilder: (_) => [
         PopupMenuItem<String>(
           enabled: false,
           padding: EdgeInsets.zero,
           child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
             decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  context.accent.withValues(alpha: 0.10),
+                  context.surface.withValues(alpha: 0.0),
+                ],
+              ),
               border: Border(bottom: BorderSide(color: context.border)),
             ),
             child: Column(
@@ -507,17 +531,32 @@ class ProcessingBanner extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
               child: InkWell(
                 onTap: () => context.go(svc.returnPath),
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: context.surface.withValues(alpha: 0.92),
-                    border: Border.all(color: context.borderStrong),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        context.surface.withValues(alpha: 0.94),
+                        context.surface.withValues(alpha: 0.78),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: context.accent.withValues(alpha: 0.35),
+                      width: 1.2,
+                    ),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
+                      BoxShadow(
+                        color: context.accent.withValues(alpha: 0.18),
+                        blurRadius: 28,
+                        offset: const Offset(0, 10),
+                      ),
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.18),
                         blurRadius: 24,
