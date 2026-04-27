@@ -1,24 +1,51 @@
+# syntax=docker/dockerfile:1.7
+
+# =============================================================================
+#  ViaX:Trace — API Server
+#  Multi-stage build:
+#    deps    → install workspace dependencies (pnpm, frozen lockfile)
+#    builder → bundle the API with esbuild
+#    runner  → minimal runtime image; applies Drizzle schema and starts server
+#
+#  Compatible with:
+#    - docker-compose.yml (local full-stack)
+#    - render.yaml        (Render deployment, single web service)
+# =============================================================================
+
 FROM node:20-alpine AS base
 WORKDIR /app
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@10.26.1 --activate
 
+# ---------- deps ----------
 FROM base AS deps
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY .npmrc pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY tsconfig.base.json tsconfig.json ./
 COPY lib/ ./lib/
 COPY artifacts/api-server/package.json ./artifacts/api-server/
 RUN mkdir -p scripts && echo '{"name":"@workspace/scripts","private":true}' > scripts/package.json
 RUN pnpm install --frozen-lockfile
 
+# ---------- build ----------
 FROM deps AS builder
 COPY artifacts/api-server/ ./artifacts/api-server/
 RUN pnpm --filter @workspace/api-server run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
+# ---------- runtime ----------
+FROM base AS runner
 ENV NODE_ENV=production
-COPY --from=builder /app/artifacts/api-server/dist ./dist
+
+# Workspace metadata so pnpm can resolve @workspace/db and run drizzle-kit at startup
+COPY --from=builder /app/.npmrc /app/pnpm-workspace.yaml /app/pnpm-lock.yaml /app/package.json /app/tsconfig.base.json /app/tsconfig.json ./
+RUN mkdir -p scripts && echo '{"name":"@workspace/scripts","private":true}' > scripts/package.json
+
+# Source needed by drizzle migrations + compiled API + hoisted node_modules
+COPY --from=builder /app/lib ./lib
+COPY --from=builder /app/artifacts/api-server/package.json ./artifacts/api-server/package.json
+COPY --from=builder /app/artifacts/api-server/dist ./artifacts/api-server/dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/artifacts/api-server/package.json ./package.json
+
 EXPOSE 8080
-CMD ["node", "--enable-source-maps", "./dist/index.mjs"]
+
+# Render injects $PORT at runtime; docker-compose sets PORT=8080.
+# Apply Drizzle schema (idempotent), then start the server.
+CMD ["sh", "-c", "pnpm --filter @workspace/db run push && exec node --enable-source-maps ./artifacts/api-server/dist/index.mjs"]

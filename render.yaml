@@ -1,0 +1,60 @@
+# =============================================================================
+#  ViaX:Trace — Render Blueprint
+#  https://render.com/docs/blueprint-spec
+#
+#  Provisiona:
+#    - PostgreSQL gerenciado (free)
+#    - Web Service (Docker) rodando o api-server
+#
+#  Como subir:
+#    1. Faça push deste repo para o GitHub.
+#    2. No Render: New + → Blueprint → selecione este repositório.
+#    3. Render lê este arquivo, cria o banco e o serviço web.
+#    4. Aguarde o deploy concluir (~5-10 min na primeira vez).
+#    5. Cole a URL pública (ex: https://viax-trace-api.onrender.com)
+#       no app mobile em "Configurar servidor".
+#
+#  Variáveis opcionais (configure no painel após o primeiro deploy):
+#    - GOOGLE_MAPS_API_KEY  → habilita modo "googlemaps"
+#    - GEOCODEBR_URL        → URL do microserviço R/CNEFE
+#    - OPENAI_API_KEY       → parser via IA
+#    - ANTHROPIC_API_KEY    → parser via IA
+#    - GOOGLE_AI_API_KEY    → parser via IA
+# =============================================================================
+
+databases:
+  - name: viax-trace-db
+    plan: free
+    databaseName: viax_trace
+    user: viax_trace
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: viax-trace-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile.api
+    dockerContext: .
+    healthCheckPath: /api/healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: viax-trace-db
+          property: connectionString
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: GEOCODEBR_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_AI_API_KEY
+        sync: false
