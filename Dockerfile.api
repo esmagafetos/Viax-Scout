@@ -21,8 +21,8 @@ FROM base AS deps
 COPY .npmrc pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY tsconfig.base.json tsconfig.json ./
 COPY lib/ ./lib/
+COPY scripts/package.json ./scripts/
 COPY artifacts/api-server/package.json ./artifacts/api-server/
-RUN mkdir -p scripts && echo '{"name":"@workspace/scripts","private":true}' > scripts/package.json
 RUN pnpm install --frozen-lockfile
 
 # ---------- build ----------
@@ -36,7 +36,7 @@ ENV NODE_ENV=production
 
 # Workspace metadata so pnpm can resolve @workspace/db and run drizzle-kit at startup
 COPY --from=builder /app/.npmrc /app/pnpm-workspace.yaml /app/pnpm-lock.yaml /app/package.json /app/tsconfig.base.json /app/tsconfig.json ./
-RUN mkdir -p scripts && echo '{"name":"@workspace/scripts","private":true}' > scripts/package.json
+COPY --from=builder /app/scripts/package.json ./scripts/
 
 # Source needed by drizzle migrations + compiled API + hoisted node_modules
 COPY --from=builder /app/lib ./lib

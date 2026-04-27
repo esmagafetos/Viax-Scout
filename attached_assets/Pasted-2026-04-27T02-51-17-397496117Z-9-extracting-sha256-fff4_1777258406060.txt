@@ -1,0 +1,50 @@
+2026-04-27T02:51:17.397496117Z #9 extracting sha256:fff4e2c1b189bf87d63ad8bd07f7f4eb288d6f2b6a07a8bb44c60e8c075d2096 0.2s done
+2026-04-27T02:51:17.397513207Z #9 DONE 9.3s
+2026-04-27T02:51:17.582724038Z 
+2026-04-27T02:51:17.582745989Z #10 [base 2/3] WORKDIR /app
+2026-04-27T02:51:17.582750899Z #10 DONE 0.0s
+2026-04-27T02:51:17.582754209Z 
+2026-04-27T02:51:17.582757989Z #11 [base 3/3] RUN corepack enable && corepack prepare pnpm@10.26.1 --activate
+2026-04-27T02:51:17.677106687Z #11 0.245 Preparing pnpm@10.26.1 for immediate activation...
+2026-04-27T02:51:19.134929717Z #11 DONE 1.7s
+2026-04-27T02:51:19.260113954Z 
+2026-04-27T02:51:19.260138775Z #12 [deps 1/6] COPY .npmrc pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+2026-04-27T02:51:19.260142895Z #12 DONE 0.1s
+2026-04-27T02:51:19.396113986Z 
+2026-04-27T02:51:19.396141037Z #13 [deps 2/6] COPY tsconfig.base.json tsconfig.json ./
+2026-04-27T02:51:19.396146747Z #13 DONE 0.1s
+2026-04-27T02:51:19.396151417Z 
+2026-04-27T02:51:19.396156317Z #14 [deps 3/6] COPY lib/ ./lib/
+2026-04-27T02:51:19.396160497Z #14 DONE 0.1s
+2026-04-27T02:51:19.556521912Z 
+2026-04-27T02:51:19.556547803Z #15 [deps 4/6] COPY artifacts/api-server/package.json ./artifacts/api-server/
+2026-04-27T02:51:19.556552743Z #15 DONE 0.1s
+2026-04-27T02:51:19.556556903Z 
+2026-04-27T02:51:19.556561243Z #16 [deps 5/6] RUN mkdir -p scripts && echo '{"name":"@workspace/scripts","private":true}' > scripts/package.json
+2026-04-27T02:51:19.556565573Z #16 DONE 0.1s
+2026-04-27T02:51:19.710790991Z 
+2026-04-27T02:51:19.710812462Z #17 [deps 6/6] RUN pnpm install --frozen-lockfile
+2026-04-27T02:51:20.192180854Z #17 0.632 Scope: all 7 workspace projects
+2026-04-27T02:51:20.41470345Z #17 0.854  ERR_PNPM_OUTDATED_LOCKFILE  Cannot install with "frozen-lockfile" because pnpm-lock.yaml is not up to date with <ROOT>/scripts/package.json
+2026-04-27T02:51:20.414723061Z #17 0.854 
+2026-04-27T02:51:20.414727621Z #17 0.854 Note that in CI environments this setting is true by default. If you still need to run install in such cases, use "pnpm install --no-frozen-lockfile"
+2026-04-27T02:51:20.414731001Z #17 0.854 
+2026-04-27T02:51:20.414735301Z #17 0.854   Failure reason:
+2026-04-27T02:51:20.414739261Z #17 0.854   specifiers in the lockfile don't match specifiers in package.json:
+2026-04-27T02:51:20.414742501Z #17 0.854 * 2 dependencies were removed: @types/node@catalog:, tsx@catalog:
+2026-04-27T02:51:20.414745611Z #17 0.854 
+2026-04-27T02:51:20.557450846Z #17 ERROR: process "/bin/sh -c pnpm install --frozen-lockfile" did not complete successfully: exit code: 1
+2026-04-27T02:51:20.557479236Z ------
+2026-04-27T02:51:20.557485907Z  > [deps 6/6] RUN pnpm install --frozen-lockfile:
+2026-04-27T02:51:20.557491717Z 0.632 Scope: all 7 workspace projects
+2026-04-27T02:51:20.557497297Z 0.854  ERR_PNPM_OUTDATED_LOCKFILE  Cannot install with "frozen-lockfile" because pnpm-lock.yaml is not up to date with <ROOT>/scripts/package.json
+2026-04-27T02:51:20.557513067Z 0.854 
+2026-04-27T02:51:20.557516408Z 0.854 Note that in CI environments this setting is true by default. If you still need to run install in such cases, use "pnpm install --no-frozen-lockfile"
+2026-04-27T02:51:20.557519377Z 0.854 
+2026-04-27T02:51:20.557523398Z 0.854   Failure reason:
+2026-04-27T02:51:20.557527138Z 0.854   specifiers in the lockfile don't match specifiers in package.json:
+2026-04-27T02:51:20.557530308Z 0.854 * 2 dependencies were removed: @types/node@catalog:, tsx@catalog:
+2026-04-27T02:51:20.557533158Z 0.854 
+2026-04-27T02:51:20.557536018Z ------
+2026-04-27T02:51:20.558314949Z error: failed to solve: process "/bin/sh -c pnpm install --frozen-lockfile" did not complete successfully: exit code: 1
+2026-04-27T02:51:20.579982699Z error: exit status 1
