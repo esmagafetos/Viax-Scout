@@ -8,9 +8,10 @@
   - base-config: BLOQUEIA cleartext globalmente (apps modernos não devem
     aceitar HTTP em produção).
   - domain-config (dev only): permite cleartext apenas para hosts usados
-    em desenvolvimento — loopback do aparelho, alias do emulador para o
-    host (10.0.2.2) e localhost. Útil para devs que rodam o backend
-    local com `flutter run --dart-define=API_BASE=http://10.0.2.2:8080`.
+    em desenvolvimento, como loopback do aparelho, alias do emulador
+    para o host (10.0.2.2) e localhost. Útil para devs que rodam o
+    backend local sobrescrevendo API_BASE para http://10.0.2.2:8080
+    ao invocar `flutter run` (ver scripts/apply-android-overrides.sh).
   - trust-anchors: apenas certificados do sistema (sem CAs do usuário,
     para evitar MITM via certificados instalados manualmente).
 -->
