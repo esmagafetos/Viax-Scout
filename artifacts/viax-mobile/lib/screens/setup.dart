@@ -72,15 +72,6 @@ class SetupScreen extends StatelessWidget {
                           child: const Text('Criar conta'),
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      TextButton.icon(
-                        onPressed: () => context.go('/server-setup'),
-                        icon: Icon(Icons.dns_outlined, size: 18, color: context.textMuted),
-                        label: Text(
-                          'Configurar servidor (Termux)',
-                          style: TextStyle(color: context.textMuted, fontSize: 13),
-                        ),
-                      ),
                     ],
                   ),
                 ),

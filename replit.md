@@ -2,8 +2,10 @@
 
 ## Overview
 
-Full SaaS web application for validating delivery route XLSX/CSV files against GPS coordinates.
-pnpm workspace monorepo with React+Vite frontend and Express API backend.
+Full SaaS application for validating delivery route XLSX/CSV files against GPS coordinates.
+pnpm workspace monorepo with React+Vite web frontend, Express 5 API backend, and Flutter Android app.
+
+**Production backend:** `https://viax-trace-api.onrender.com` (Render Web Service + managed Postgres 16, deployed from `render.yaml` blueprint with `Dockerfile.api`). The Flutter app ships with this URL hardcoded — no in-app server-config flow.
 
 ## Project
 
@@ -40,14 +42,14 @@ pnpm workspace monorepo with React+Vite frontend and Express API backend.
    - Proxy: `/api/*` → `http://localhost:8080` (Vite proxy config)
    - Pages: Login, Register, Setup, Dashboard, Process, History, Settings
 3. **ViaX Mobile** (`artifacts/viax-mobile`, v1.0.0) — **Native Flutter app** for Android + iOS (April 2026). The previous Expo/React Native scaffold was deleted entirely and replaced with a clean Flutter project. Stack: Flutter stable + Dart 3.4 + `go_router` (routing) + `provider` (state) + `dio` + `cookie_jar` (session cookie auth, mirrors web `credentials: include`) + `dio_cookie_manager` + raw `http` for SSE multipart streaming + `fl_chart` (financial line chart) + `file_picker` (xlsx/csv) + `image_picker` (avatar gallery) + `google_fonts` (Poppins) + `intl`.
-   - **Screens** (`lib/screens/`): `setup.dart`, `login.dart`, `register.dart`, `dashboard.dart`, `process.dart`, `tool.dart`, `history.dart`, `settings.dart` (6 tabs: Perfil, Financeiro, Instâncias, Parser, Tolerância, Sobre), `docs.dart` (5 sections + FAQ + GitHubBanner + quick links).
+   - **Screens** (`lib/screens/`): `setup.dart` (welcome — Entrar / Criar conta), `login.dart`, `register.dart`, `dashboard.dart`, `process.dart`, `tool.dart`, `history.dart`, `settings.dart` (6 tabs: Perfil, Financeiro, Instâncias, Parser, Tolerância, Sobre), `docs.dart` (5 sections + FAQ + GitHubBanner + quick links).
    - **Routing** (`lib/router.dart`): `go_router` with redirect guards — public (`/setup`, `/login`, `/register`) vs protected (`/dashboard`, `/process`, `/tool`, `/history`, `/settings`, `/docs`).
    - **API** (`lib/api/api_client.dart`): Dio + `PersistCookieJar` storing the Express session cookie under app-documents/.viax_cookies. All endpoints typed: auth/users/dashboard/analyses/condominium.
    - **SSE** (`lib/api/sse_client.dart`): hand-rolled multipart POST that streams `text/event-stream`, parses `event:` / `data:` lines split by `\n\n`, yields `SseEvent` instances. Used by Process + Tool screens for `/api/process/upload` and `/api/condominium/process`.
    - **Theme** (`lib/theme/theme.dart`): exact CSS-variable mirror — light/dark, Poppins via `google_fonts`, accent `#d4521a` (light) / `#e8703a` (dark), ok `#1a7a4a` (light) / `#2ea863` (dark), 14px card radii, pill buttons. `extension AppPalette on BuildContext` for ergonomic `context.text` / `context.accent` etc.
    - **Widgets** (`lib/widgets/`): `AppLayout` (top bar with `ViaXLogo` + avatar PopupMenu, bottom 5-tab nav: Painel/Processar/Condomínios/Histórico/Docs), `CardSection`/`CardHeaderLabel`, `StatTile`, `AppSpinner`, `ViaXLogo`, `GitHubBanner`, `showToast`.
    - **State** (`lib/state/`): `AuthProvider` (bootstrap → `/auth/me`, login/register/logout), `SettingsProvider` (load/save user settings).
-   - **API base** is configurable at build time via `--dart-define=API_BASE=...` (defaults to `https://viax-scout.replit.app`) **and** at runtime via `lib/state/server_config.dart` (persisted in `SharedPreferences`). New `/server-setup` screen (`lib/screens/server_setup.dart`) lets the user paste the URL printed by `start-backend.sh` running in Termux, run "Testar conexão" against `/api/auth/me`, and persist it. The `ApiClient` request interceptor rewrites `BaseOptions.baseUrl` per-request so config changes apply without rebuilding the Dio instance.
+   - **API base** is hardcoded to `https://viax-trace-api.onrender.com` in `lib/api/api_client.dart` (constant `kApiBase`). Can be overridden at build time via `--dart-define=API_BASE=...` for staging or self-hosted deployments — never asked from the end user. The previous in-app server-config flow (`/server-setup` screen + `ServerConfig` state + Servidor tab in Settings) was removed in April 2026 once the official Render-hosted backend went live.
    - **Android cleartext** for the LAN backend: `android-overrides/app/src/main/res/xml/network_security_config.xml` whitelists `localhost`, `127.0.0.1`, `10.0.2.2`, `*.local` and the RFC 1918 ranges (`10/8`, `172.16/12`, `192.168/16`); HTTPS-only everywhere else. Applied at CI time by `scripts/apply-android-overrides.sh` (copies the XML, patches `<application>` with `android:networkSecurityConfig` + `android:usesCleartextTraffic`, sets `android:label="ViaX:Trace"`).
    - **App icon / launcher**: brand-aligned SVG masters at `assets/icon/app_icon.svg` (full mark) and `assets/icon/app_icon_foreground.svg` (adaptive foreground), rasterized to 1024×1024 PNGs. `flutter_launcher_icons` config in `pubspec.yaml` generates Android (legacy + adaptive `ic_launcher` with `#ffffff` background) and iOS icons; CI runs `dart run flutter_launcher_icons` after `flutter pub get`.
    - **Android workflow** (`.github/workflows/mobile-release.yml`): Ubuntu + Java 17 + `subosito/flutter-action@v2` (stable). Runs `flutter create --platforms=android,ios .` to regenerate platform scaffolding from pubspec, then `bash scripts/apply-android-overrides.sh` to inject the cleartext network config and label, `dart run flutter_launcher_icons` to generate icons, then `flutter build apk --release` (universal + split-per-abi). Produces tag `mobile-v<version>-<sha>` and attaches universal/arm64-v8a/armeabi-v7a/x86_64 APKs to a GitHub Release.
@@ -85,13 +87,14 @@ pnpm workspace monorepo with React+Vite frontend and Express API backend.
 - Font: Poppins (Google Fonts)
 - Border radius: 14px cards, 99px pill buttons
 
-## Installers (root of repo)
+## Installers / Deploy artifacts (root of repo)
 
-- `install.sh` — Linux & macOS (auto-installs Node, pnpm, PostgreSQL, configures DB, builds, creates `start.sh`)
-- `install-termux.sh` — Android via Termux (pkg install, pg_ctl setup, creates start/stop scripts)
-- `install-geocodebr-termux.sh` — Standalone installer for the **GeocodeR BR** microservice on Termux. Uses `proot-distro` Ubuntu Noble + R 4.5 from CRAN apt repo + **r-universe ARM64 prebuilt binaries** (arrow, duckdb, sf, plumber, geocodebr) — zero C++ compilation, ~10–25 min total
-- `install.ps1` — Windows PowerShell (winget/chocolatey, creates `start.bat`)
-- `docker-compose.yml` + `Dockerfile.api` + `Dockerfile.web` + `nginx.conf` — Docker full-stack deployment
+- `render.yaml` — Render Blueprint: managed Postgres 16 + Web Service Docker, health check `/api/healthz`, autoDeploy from `main`, generated `SESSION_SECRET`, optional API keys with `sync: false`. Source of truth for the production backend at `https://viax-trace-api.onrender.com`.
+- `Dockerfile.api` — Multi-stage Docker image used by Render (corepack pnpm 10.26.1; runs `pnpm --filter @workspace/db run push` then starts the bundled API on container boot).
+- `docker-compose.yml` + `Dockerfile.api` + `Dockerfile.web` + `nginx.conf` — Self-host full-stack deployment (web + API + Postgres locally).
+- `install.sh` — Linux & macOS self-host (auto-installs Node, pnpm, PostgreSQL, configures DB, builds, creates `start.sh`).
+- `install.ps1` — Windows PowerShell self-host (winget/chocolatey, creates `start.bat`).
+- `install-geocodebr-termux.sh` — Standalone installer for the **GeocodeR BR** microservice on Termux. Uses `proot-distro` Ubuntu Noble + R 4.5 from CRAN apt repo + **r-universe ARM64 prebuilt binaries** (arrow, duckdb, sf, plumber, geocodebr) — zero C++ compilation, ~10–25 min total. Kept while geocodebr deployment is being designed (next milestone).
 
 ## GitHub Project Structure
 

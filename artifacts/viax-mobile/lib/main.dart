@@ -9,10 +9,8 @@ import 'router.dart';
 import 'state/auth_provider.dart';
 import 'state/foreground_processing.dart';
 import 'state/processing_service.dart';
-import 'state/server_config.dart';
 import 'state/settings_provider.dart';
 import 'state/theme_provider.dart';
-import 'theme/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,26 +21,21 @@ Future<void> main() async {
     statusBarIconBrightness: Brightness.dark,
   ));
 
-  final config = ServerConfig();
-  await config.load();
-
   final api = ApiClient();
-  await api.init(config);
+  await api.init();
 
   final themeProv = ThemeProvider();
   await themeProv.load();
 
-  runApp(ViaXApp(api: api, config: config, themeProv: themeProv));
+  runApp(ViaXApp(api: api, themeProv: themeProv));
 }
 
 class ViaXApp extends StatelessWidget {
   final ApiClient api;
-  final ServerConfig config;
   final ThemeProvider themeProv;
   const ViaXApp({
     super.key,
     required this.api,
-    required this.config,
     required this.themeProv,
   });
 
@@ -50,7 +43,6 @@ class ViaXApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<ServerConfig>.value(value: config),
         Provider<ApiClient>.value(value: api),
         ChangeNotifierProvider<ThemeProvider>.value(value: themeProv),
         ChangeNotifierProvider(create: (_) => AuthProvider(api)..bootstrap()),

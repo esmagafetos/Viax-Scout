@@ -103,7 +103,7 @@ Mais detalhes em [`README.md`](README.md#-arquitetura) e [`replit.md`](replit.md
 2. Rode `pnpm --filter @workspace/db run push`
 
 ### Mudanças nos instaladores
-- Teste o script alvo (`install.sh`, `install.ps1`, `install-termux.sh`, `install-geocodebr-termux.sh`)
+- Teste o script alvo (`install.sh`, `install.ps1`, `install-geocodebr-termux.sh`)
 - Para `*.sh`, valide com `bash -n script.sh` e idealmente `shellcheck`
 
 ## Revisão de PR

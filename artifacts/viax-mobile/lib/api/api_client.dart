@@ -4,22 +4,25 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../state/server_config.dart';
+/// Base URL of the ViaX:Trace backend.
+///
+/// Hardcoded to the official Render-hosted API. Can be overridden at build
+/// time with `--dart-define=API_BASE=https://your-host` (useful for staging
+/// or self-hosted deployments) — never asked from the end user.
+const String kApiBase = String.fromEnvironment(
+  'API_BASE',
+  defaultValue: 'https://viax-trace-api.onrender.com',
+);
 
 class ApiClient {
   late final Dio dio;
   late final PersistCookieJar cookieJar;
-  late final ServerConfig _config;
-  String _lastBaseUrl = '';
   bool _ready = false;
 
-  String get baseUrl => _config.baseUrl;
-  ServerConfig get config => _config;
+  String get baseUrl => kApiBase;
 
-  Future<void> init(ServerConfig config) async {
+  Future<void> init() async {
     if (_ready) return;
-    _config = config;
-    _lastBaseUrl = _config.baseUrl;
     final dir = await getApplicationDocumentsDirectory();
     final cookieDir = Directory('${dir.path}/.viax_cookies');
     if (!cookieDir.existsSync()) cookieDir.createSync(recursive: true);
@@ -29,8 +32,8 @@ class ApiClient {
     );
 
     dio = Dio(BaseOptions(
-      baseUrl: '${_config.baseUrl}/api',
-      connectTimeout: const Duration(seconds: 20),
+      baseUrl: '$kApiBase/api',
+      connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 60),
       sendTimeout: const Duration(seconds: 60),
       headers: {
@@ -39,33 +42,7 @@ class ApiClient {
       validateStatus: (status) => status != null && status < 500,
     ));
     dio.interceptors.add(CookieManager(cookieJar));
-    _config.addListener(_onConfigChange);
     _ready = true;
-  }
-
-  void _onConfigChange() async {
-    final newBase = _config.baseUrl;
-    if (newBase == _lastBaseUrl) return;
-    _lastBaseUrl = newBase;
-    dio.options.baseUrl = '$newBase/api';
-    try {
-      await cookieJar.deleteAll();
-    } catch (_) {}
-  }
-
-  Future<bool> testConnection(String url) async {
-    final clean = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
-    try {
-      final probe = Dio(BaseOptions(
-        connectTimeout: const Duration(seconds: 6),
-        receiveTimeout: const Duration(seconds: 6),
-        validateStatus: (s) => s != null && s < 500,
-      ));
-      final r = await probe.get('$clean/api/auth/me');
-      return r.statusCode != null && r.statusCode! < 500;
-    } catch (_) {
-      return false;
-    }
   }
 
   // ── Auth ────────────────────────────────────────────────────────────

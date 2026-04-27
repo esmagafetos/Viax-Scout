@@ -9,7 +9,6 @@ import 'screens/login.dart';
 import 'screens/process.dart';
 import 'screens/register.dart';
 import 'screens/settings.dart';
-import 'screens/server_setup.dart';
 import 'screens/setup.dart';
 import 'screens/tool.dart';
 import 'state/auth_provider.dart';
@@ -22,7 +21,7 @@ GoRouter createRouter(AuthProvider auth) {
     redirect: (ctx, state) {
       if (auth.loading) return null;
       final loc = state.matchedLocation;
-      const publics = {'/login', '/register', '/setup', '/server-setup'};
+      const publics = {'/login', '/register', '/setup'};
       final isPublic = publics.contains(loc);
       if (!auth.isAuthenticated && !isPublic) return '/login';
       if (auth.isAuthenticated && isPublic) return '/dashboard';
@@ -30,7 +29,6 @@ GoRouter createRouter(AuthProvider auth) {
     },
     routes: [
       GoRoute(path: '/setup', builder: (_, __) => const SetupScreen()),
-      GoRoute(path: '/server-setup', builder: (_, __) => const ServerSetupScreen()),
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
       GoRoute(path: '/dashboard', builder: (_, __) => const DashboardScreen()),
