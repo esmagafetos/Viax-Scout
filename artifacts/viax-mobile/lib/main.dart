@@ -11,6 +11,7 @@ import 'state/foreground_processing.dart';
 import 'state/processing_service.dart';
 import 'state/settings_provider.dart';
 import 'state/theme_provider.dart';
+import 'theme/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
