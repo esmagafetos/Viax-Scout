@@ -650,6 +650,150 @@ group("GRUPO L — buildRoute: roteamento completo");
   }
 }
 
+// ─── GRUPO M: Padrões reais da planilha Ayslane (10-04-2026) ─────────────────
+
+group("GRUPO M — Planilha Ayslane: endereços reais de Nova Califórnia/Tamoios");
+
+runTest({
+  desc: 'M01 [ROW2]: "QD16 LT.7 lado do dep. de gás" (Verão Vermelho)',
+  endereco: "Avenida Sideral, 09, QD16 LT.7 lado do dep. de gás",
+  condo: GRAVATA_II,
+  expect: { quadra: 16, lote: 7, confiancaMin: 70 },
+});
+
+runTest({
+  desc: 'M02 [ROW4]: "Qd 9, lote 03 beira da pista" (Verão Vermelho 2)',
+  endereco: "Av Sideral casa 1, Qd 9, lote 03 beira da pista",
+  condo: GRAVATA_II,
+  expect: { quadra: 9, lote: 3, confiancaMin: 75 },
+});
+
+runTest({
+  desc: 'M03 [ROW5]: "Lote 3 quadra 9 casa 4" (Verão Vermelho)',
+  endereco: "Avenida Sideral, 4, Lote 3 quadra 9 casa 4",
+  condo: GRAVATA_II,
+  expect: { quadra: 9, lote: 3, confiancaMin: 80 },
+});
+
+runTest({
+  desc: 'M04 [ROW27]: "Quadra A Lote 3 Casa azul" (Bairro Sinagoga)',
+  endereco: "Rua Lana, 66, Quadra A Lote 3 Casa azul",
+  condo: GRAVATA_II,
+  expect: { quadraLetra: "A", lote: 3, confiancaMin: 80 },
+});
+
+runTest({
+  desc: 'M05 [ROW41]: "Quadra 33- Lote 8" (Santa Margarida I)',
+  endereco: "Rua Lagosta Dourada 679. Quadra 33- Lote 8, 679, Rua da Loja de tintas SUVINIL",
+  condo: GRAVATA_II,
+  expect: { quadra: 33, lote: 8, confiancaMin: 80 },
+});
+
+runTest({
+  desc: 'M06 [ROW77]: "Quadra 46 lote 01" (Verão Vermelho — Avenida Espacial)',
+  endereco: "Avenida Espacial, S/N, Quadra 46 lote 01 casa 01",
+  condo: GRAVATA_II,
+  expect: { quadra: 46, lote: 1, confiancaMin: 80 },
+});
+
+runTest({
+  desc: 'M07 [ROW80]: "Lote 9 quadra 23 casa 1" (Verão Vermelho — Avenida Júpiter)',
+  endereco: "Avenida Júpiter, S/N, Lote 9 quadra 23 casa 1",
+  condo: GRAVATA_II,
+  expect: { quadra: 23, lote: 9, confiancaMin: 80 },
+});
+
+runTest({
+  desc: 'M08 [ROW85]: "Lote 11 Quadra 08 Casa 03" (Verão Vermelho — Rua Marte)',
+  endereco: "Rua Marte, 0, Lote 11 Quadra 08 Casa 03",
+  condo: GRAVATA_II,
+  expect: { quadra: 8, lote: 11, confiancaMin: 80 },
+});
+
+runTest({
+  desc: 'M09 [ROW87]: "Lote 13 quadra 30" (Verão Vermelho — Rua Marte)',
+  endereco: "Rua Marte, Sn, Lote 13 quadra 30",
+  condo: GRAVATA_II,
+  expect: { quadra: 30, lote: 13, confiancaMin: 80 },
+});
+
+runTest({
+  desc: 'M10 [ROW89]: "L5Q5" — formato compacto (Rua Lunar, Verão Vermelho)',
+  endereco: "Rua Lunar, L5Q5, Entrada 3 .Verão Vermelho",
+  condo: GRAVATA_II,
+  expect: { quadra: 5, lote: 5, confiancaMin: 40 },
+});
+
+runTest({
+  desc: 'M11 [ROW93]: "Lt.17 Qd.10 casa 01 Vista Alegre" (Verão Vermelho Unamar)',
+  endereco: "Rua Apolo Vinte e Um Lt.17 Qd.10 casa 01 Vista Alegre, 0000",
+  condo: GRAVATA_II,
+  expect: { quadra: 10, lote: 17, confiancaMin: 75 },
+});
+
+runTest({
+  desc: 'M12 [ROW99]: Nova Califórnia — Rua Lima Barreto Qu 18PD LT4A (Sítio Gravatá 2)',
+  endereco: "Rua Lima Barreto Qu 18PD, LT4A, Ao lado da escola CEM MOTTA",
+  condo: GRAVATA_II,
+  expect: { quadraLetra: "18PD", loteId: "4A", condoCitado: false, confiancaMin: 85 },
+});
+
+runTest({
+  desc: 'M13 [ROW99-bairro]: mesma entrada com alias "Sítio Gravata2" no texto',
+  endereco: "Rua Lima Barreto Qu 18PD, LT4A, Nova Califórnia Sítio Gravata2",
+  condo: GRAVATA_II,
+  expect: { quadraLetra: "18PD", loteId: "4A", condoCitado: true, confiancaMin: 95 },
+});
+
+runTest({
+  desc: 'M14 [ROW101]: "Qd E Lt 11" (Vivamar)',
+  endereco: "Rua Namorado, 2, Qd E Lt 11",
+  condo: GRAVATA_II,
+  expect: { quadraLetra: "E", lote: 11, confiancaMin: 75 },
+});
+
+runTest({
+  desc: 'M15 [ROW104]: "Lote 5 quadra 9" (Florestinha I)',
+  endereco: "Rua dos Antúrios, S/N, Lote 5 quadra 9",
+  condo: GRAVATA_II,
+  expect: { quadra: 9, lote: 5, confiancaMin: 80 },
+});
+
+runTest({
+  desc: 'M16 [ROW105]: "Lote 17 quadra 3" — lote antes da quadra (Florestinha I)',
+  endereco: "Rua das Orquídeas, Lote, Lote 17 quadra 3",
+  condo: GRAVATA_II,
+  expect: { quadra: 3, lote: 17, confiancaMin: 80 },
+});
+
+runTest({
+  desc: 'M17 [ROW107]: "L 04, Quadra 27" (Florestinha I — Rua das Samambaias)',
+  endereco: "Rua das Samambaias, L 04, Quadra 27",
+  condo: GRAVATA_II,
+  expect: { quadra: 27, lote: 4, confiancaMin: 70 },
+});
+
+runTest({
+  desc: 'M18: Endereço sem quadra/lote → nuance (rua livre)',
+  endereco: "Rua Sinagoga, 45, Depois do bar do Biel 1° 45",
+  condo: GRAVATA_II,
+  expect: { quadra: null, quadraLetra: null, lote: null, isLoja: false },
+});
+
+runTest({
+  desc: 'M19: "Quadra 27 casa 2 Fundos" — sem lote → nuance (Avenida Litorânea)',
+  endereco: "Avenida Litorânea, 10, Quadra 27 casa 2 Fundos",
+  condo: GRAVATA_II,
+  expect: { quadra: 27, lote: null, loteId: null },
+});
+
+runTest({
+  desc: 'M20: "R dos Flamboyants quadra 22, 8" — rua interna + quadra (número de rua não é lote)',
+  endereco: "R dos Flamboyants quadra 22, 8",
+  condo: GRAVATA_II,
+  expect: { quadra: 22, lote: null, loteId: null },
+});
+
 // ─── Relatório final ──────────────────────────────────────────────────────────
 
 console.log(`\n${"─".repeat(60)}`);

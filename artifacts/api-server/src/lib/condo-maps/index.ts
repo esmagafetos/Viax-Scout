@@ -638,6 +638,7 @@ export function buildRoute(
         classificacao: "loja",
         motivo: "Comércio/loja identificado na Rua Das Pacas — acesso direto, sem roteamento interno.",
         confiancaParse: parsed.confianca,
+        ruaCitada: parsed.ruaCitada,
       });
       continue;
     }
@@ -661,6 +662,7 @@ export function buildRoute(
           ? "Quadra não informada no endereço."
           : "Lote não informado no endereço.",
         confiancaParse: parsed.confianca,
+        ruaCitada: parsed.ruaCitada,
       });
       continue;
     }
@@ -679,6 +681,7 @@ export function buildRoute(
         classificacao: "nuance",
         motivo: `Quadra "${ref}" não consta no mapa interno do condomínio ${condo.nome}.`,
         confiancaParse: parsed.confianca,
+        ruaCitada: parsed.ruaCitada,
       });
       continue;
     }
@@ -695,6 +698,7 @@ export function buildRoute(
         ? "Endereço completo com condomínio informado."
         : `Endereço encontrado, mas o nome do condomínio (${condo.nome}) não foi mencionado.`,
       confiancaParse: parsed.confianca,
+      ruaCitada: parsed.ruaCitada,
     };
     orderable.push({ row, quadra: quadraObj });
   }

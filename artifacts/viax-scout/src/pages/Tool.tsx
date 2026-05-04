@@ -21,6 +21,7 @@ interface DeliveryRow {
   ordem?: number;
   instrucao?: string;
   confiancaParse?: number;
+  ruaCitada?: string | null;
 }
 
 interface RouteResult {
@@ -68,7 +69,7 @@ const CLASS_ICON: Record<DeliveryRow["classificacao"], string> = {
 function quadraDisplay(row: DeliveryRow): string {
   if (row.quadraLetra) return `Quadra ${row.quadraLetra}`;
   if (row.quadra !== null) return `Quadra ${row.quadra}`;
-  return "Quadra ?";
+  return "—";
 }
 
 function loteDisplay(row: DeliveryRow): string | null {
@@ -77,12 +78,34 @@ function loteDisplay(row: DeliveryRow): string | null {
   return null;
 }
 
+function confidenceColor(v: number): string {
+  if (v >= 80) return "var(--ok)";
+  if (v >= 50) return "#f59e0b";
+  return "var(--accent)";
+}
+
+function ConfidenceBar({ value }: { value: number }) {
+  const color = confidenceColor(value);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+      <div style={{
+        height: 4, width: 48, borderRadius: 99,
+        background: "var(--border-strong)", overflow: "hidden", flexShrink: 0,
+      }}>
+        <div style={{ height: "100%", width: `${value}%`, background: color, borderRadius: 99, transition: "width 0.4s" }} />
+      </div>
+      <span style={{ fontSize: "0.64rem", fontWeight: 700, color, tabularNums: true } as any}>{value}%</span>
+    </div>
+  );
+}
+
 export default function Tool() {
   const [condos, setCondos] = useState<CondoSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string>("gravata-ii");
   const [file, setFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [steps, setSteps] = useState<string[]>([]);
+  const [doneSteps, setDoneSteps] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<RouteResult | null>(null);
   const [activeFilter, setActiveFilter] = useState<Filter>("all");
@@ -117,6 +140,7 @@ export default function Tool() {
     setFile(f);
     setResult(null);
     setSteps([]);
+    setDoneSteps([]);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -134,6 +158,7 @@ export default function Tool() {
     }
     setIsProcessing(true);
     setSteps([]);
+    setDoneSteps([]);
     setResult(null);
     try {
       const fd = new FormData();
@@ -171,6 +196,7 @@ export default function Tool() {
             if (eventType === "step" && parsed.step) addStep(parsed.step);
             else if (eventType === "result" && parsed.result) {
               setResult(parsed.result);
+              setDoneSteps((prev) => [...prev, ...steps, "✓ Sequência logística pronta!"]);
               addStep("✓ Sequência logística pronta!");
             } else if (eventType === "error" && parsed.error) {
               showToast(parsed.error);
@@ -191,13 +217,15 @@ export default function Tool() {
 
   const exportCsv = () => {
     if (!result) return;
-    const header = ["Ordem", "Linha", "Quadra", "Lote", "Classificação", "Endereço", "Instrução", "Motivo"];
+    const header = ["Ordem", "Linha", "Quadra", "Lote", "Classificação", "Confiança%", "Rua Interna", "Endereço", "Instrução", "Motivo"];
     const rows = result.detalhes.map((r) => [
       r.ordem ?? "",
       r.linha,
       r.quadraLetra ?? r.quadra ?? "",
       r.loteId ?? r.lote ?? "",
       CLASS_LABEL[r.classificacao],
+      r.confiancaParse ?? "",
+      r.ruaCitada ?? "",
       r.enderecoOriginal,
       r.instrucao ?? "",
       r.motivo,
@@ -221,7 +249,7 @@ export default function Tool() {
           Ferramenta de Condomínios
         </h1>
         <p style={{ fontSize: "0.82rem", color: "var(--text-faint)" }}>
-          Rastreamento interno de entregas em condomínios fechados — Nova Califórnia (Tamoios).
+          Roteirização semântica de entregas em condomínios fechados — Nova Califórnia (Tamoios).
         </p>
       </div>
 
@@ -247,7 +275,7 @@ export default function Tool() {
             return (
               <button
                 key={c.id}
-                onClick={() => { if (isAvail) { setSelectedId(c.id); setResult(null); setFile(null); setSteps([]); } }}
+                onClick={() => { if (isAvail) { setSelectedId(c.id); setResult(null); setFile(null); setSteps([]); setDoneSteps([]); } }}
                 disabled={!isAvail}
                 style={{
                   textAlign: "left", padding: "0.75rem 0.85rem",
@@ -377,6 +405,18 @@ export default function Tool() {
             </div>
           </div>
         )}
+
+        {/* Log de processamento (pós-conclusão) */}
+        {!isProcessing && result && doneSteps.length > 0 && (
+          <div style={{ padding: "0.75rem 1.25rem", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            {doneSteps.map((step, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "0.45rem", fontSize: "0.7rem", color: "var(--text-faint)" }}>
+                <span style={{ color: "var(--ok)", flexShrink: 0 }}>✓</span>
+                <span>{step}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {result && (
@@ -389,7 +429,7 @@ export default function Tool() {
               { value: result.totalSemCondominio,  label: "Sem condomínio", color: "#7c3aed" },
               { value: result.totalLojas,          label: "Lojas",          color: "#0ea5e9" },
               { value: result.totalNuances,        label: "Nuances",        color: "var(--accent)" },
-              { value: `${result.metricas.tempo_ms}ms`, label: "Tempo",   color: "var(--border)" },
+              { value: `${result.metricas.tempo_ms}ms`, label: "Tempo",    color: "var(--border)" },
             ].map(({ value, label, color }) => (
               <div key={label} style={{
                 background: "var(--surface)", border: "1px solid var(--border-strong)",
@@ -411,6 +451,7 @@ export default function Tool() {
                 const count = f === "all"
                   ? result.detalhes.length
                   : result.detalhes.filter((r) => r.classificacao === f).length;
+                const bgColor = f === "loja" ? "#0ea5e9" : f === "nuance" ? "var(--accent)" : f === "encontrada_sem_condominio" ? "#7c3aed" : f === "ordenada" ? "var(--ok)" : "var(--text)";
                 return (
                   <button
                     key={f}
@@ -418,7 +459,7 @@ export default function Tool() {
                     style={{
                       padding: "0.4rem 0.85rem", borderRadius: 99,
                       fontSize: "0.75rem", fontWeight: 600,
-                      background: isActive ? (f === "loja" ? "#0ea5e9" : f === "nuance" ? "var(--accent)" : f === "encontrada_sem_condominio" ? "#7c3aed" : f === "ordenada" ? "var(--ok)" : "var(--text)") : "var(--surface-2)",
+                      background: isActive ? bgColor : "var(--surface-2)",
                       color: isActive ? "#fff" : "var(--text-muted)",
                       border: `1px solid ${isActive ? "transparent" : "var(--border-strong)"}`,
                       cursor: "pointer", fontFamily: "inherit",
@@ -437,9 +478,10 @@ export default function Tool() {
                 fontSize: "0.75rem", fontWeight: 600,
                 background: "var(--surface-2)", color: "var(--text)",
                 border: "1px solid var(--border-strong)", cursor: "pointer",
-                fontFamily: "inherit",
+                fontFamily: "inherit", display: "flex", alignItems: "center", gap: "0.35rem",
               }}
             >
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Exportar CSV
             </button>
           </div>
@@ -465,13 +507,14 @@ export default function Tool() {
               )}
               {filteredRows.map((r, idx) => {
                 const color = CLASS_COLOR[r.classificacao];
+                const conf = r.confiancaParse ?? 0;
                 return (
                   <div key={`${r.linha}-${idx}`} style={{
                     padding: "0.9rem 1.25rem",
                     borderTop: idx === 0 ? "none" : "1px solid var(--border)",
                     display: "flex", gap: "0.9rem", alignItems: "flex-start",
                   }}>
-                    {/* Badge */}
+                    {/* Order badge */}
                     <div style={{
                       width: 34, height: 34, borderRadius: 8, flexShrink: 0,
                       background: `${color}18`,
@@ -480,7 +523,7 @@ export default function Tool() {
                       fontWeight: 800, fontSize: "0.78rem",
                       border: `1px solid ${color}30`,
                     }}>
-                      {r.classificacao === "loja" ? CLASS_ICON[r.classificacao] : (r.ordem ?? "—")}
+                      {r.classificacao === "loja" ? CLASS_ICON[r.classificacao] : (r.ordem ?? CLASS_ICON[r.classificacao])}
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -504,20 +547,31 @@ export default function Tool() {
 
                       {/* Navigation instruction */}
                       {r.instrucao && (
-                        <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.2rem", lineHeight: 1.5, display: "flex", alignItems: "flex-start", gap: "0.3rem" }}>
+                        <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.25rem", lineHeight: 1.5, display: "flex", alignItems: "flex-start", gap: "0.3rem" }}>
                           <span style={{ flexShrink: 0, marginTop: 1 }}>➜</span>
                           <span>{r.instrucao}</span>
                         </div>
                       )}
 
+                      {/* Rua interna citada */}
+                      {r.ruaCitada && (
+                        <div style={{ fontSize: "0.7rem", color: "#7c3aed", marginBottom: "0.15rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                          <span style={{ fontWeight: 600 }}>{r.ruaCitada}</span>
+                        </div>
+                      )}
+
                       {/* Original address */}
-                      <div style={{ fontSize: "0.72rem", color: "var(--text-faint)", marginBottom: "0.15rem", wordBreak: "break-word" }}>
+                      <div style={{ fontSize: "0.72rem", color: "var(--text-faint)", marginBottom: "0.2rem", wordBreak: "break-word" }}>
                         {r.enderecoOriginal}
                       </div>
 
-                      {/* Reason */}
-                      <div style={{ fontSize: "0.69rem", color: "var(--text-faint)", fontStyle: "italic" }}>
-                        {r.motivo}
+                      {/* Footer: motivo + confidence */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                        <div style={{ fontSize: "0.68rem", color: "var(--text-faint)", fontStyle: "italic", flex: 1, minWidth: 0 }}>
+                          {r.motivo}
+                        </div>
+                        {conf > 0 && <ConfidenceBar value={conf} />}
                       </div>
                     </div>
                   </div>

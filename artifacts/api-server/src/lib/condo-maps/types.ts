@@ -152,6 +152,8 @@ export interface DeliveryRow {
   ordem?: number;
   instrucao?: string;
   confiancaParse?: number;
+  /** Nome da rua interna do condomínio citada no endereço, se detectada. */
+  ruaCitada?: string | null;
 }
 
 // ─── Resultado da rota ─────────────────────────────────────────────────────────

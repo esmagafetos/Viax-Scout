@@ -34,8 +34,6 @@ class _ToolScreenState extends State<ToolScreen> {
 
   @override
   void dispose() {
-    // O processamento sempre roda em foreground service: ele continua vivo
-    // mesmo se o usuário sair desta tela ou fechar o app.
     super.dispose();
   }
 
@@ -138,7 +136,7 @@ class _ToolScreenState extends State<ToolScreen> {
                   color: context.text)),
           const SizedBox(height: 4),
           Text(
-              'Rastreamento interno de entregas em condomínios fechados — Nova Califórnia (Tamoios).',
+              'Roteirização semântica de entregas em condomínios fechados — Nova Califórnia (Tamoios).',
               style: TextStyle(
                   fontSize: 13, color: context.textFaint, height: 1.5)),
           const SizedBox(height: 16),
@@ -180,7 +178,7 @@ class _ToolScreenState extends State<ToolScreen> {
                             height: 18,
                             child: CircularProgressIndicator(
                                 strokeWidth: 2.4, color: Colors.white))
-                        : const Text('Iniciar'),
+                        : const Text('Iniciar Roteirização'),
                   ),
                 ),
                 if (processing && steps.isNotEmpty) ...[
@@ -203,6 +201,28 @@ class _ToolScreenState extends State<ToolScreen> {
                               child: Text(s,
                                   style: TextStyle(
                                       fontSize: 12,
+                                      color: context.textFaint))),
+                        ],
+                      ),
+                    ),
+                ],
+                if (!processing && result != null && steps.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  const Divider(height: 1),
+                  const SizedBox(height: 10),
+                  for (final s in steps)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 1),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.check_circle_outline,
+                              size: 12, color: context.ok),
+                          const SizedBox(width: 6),
+                          Expanded(
+                              child: Text(s,
+                                  style: TextStyle(
+                                      fontSize: 11,
                                       color: context.textFaint))),
                         ],
                       ),
@@ -342,12 +362,14 @@ class _ToolScreenState extends State<ToolScreen> {
     final classColor = {
       'ordenada': context.ok,
       'encontrada_sem_condominio': const Color(0xFF7C3AED),
+      'loja': const Color(0xFF0EA5E9),
       'nuance': context.accent,
     };
     final classLabel = {
       'all': 'Todos',
       'ordenada': 'Ordenadas',
       'encontrada_sem_condominio': 'Sem condomínio',
+      'loja': 'Lojas',
       'nuance': 'Nuances',
     };
     final detalhes = (r['detalhes'] as List?) ?? const [];
@@ -355,6 +377,9 @@ class _ToolScreenState extends State<ToolScreen> {
       if (_activeFilter == 'all') return true;
       return (row as Map)['classificacao'] == _activeFilter;
     }).toList();
+
+    int countFor(String cls) =>
+        detalhes.where((d) => (d as Map)['classificacao'] == cls).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -365,7 +390,7 @@ class _ToolScreenState extends State<ToolScreen> {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
-          childAspectRatio: 2.0,
+          childAspectRatio: 2.2,
           children: [
             StatTile(value: '${r['totalLinhas'] ?? 0}', label: 'Total'),
             StatTile(
@@ -377,9 +402,16 @@ class _ToolScreenState extends State<ToolScreen> {
                 label: 'Sem condomínio',
                 accent: const Color(0xFF7C3AED)),
             StatTile(
+                value: '${r['totalLojas'] ?? 0}',
+                label: 'Lojas',
+                accent: const Color(0xFF0EA5E9)),
+            StatTile(
                 value: '${r['totalNuances'] ?? 0}',
                 label: 'Nuances',
                 accent: context.accent),
+            StatTile(
+                value: '${r['metricas']?['tempo_ms'] ?? 0}ms',
+                label: 'Tempo'),
           ],
         ),
         const SizedBox(height: 14),
@@ -391,7 +423,8 @@ class _ToolScreenState extends State<ToolScreen> {
                 'all',
                 'ordenada',
                 'encontrada_sem_condominio',
-                'nuance'
+                'loja',
+                'nuance',
               ])
                 Padding(
                   padding: const EdgeInsets.only(right: 6),
@@ -402,16 +435,18 @@ class _ToolScreenState extends State<ToolScreen> {
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: _activeFilter == f
-                            ? context.accent
+                            ? (classColor[f] ?? context.accent)
                             : context.surface2,
                         borderRadius: BorderRadius.circular(AppRadii.pill),
                         border: Border.all(
                             color: _activeFilter == f
-                                ? context.accent
+                                ? (classColor[f] ?? context.accent)
                                 : context.borderStrong),
                       ),
                       child: Text(
-                        classLabel[f] ?? f,
+                        f == 'all'
+                            ? '${classLabel[f]} (${detalhes.length})'
+                            : '${classLabel[f]} (${countFor(f)})',
                         style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -454,6 +489,24 @@ class _ToolScreenState extends State<ToolScreen> {
       Map<String, dynamic> row, Map<String, Color> colors, bool first) {
     final clsf = row['classificacao']?.toString() ?? 'nuance';
     final color = colors[clsf] ?? context.accent;
+    final conf = (row['confiancaParse'] as num?)?.toInt() ?? 0;
+    final ruaCitada = row['ruaCitada']?.toString();
+    final quadraLetra = row['quadraLetra']?.toString();
+    final quadraNum = row['quadra'];
+    final lote = row['lote'];
+    final loteId = row['loteId']?.toString();
+
+    String quadraLabel;
+    if (clsf == 'loja') {
+      quadraLabel = 'Loja / Comércio';
+    } else if (quadraLetra != null) {
+      quadraLabel = 'Quadra $quadraLetra${loteId != null ? " · Lote $loteId" : lote != null ? " · Lote $lote" : ""}';
+    } else if (quadraNum != null) {
+      quadraLabel = 'Quadra $quadraNum${lote != null ? " · Lote $lote" : ""}';
+    } else {
+      quadraLabel = '—';
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
@@ -468,13 +521,16 @@ class _ToolScreenState extends State<ToolScreen> {
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
             ),
             child: Center(
-              child: Text(row['ordem']?.toString() ?? '—',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
-                      color: color)),
+              child: Text(
+                clsf == 'loja' ? '🏪' : (row['ordem']?.toString() ?? '—'),
+                style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: clsf == 'loja' ? 14 : 12,
+                    color: color),
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -482,19 +538,55 @@ class _ToolScreenState extends State<ToolScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${row['quadra'] != null ? "Quadra ${row['quadra']}" : "Quadra ?"}'
-                  '${row['lote'] != null ? " · Lote ${row['lote']}" : ""}',
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: context.text),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(quadraLabel,
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: context.text)),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      child: Text(
+                        _classLabel(clsf),
+                        style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.4,
+                            color: color),
+                      ),
+                    ),
+                  ],
                 ),
                 if (row['instrucao'] != null) ...[
                   const SizedBox(height: 3),
                   Text('➜ ${row['instrucao']}',
                       style: TextStyle(
                           fontSize: 11, color: context.textMuted)),
+                ],
+                if (ruaCitada != null) ...[
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Icon(Icons.home_outlined,
+                          size: 10, color: const Color(0xFF7C3AED)),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(ruaCitada,
+                            style: const TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF7C3AED))),
+                      ),
+                    ],
+                  ),
                 ],
                 const SizedBox(height: 3),
                 Text(row['enderecoOriginal']?.toString() ?? '',
@@ -510,11 +602,63 @@ class _ToolScreenState extends State<ToolScreen> {
                           color: context.textFaint,
                           fontStyle: FontStyle.italic)),
                 ],
+                if (conf > 0) ...[
+                  const SizedBox(height: 5),
+                  _confidenceBar(conf),
+                ],
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  String _classLabel(String cls) {
+    switch (cls) {
+      case 'ordenada':
+        return 'Ordenada';
+      case 'encontrada_sem_condominio':
+        return 'Sem cond.';
+      case 'loja':
+        return 'Loja';
+      case 'nuance':
+        return 'Nuance';
+      default:
+        return cls;
+    }
+  }
+
+  Widget _confidenceBar(int value) {
+    Color barColor;
+    if (value >= 80) {
+      barColor = context.ok;
+    } else if (value >= 50) {
+      barColor = const Color(0xFFF59E0B);
+    } else {
+      barColor = context.accent;
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(99),
+            child: LinearProgressIndicator(
+              value: value / 100,
+              minHeight: 3,
+              backgroundColor: context.borderStrong,
+              valueColor: AlwaysStoppedAnimation<Color>(barColor),
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text('$value%',
+            style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: barColor)),
+      ],
     );
   }
 }
