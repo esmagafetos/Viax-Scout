@@ -8,6 +8,19 @@ const router: IRouter = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 const MAX_LINHAS = 500;
 
+// ── Padrões de identificação do bairro Nova Califórnia (Tamoios / Cabo Frio) ──
+const NOVA_CALIFORNIA_PATTERNS = [
+  /nova\s*calif[oó]rnia/i,
+  /tamoios/i,
+  /bougainville/i,
+  /gravat[aá]/i,
+  /residencial\s*nova/i,
+];
+
+function isNovaCaliforniaAddress(endereco: string): boolean {
+  return NOVA_CALIFORNIA_PATTERNS.some((p) => p.test(endereco));
+}
+
 function requireAuth(req: any, res: any): number | null {
   const userId = req.session?.userId;
   if (!userId) { res.status(401).json({ error: "Não autenticado." }); return null; }
@@ -88,21 +101,41 @@ router.post("/condominium/process", upload.single("arquivo"), async (req, res): 
     if (!linhas.length) {
       sendSSE(res, "error", { error: "Nenhum endereço encontrado na planilha." }); res.end(); return;
     }
+
+    const totalOriginal = linhas.length;
+
+    // ── Filtro de bairro: mantém apenas endereços de Nova Califórnia ──────────
+    const filtradas = linhas.filter((l) => isNovaCaliforniaAddress(l.endereco));
+    if (filtradas.length > 0 && filtradas.length < totalOriginal) {
+      linhas = filtradas;
+      sendSSE(res, "step", {
+        step: `🏘️ Filtro Nova Califórnia: ${filtradas.length} de ${totalOriginal} endereço(s) identificado(s) no bairro.`,
+      });
+    } else if (filtradas.length === 0) {
+      sendSSE(res, "step", {
+        step: `⚠️ Padrão Nova Califórnia não detectado — processando todos os ${totalOriginal} endereço(s).`,
+      });
+    }
+    // Se filtradas.length === totalOriginal: planilha já era 100% Nova Califórnia, não exibe aviso.
+
     if (linhas.length > MAX_LINHAS) {
       sendSSE(res, "step", { step: `⚠️ ${linhas.length} linhas; processando primeiras ${MAX_LINHAS}.` });
       linhas = linhas.slice(0, MAX_LINHAS);
     }
 
-    sendSSE(res, "step", { step: `${linhas.length} endereço(s) detectado(s).` });
+    sendSSE(res, "step", { step: `${linhas.length} endereço(s) para roteirizar.` });
     sendSSE(res, "step", { step: "Identificando quadras e lotes..." });
 
     const result = buildRoute(linhas, condo);
 
-    sendSSE(res, "step", { step: `${result.totalOrdenadas} ordenado(s) · ${result.totalSemCondominio} sem condomínio · ${result.totalNuances} nuance(s).` });
-    sendSSE(res, "step", { step: "Gerando sequência logística com instruções..." });
+    sendSSE(res, "step", {
+      step: `${result.totalOrdenadas} ordenado(s) · ${result.totalSemCondominio} sem condomínio · ${result.totalNuances} nuance(s).`,
+    });
+    sendSSE(res, "step", { step: "Gerando sequência logística com instruções de navegação..." });
 
-    logger.info({ userId, condoId, total: linhas.length, ...result }, "Rota interna processada");
-    sendSSE(res, "result", { result });
+    logger.info({ userId, condoId, totalOriginal, total: linhas.length, ...result }, "Rota interna processada");
+
+    sendSSE(res, "result", { result: { ...result, totalOriginal } });
   } catch (e: any) {
     logger.error({ error: e?.message }, "Erro ferramenta condomínio");
     sendSSE(res, "error", { error: "Erro interno: " + (e.message ?? String(e)) });
