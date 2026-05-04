@@ -3,7 +3,7 @@ import {
   processarEndereco,
   type AddressRow,
   type ResultRow,
-} from './lib/geocoder.ts';
+} from './lib/geocoder';
 
 const ARQUIVOS = [
   { path: '/home/runner/workspace/attached_assets/27-03-2026_IVONI_CONCEICAO_CAMPOS_SANTOS_1777591069786.xlsx', label: '36 linhas — IVONI Mar/26' },
