@@ -1,0 +1,134 @@
+ESPECIFICAÇÃO - ABA FERRAMENTAS: SISTEMA DE MAPEAMENTO E ROTEIRIZAÇÃO INTELIGENTE
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CONTEXTO E PROBLEMA
+
+O bairro Nova Califórnia (Tamoios) apresenta desafios críticos de precisão geográfica que afetam diretamente a eficiência operacional:
+
+• 90% das entregas dentro dos condomínios sofrem imprecisão em coordenadas GPS
+• Motoristas precisam traçar rotas manualmente, resultando em tempo de trabalho dobrado
+• Impossibilidade de seguir roteirização automática devido a problemas de infraestrutura
+
+A aba Ferramentas resolve este problema através de um motor inteligente baseado em mapas dos condomínios, permitindo mapeamento precisão geográfica e otimização logística por condomínio.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ESTRUTURA DO BAIRRO NOVA CALIFÓRNIA
+
+Sete condomínios organizados com padrão administrativo:
+1. Residencial Nova Califórnia
+2. Bougainville I
+3. Bougainville II
+4. Bougainville III
+5. Bougainville IV
+6. Gravatá I
+7. Gravatá II
+
+Cada condomínio possui: ruas nomeadas, lotes e quadras.
+
+DESAFIO SEMÂNTICO CRÍTICO
+
+O endereço do cliente frequentemente apresenta incoerências estruturais:
+
+• Clientes informam "Rua das Pacas" (via externa) ao invés do nome da rua interna do condomínio
+• "Rua das Pacas" é uma via pública extensa com comércio que fornece acesso aos condomínios
+• Muitos clientes omitem o nome do condomínio completamente
+• Alguns clientes utilizam a rua interna do condomínio mas sem identificar qual condomínio
+
+Resultado: O sistema deve ser robusto o suficiente para resolver ambiguidades e normalizar endereços com múltiplas variações semânticas.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+EXEMPLOS DE PADRÕES DE ENTRADA
+
+PADRÃO 1 - Comércio/Loja:
+"Rua das Pacas, loja"
+→ Filtro: Loja (acesso direto)
+
+PADRÃO 2 - Condomínio Completo:
+"Rua das Pacas, lote 00, quadra 8, Gravatá 2"
+→ Identificar condomínio, normalizar endereço
+
+PADRÃO 3 - Sem Nome do Condomínio:
+"Rua das Pacas, lote 86, quadra 8"
+→ Sistema deve inferir condomínio baseado em logística de lotes/quadras
+
+PADRÃO 4 - Com Rua Interna (com condomínio):
+"Rua Pau Brasil, lote 86, quadra 86, Gravatá 2"
+→ Converter referência interna para coordenadas do mapa
+
+PADRÃO 5 - Com Rua Interna (sem condomínio):
+"Rua Pau Brasil, lote 86, quadra 75"
+→ Desambiguar qual condomínio possui essa rua e quadra
+
+═══════════════════════════════════════════════════════════════════════════════
+
+FLUXO OPERACIONAL DO USUÁRIO
+
+1. Usuário navega até a aba Ferramentas
+2. Faz upload da planilha com endereços
+3. Sistema analisa endereços (leitura semântica baseada em motor próprio, não em instâncias externas)
+4. Sistema apresenta opções de filtragem:
+   - Condomínios identificados
+   - Lojas/Comércios (Rua das Pacas)
+   - Anomalias (endereços obsoletos ou incompletos)
+5. Usuário seleciona condomínio desejado
+6. Sistema exibe lista de endereços com instruções de navegação
+   Exemplo:
+   "Rua das Pacas, quadra 68, lote 9728 - Residencial Nova Califórnia
+    → 1ª direita, 2ª direita"
+7. Roteirização logística automática: sistema ordena entregas por proximidade entre quadras
+8. Motorista recebe instruções claras para cada entrega sequencial
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ETAPAS DE DESENVOLVIMENTO
+
+ETAPA 1 - ANÁLISE SEMÂNTICA
+Atividades:
+• Análise profunda dos padrões de endereço fornecidos neste documento
+• Extração e análise da planilha anexada com endereços reais de Nova Califórnia
+• Identificação de padrões semânticos, variações e anomalias
+• Documentação de regras de normalização e desambiguação
+• Embasamento técnico para construção do motor inteligente
+
+Entrega: Especificação de regras semânticas e mapeamento de padrões
+
+ETAPA 2 - CONSTRUÇÃO DO MOTOR INTELIGENTE (INSTÂNCIA INTERNA)
+Pré-requisito: Recebimento das fotos dos mapas dos condomínios
+Atividades:
+• Digitalização e codificação da estrutura física de cada condomínio
+• Criação da "instância interna" - motor próprio baseado nos mapas
+• Mapeamento de ruas, quadras e lotes em estrutura de dados
+• Implementação de lógica de resolução de ambiguidades semânticas
+• Calibração de precisão geográfica
+
+Entrega: Motor inteligente funcional com base cartográfica
+
+ETAPA 3 - ROTEIRIZAÇÃO LOGÍSTICA E NAVEGAÇÃO
+Pré-requisito: Conclusão da Etapa 2
+Atividades:
+• Implementação de algoritmo de proximidade entre quadras
+• Ordenação sequencial de entregas por localização
+• Geração de instruções claras de navegação (ex: "1ª direita, 1ª esquerda")
+• Validação de rota logística e UX de navegação
+• Testes com motoristas
+
+Entrega: Sistema de roteirização completo e operacional
+
+Nota Futura: Possível integração de mapa interativo para visualização em tempo real (a ser discutido)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+REQUISITOS TÉCNICOS
+
+• Sistema deve operar com motor próprio (não baseado em instâncias externas)
+• Robusto para lidar com incoerências e ambiguidades semânticas
+• Capaz de inferir informações faltantes (condomínio, rua)
+• Integração com planilhas (processamento similar à aba Processamento)
+• Interface clara de seleção de filtros
+• Geração de instruções de navegação legíveis
+• Otimização logística por proximidade
+
+═══════════════════════════════════════════════════════════════════════════════
