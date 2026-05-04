@@ -1,6 +1,7 @@
 export interface Quadra {
   id: string;
-  numero: number;
+  numero?: number;
+  letra?: string;
   x: number;
   y: number;
   loteRangeHint?: [number, number];
@@ -26,21 +27,25 @@ export interface CondoMap {
 
 export interface ParsedAddress {
   quadra: number | null;
+  quadraLetra: string | null;
   lote: number | null;
   ruaCitada: string | null;
   condoCitado: boolean;
+  isLoja: boolean;
   enderecoOriginal: string;
 }
 
 export type Classificacao =
   | "ordenada"
   | "encontrada_sem_condominio"
+  | "loja"
   | "nuance";
 
 export interface DeliveryRow {
   linha: number;
   enderecoOriginal: string;
   quadra: number | null;
+  quadraLetra: string | null;
   lote: number | null;
   classificacao: Classificacao;
   motivo: string;
@@ -54,6 +59,7 @@ export interface RouteResult {
   totalOrdenadas: number;
   totalSemCondominio: number;
   totalNuances: number;
+  totalLojas: number;
   detalhes: DeliveryRow[];
   metricas: { tempo_ms: number };
 }

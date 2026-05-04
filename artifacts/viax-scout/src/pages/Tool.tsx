@@ -13,8 +13,9 @@ interface DeliveryRow {
   linha: number;
   enderecoOriginal: string;
   quadra: number | null;
+  quadraLetra: string | null;
   lote: number | null;
-  classificacao: "ordenada" | "encontrada_sem_condominio" | "nuance";
+  classificacao: "ordenada" | "encontrada_sem_condominio" | "loja" | "nuance";
   motivo: string;
   ordem?: number;
   instrucao?: string;
@@ -26,34 +27,51 @@ interface RouteResult {
   totalOrdenadas: number;
   totalSemCondominio: number;
   totalNuances: number;
+  totalLojas: number;
   detalhes: DeliveryRow[];
   metricas: { tempo_ms: number };
 }
 
-type Filter = "all" | "ordenada" | "encontrada_sem_condominio" | "nuance";
+type Filter = "all" | "ordenada" | "encontrada_sem_condominio" | "loja" | "nuance";
 
 const FILTER_LABEL: Record<Filter, string> = {
   all: "Todos",
   ordenada: "Ordenadas",
   encontrada_sem_condominio: "Sem condomínio",
+  loja: "Lojas",
   nuance: "Nuances",
 };
 
 const CLASS_COLOR: Record<DeliveryRow["classificacao"], string> = {
   ordenada: "var(--ok)",
   encontrada_sem_condominio: "#7c3aed",
+  loja: "#0ea5e9",
   nuance: "var(--accent)",
 };
 
 const CLASS_LABEL: Record<DeliveryRow["classificacao"], string> = {
   ordenada: "Ordenada",
   encontrada_sem_condominio: "Sem condomínio",
+  loja: "Loja",
   nuance: "Nuance",
 };
 
+const CLASS_ICON: Record<DeliveryRow["classificacao"], string> = {
+  ordenada: "✓",
+  encontrada_sem_condominio: "?",
+  loja: "🏪",
+  nuance: "⚠",
+};
+
+function quadraDisplay(row: DeliveryRow): string {
+  if (row.quadraLetra) return `Quadra ${row.quadraLetra}`;
+  if (row.quadra !== null) return `Quadra ${row.quadra}`;
+  return "Quadra ?";
+}
+
 export default function Tool() {
   const [condos, setCondos] = useState<CondoSummary[]>([]);
-  const [selectedId, setSelectedId] = useState<string>("bougainville-iii");
+  const [selectedId, setSelectedId] = useState<string>("gravata-ii");
   const [file, setFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [steps, setSteps] = useState<string[]>([]);
@@ -68,7 +86,12 @@ export default function Tool() {
   useEffect(() => {
     fetch(`${base}/api/condominium/list`, { credentials: "include" })
       .then((r) => r.json())
-      .then((d) => setCondos(d.condominios ?? []))
+      .then((d) => {
+        const list = d.condominios ?? [];
+        setCondos(list);
+        const first = list.find((c: CondoSummary) => c.status === "ativo");
+        if (first) setSelectedId(first.id);
+      })
       .catch(() => setCondos([]));
   }, [base]);
 
@@ -162,9 +185,14 @@ export default function Tool() {
     if (!result) return;
     const header = ["Ordem", "Linha", "Quadra", "Lote", "Classificação", "Endereço", "Instrução", "Motivo"];
     const rows = result.detalhes.map((r) => [
-      r.ordem ?? "", r.linha, r.quadra ?? "", r.lote ?? "",
-      CLASS_LABEL[r.classificacao], r.enderecoOriginal,
-      r.instrucao ?? "", r.motivo,
+      r.ordem ?? "",
+      r.linha,
+      r.quadraLetra ?? r.quadra ?? "",
+      r.lote ?? "",
+      CLASS_LABEL[r.classificacao],
+      r.enderecoOriginal,
+      r.instrucao ?? "",
+      r.motivo,
     ]);
     const csv = [header, ...rows]
       .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
@@ -211,7 +239,7 @@ export default function Tool() {
             return (
               <button
                 key={c.id}
-                onClick={() => isAvail && setSelectedId(c.id)}
+                onClick={() => { if (isAvail) { setSelectedId(c.id); setResult(null); setFile(null); setSteps([]); } }}
                 disabled={!isAvail}
                 style={{
                   textAlign: "left", padding: "0.75rem 0.85rem",
@@ -219,7 +247,7 @@ export default function Tool() {
                   border: `1.5px solid ${isActive ? "var(--accent)" : "var(--border-strong)"}`,
                   background: isActive ? "var(--accent-dim)" : "var(--surface-2)",
                   cursor: isAvail ? "pointer" : "not-allowed",
-                  opacity: isAvail ? 1 : 0.6,
+                  opacity: isAvail ? 1 : 0.5,
                   transition: "all 0.2s",
                   display: "flex", flexDirection: "column", gap: "0.3rem",
                   fontFamily: "inherit",
@@ -323,14 +351,14 @@ export default function Tool() {
             }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
-            {isProcessing ? "Processando..." : "Iniciar"}
+            {isProcessing ? "Processando..." : "Iniciar Roteirização"}
           </button>
         </div>
 
         {isProcessing && (
           <div style={{ padding: "1.5rem 1.5rem 2rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
             <div style={{ width: 40, height: 40, border: "2px solid var(--border-strong)", borderTopColor: "var(--accent)", borderRadius: "50%" }} className="animate-spin-ring" />
-            <div style={{ fontSize: "0.8rem", fontWeight: 500, color: "var(--text-muted)" }}>Processando arquivo...</div>
+            <div style={{ fontSize: "0.8rem", fontWeight: 500, color: "var(--text-muted)" }}>Analisando endereços...</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", width: "100%", maxWidth: 420 }}>
               {steps.map((step, i) => (
                 <div key={i} className="animate-step-in" style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", fontSize: "0.72rem", color: "var(--text-faint)" }}>
@@ -346,12 +374,14 @@ export default function Tool() {
       {result && (
         <div className="animate-fade-up">
           {/* Stats */}
-          <div className="stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
+          <div className="stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
             {[
-              { value: result.totalLinhas, label: "Total", color: "var(--text)" },
-              { value: result.totalOrdenadas, label: "Ordenadas", color: "var(--ok)" },
-              { value: result.totalSemCondominio, label: "Sem condomínio", color: "#7c3aed" },
-              { value: result.totalNuances, label: "Nuances", color: "var(--accent)" },
+              { value: result.totalLinhas,        label: "Total",          color: "var(--text)" },
+              { value: result.totalOrdenadas,      label: "Ordenadas",      color: "var(--ok)" },
+              { value: result.totalSemCondominio,  label: "Sem condomínio", color: "#7c3aed" },
+              { value: result.totalLojas,          label: "Lojas",          color: "#0ea5e9" },
+              { value: result.totalNuances,        label: "Nuances",        color: "var(--accent)" },
+              { value: `${result.metricas.tempo_ms}ms`, label: "Tempo",   color: "var(--border)" },
             ].map(({ value, label, color }) => (
               <div key={label} style={{
                 background: "var(--surface)", border: "1px solid var(--border-strong)",
@@ -370,8 +400,9 @@ export default function Tool() {
             <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
               {(Object.keys(FILTER_LABEL) as Filter[]).map((f) => {
                 const isActive = activeFilter === f;
-                const count = f === "all" ? result.detalhes.length :
-                  result.detalhes.filter((r) => r.classificacao === f).length;
+                const count = f === "all"
+                  ? result.detalhes.length
+                  : result.detalhes.filter((r) => r.classificacao === f).length;
                 return (
                   <button
                     key={f}
@@ -379,13 +410,14 @@ export default function Tool() {
                     style={{
                       padding: "0.4rem 0.85rem", borderRadius: 99,
                       fontSize: "0.75rem", fontWeight: 600,
-                      background: isActive ? "var(--accent)" : "var(--surface-2)",
+                      background: isActive ? (f === "loja" ? "#0ea5e9" : f === "nuance" ? "var(--accent)" : f === "encontrada_sem_condominio" ? "#7c3aed" : f === "ordenada" ? "var(--ok)" : "var(--text)") : "var(--surface-2)",
                       color: isActive ? "#fff" : "var(--text-muted)",
-                      border: `1px solid ${isActive ? "var(--accent)" : "var(--border-strong)"}`,
+                      border: `1px solid ${isActive ? "transparent" : "var(--border-strong)"}`,
                       cursor: "pointer", fontFamily: "inherit",
+                      transition: "all 150ms",
                     }}
                   >
-                    {FILTER_LABEL[f]} <span style={{ opacity: 0.7 }}>({count})</span>
+                    {FILTER_LABEL[f]} <span style={{ opacity: 0.75 }}>({count})</span>
                   </button>
                 );
               })}
@@ -409,9 +441,12 @@ export default function Tool() {
             background: "var(--surface)", border: "1px solid var(--border-strong)",
             borderRadius: 14, overflow: "hidden",
           }}>
-            <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1px solid var(--border)" }}>
+            <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>
                 Sequência de Entregas — {result.condominio.nome}
+              </span>
+              <span style={{ fontSize: "0.7rem", color: "var(--text-faint)" }}>
+                {filteredRows.length} item{filteredRows.length !== 1 ? "s" : ""}
               </span>
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
@@ -420,49 +455,66 @@ export default function Tool() {
                   Nenhum item para este filtro.
                 </div>
               )}
-              {filteredRows.map((r, idx) => (
-                <div key={`${r.linha}-${idx}`} style={{
-                  padding: "0.9rem 1.25rem",
-                  borderTop: idx === 0 ? "none" : "1px solid var(--border)",
-                  display: "flex", gap: "0.9rem", alignItems: "flex-start",
-                }}>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                    background: `${CLASS_COLOR[r.classificacao]}18`,
-                    color: CLASS_COLOR[r.classificacao],
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontWeight: 800, fontSize: "0.8rem",
+              {filteredRows.map((r, idx) => {
+                const color = CLASS_COLOR[r.classificacao];
+                return (
+                  <div key={`${r.linha}-${idx}`} style={{
+                    padding: "0.9rem 1.25rem",
+                    borderTop: idx === 0 ? "none" : "1px solid var(--border)",
+                    display: "flex", gap: "0.9rem", alignItems: "flex-start",
                   }}>
-                    {r.ordem ?? "—"}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center", marginBottom: "0.2rem" }}>
-                      <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text)" }}>
-                        {r.quadra !== null ? `Quadra ${r.quadra}` : "Quadra ?"} {r.lote !== null ? `· Lote ${r.lote}` : ""}
-                      </span>
-                      <span style={{
-                        fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase",
-                        padding: "0.15rem 0.55rem", borderRadius: 99,
-                        background: `${CLASS_COLOR[r.classificacao]}18`,
-                        color: CLASS_COLOR[r.classificacao],
-                      }}>
-                        {CLASS_LABEL[r.classificacao]}
-                      </span>
+                    {/* Badge */}
+                    <div style={{
+                      width: 34, height: 34, borderRadius: 8, flexShrink: 0,
+                      background: `${color}18`,
+                      color,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontWeight: 800, fontSize: "0.78rem",
+                      border: `1px solid ${color}30`,
+                    }}>
+                      {r.classificacao === "loja" ? CLASS_ICON[r.classificacao] : (r.ordem ?? "—")}
                     </div>
-                    {r.instrucao && (
-                      <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.2rem", lineHeight: 1.5 }}>
-                        ➜ {r.instrucao}
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Header row */}
+                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center", marginBottom: "0.2rem" }}>
+                        <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text)" }}>
+                          {r.classificacao === "loja"
+                            ? "Loja / Comércio"
+                            : `${quadraDisplay(r)}${r.lote !== null ? ` · Lote ${r.lote}` : ""}`
+                          }
+                        </span>
+                        <span style={{
+                          fontSize: "0.64rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase",
+                          padding: "0.15rem 0.5rem", borderRadius: 99,
+                          background: `${color}18`,
+                          color,
+                        }}>
+                          {CLASS_LABEL[r.classificacao]}
+                        </span>
                       </div>
-                    )}
-                    <div style={{ fontSize: "0.72rem", color: "var(--text-faint)", marginBottom: "0.15rem", wordBreak: "break-word" }}>
-                      {r.enderecoOriginal}
-                    </div>
-                    <div style={{ fontSize: "0.7rem", color: "var(--text-faint)", fontStyle: "italic" }}>
-                      {r.motivo}
+
+                      {/* Navigation instruction */}
+                      {r.instrucao && (
+                        <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.2rem", lineHeight: 1.5, display: "flex", alignItems: "flex-start", gap: "0.3rem" }}>
+                          <span style={{ flexShrink: 0, marginTop: 1 }}>➜</span>
+                          <span>{r.instrucao}</span>
+                        </div>
+                      )}
+
+                      {/* Original address */}
+                      <div style={{ fontSize: "0.72rem", color: "var(--text-faint)", marginBottom: "0.15rem", wordBreak: "break-word" }}>
+                        {r.enderecoOriginal}
+                      </div>
+
+                      {/* Reason */}
+                      <div style={{ fontSize: "0.69rem", color: "var(--text-faint)", fontStyle: "italic" }}>
+                        {r.motivo}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
