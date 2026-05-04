@@ -814,8 +814,7 @@ class _ToolScreenState extends State<ToolScreen> {
               if (skippedRows.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 CardSection(
-                  header: CardHeaderLabel('Entregas puladas',
-                      color: context.accent),
+                  header: CardHeaderLabel('Entregas puladas'),
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: skippedRows.map((r) {
