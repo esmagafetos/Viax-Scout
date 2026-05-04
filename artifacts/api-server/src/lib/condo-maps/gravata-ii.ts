@@ -84,7 +84,9 @@ export const GRAVATA_II: CondoMap = {
     { id: "lerica",               nome: "Rua Lérica" },
     { id: "douragal",             nome: "Rua Douragal" },
     { id: "jose",                 nome: "Rua José" },
-    { id: "uma-barrei",           nome: "Rua Uma Barrei" },
+    // "Rua Lima Barreto" — confirmado no dataset real (planilha Ayslane, ROW98/102/205/206/207).
+    // A grafia "Uma Barrei" em versões anteriores era erro de leitura do mapa físico.
+    { id: "lima-barreto",         nome: "Rua Lima Barreto",      apelido: "R. Lima Barreto" },
   ],
   quadras: [
     // ─────────────────────────────────────────────────────────────────────

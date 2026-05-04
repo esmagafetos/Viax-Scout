@@ -15,10 +15,12 @@ interface DeliveryRow {
   quadra: number | null;
   quadraLetra: string | null;
   lote: number | null;
+  loteId: string | null;
   classificacao: "ordenada" | "encontrada_sem_condominio" | "loja" | "nuance";
   motivo: string;
   ordem?: number;
   instrucao?: string;
+  confiancaParse?: number;
 }
 
 interface RouteResult {
@@ -67,6 +69,12 @@ function quadraDisplay(row: DeliveryRow): string {
   if (row.quadraLetra) return `Quadra ${row.quadraLetra}`;
   if (row.quadra !== null) return `Quadra ${row.quadra}`;
   return "Quadra ?";
+}
+
+function loteDisplay(row: DeliveryRow): string | null {
+  if (row.loteId) return `Lote ${row.loteId}`;
+  if (row.lote !== null) return `Lote ${row.lote}`;
+  return null;
 }
 
 export default function Tool() {
@@ -188,7 +196,7 @@ export default function Tool() {
       r.ordem ?? "",
       r.linha,
       r.quadraLetra ?? r.quadra ?? "",
-      r.lote ?? "",
+      r.loteId ?? r.lote ?? "",
       CLASS_LABEL[r.classificacao],
       r.enderecoOriginal,
       r.instrucao ?? "",
@@ -481,7 +489,7 @@ export default function Tool() {
                         <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text)" }}>
                           {r.classificacao === "loja"
                             ? "Loja / Comércio"
-                            : `${quadraDisplay(r)}${r.lote !== null ? ` · Lote ${r.lote}` : ""}`
+                            : `${quadraDisplay(r)}${loteDisplay(r) ? ` · ${loteDisplay(r)}` : ""}`
                           }
                         </span>
                         <span style={{
