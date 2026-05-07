@@ -57,6 +57,7 @@ export const GRAVATA_II: CondoMap = {
   status: "ativo",
   totalLotes: undefined,
   entrada: { x: 96, y: 51, rotuloEntrada: "Portaria — Rua Das Pacas" },
+  prevEntrada: { x: 106, y: 51 },
   ruas: [
     { id: "rua-das-pacas",        nome: "Rua Das Pacas",          apelido: "Rua das Pacas" },
     { id: "andre-terra",          nome: "Rua André Terra" },
@@ -93,102 +94,102 @@ export const GRAVATA_II: CondoMap = {
     // COLUNA LESTE — borda com Rua Das Pacas (x≈96-98)
     // Norte (topo) → Sul (base)
     // ─────────────────────────────────────────────────────────────────────
-    { id: "qW-leste",  letra: "W",   x: 97, y: 4  },
-    { id: "qX-leste",  letra: "X",   x: 97, y: 11 },
-    { id: "qV-leste",  letra: "V",   x: 97, y: 19 },
-    { id: "qU-leste",  letra: "U",   x: 97, y: 27 },
-    { id: "qT-leste",  letra: "T",   x: 97, y: 35 },
-    { id: "qS-leste",  letra: "S",   x: 97, y: 42 },
+    { id: "qW-leste",  letra: "W",    x: 97, y: 4,  ruaPrincipal: "Rua André Terra" },
+    { id: "qX-leste",  letra: "X",    x: 97, y: 11, ruaPrincipal: "Rua Coqueirais" },
+    { id: "qV-leste",  letra: "V",    x: 97, y: 19, ruaPrincipal: "Rua Das Oliveiras" },
+    { id: "qU-leste",  letra: "U",    x: 97, y: 27, ruaPrincipal: "Rua Das Oliveiras" },
+    { id: "qT-leste",  letra: "T",    x: 97, y: 35, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qS-leste",  letra: "S",    x: 97, y: 42, ruaPrincipal: "Av. Geovani Marcos" },
     // Blocos numerados leste (portaria entre q1 e q18)
-    { id: "q1",        numero: 1,    x: 96, y: 51 },
-    { id: "q1b",       letra: "1B",  x: 94, y: 56 },
-    { id: "q18",       numero: 18,   x: 91, y: 61 },
-    { id: "q2",        numero: 2,    x: 96, y: 68 },
-    { id: "q3",        numero: 3,    x: 96, y: 77 },
-    { id: "q3apf",     letra: "3APF",x: 93, y: 84 },
+    { id: "q1",        numero: 1,     x: 96, y: 51, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "q1b",       letra: "1B",   x: 94, y: 56, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "q18",       numero: 18,    x: 91, y: 61, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "q2",        numero: 2,     x: 96, y: 68, ruaPrincipal: "Av. Das Rosas" },
+    { id: "q3",        numero: 3,     x: 96, y: 77, ruaPrincipal: "Av. Das Rosas" },
+    { id: "q3apf",     letra: "3APF", x: 93, y: 84, ruaPrincipal: "Av. Sérgio Ribeiro" },
 
     // ─────────────────────────────────────────────────────────────────────
     // BANDA NORTE — entre Rua André Terra e Rua Coqueirais (y≈4-14)
     // ─────────────────────────────────────────────────────────────────────
-    { id: "qC1",       letra: "C1",  x: 79, y: 7  },
-    { id: "qB1",       letra: "B1",  x: 86, y: 12 },
+    { id: "qC1",       letra: "C1",   x: 79, y: 7,  ruaPrincipal: "Rua André Terra" },
+    { id: "qB1",       letra: "B1",   x: 86, y: 12, ruaPrincipal: "Rua Coqueirais" },
 
     // ─────────────────────────────────────────────────────────────────────
     // SEGUNDA BANDA NORTE — entre Coqueirais e Oliveiras (y≈14-25)
     // ─────────────────────────────────────────────────────────────────────
-    { id: "qA1",       letra: "A1",  x: 91, y: 20 },
-    { id: "qD1",       letra: "D1",  x: 67, y: 17 },
+    { id: "qA1",       letra: "A1",   x: 91, y: 20, ruaPrincipal: "Rua Das Oliveiras" },
+    { id: "qD1",       letra: "D1",   x: 67, y: 17, ruaPrincipal: "Rua Das Oliveiras" },
 
     // ─────────────────────────────────────────────────────────────────────
     // BANDA OLIVEIRAS-GEOVANI — (y≈25-38)
     // ─────────────────────────────────────────────────────────────────────
-    { id: "qE1",       letra: "E1",  x: 74, y: 24 },
-    { id: "qF1",       letra: "F1",  x: 70, y: 31 },
-    { id: "qG1",       letra: "G1",  x: 57, y: 31 },
-    { id: "qH1",       letra: "H1",  x: 46, y: 35 },
-    { id: "q60",       numero: 60,   x: 41, y: 39 },
-    { id: "q59",       numero: 59,   x: 52, y: 39 },
-    { id: "q58",       numero: 58,   x: 62, y: 41 },
+    { id: "qE1",       letra: "E1",   x: 74, y: 24, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qF1",       letra: "F1",   x: 70, y: 31, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qG1",       letra: "G1",   x: 57, y: 31, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qH1",       letra: "H1",   x: 46, y: 35, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "q60",       numero: 60,    x: 41, y: 39, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "q59",       numero: 59,    x: 52, y: 39, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "q58",       numero: 58,    x: 62, y: 41, ruaPrincipal: "Av. Geovani Marcos" },
 
     // ─────────────────────────────────────────────────────────────────────
     // BANDA GEOVANI-ESTRELAS — central (y≈38-50)
     // ─────────────────────────────────────────────────────────────────────
-    { id: "qZ-cen",    letra: "Z",   x: 84, y: 36 },
-    { id: "q29",       numero: 29,   x: 84, y: 43 },
-    { id: "q56",       numero: 56,   x: 73, y: 43 },
+    { id: "qZ-cen",    letra: "Z",    x: 84, y: 36, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "q29",       numero: 29,    x: 84, y: 43, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "q56",       numero: 56,    x: 73, y: 43, ruaPrincipal: "Av. Geovani Marcos" },
 
     // Fila principal de letras (leste→oeste), y≈46
-    { id: "qA",        letra: "A",   x: 95, y: 47 },
-    { id: "qB",        letra: "B",   x: 92, y: 47 },
-    { id: "qC",        letra: "C",   x: 89, y: 47 },
-    { id: "qD",        letra: "D",   x: 86, y: 47 },
-    { id: "qE",        letra: "E",   x: 83, y: 47 },
-    { id: "qF",        letra: "F",   x: 79, y: 47 },
-    { id: "qG",        letra: "G",   x: 75, y: 47 },
-    { id: "qH",        letra: "H",   x: 71, y: 47 },
-    { id: "qI",        letra: "I",   x: 67, y: 47 },
-    { id: "qJ",        letra: "J",   x: 63, y: 47 },
-    { id: "qK",        letra: "K",   x: 59, y: 46 },
-    { id: "qL",        letra: "L",   x: 55, y: 46 },
-    { id: "qM",        letra: "M",   x: 51, y: 46 },
-    { id: "qN",        letra: "N",   x: 47, y: 46 },
-    { id: "qO",        letra: "O",   x: 43, y: 46 },
-    { id: "qP",        letra: "P",   x: 39, y: 45 },
-    { id: "qQ",        letra: "Q",   x: 35, y: 44 },
-    { id: "qR",        letra: "R",   x: 31, y: 44 },
+    { id: "qA",        letra: "A",    x: 95, y: 47, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qB",        letra: "B",    x: 92, y: 47, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qC",        letra: "C",    x: 89, y: 47, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qD",        letra: "D",    x: 86, y: 47, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qE",        letra: "E",    x: 83, y: 47, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qF",        letra: "F",    x: 79, y: 47, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qG",        letra: "G",    x: 75, y: 47, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qH",        letra: "H",    x: 71, y: 47, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qI",        letra: "I",    x: 67, y: 47, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qJ",        letra: "J",    x: 63, y: 47, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qK",        letra: "K",    x: 59, y: 46, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qL",        letra: "L",    x: 55, y: 46, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qM",        letra: "M",    x: 51, y: 46, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qN",        letra: "N",    x: 47, y: 46, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qO",        letra: "O",    x: 43, y: 46, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qP",        letra: "P",    x: 39, y: 45, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qQ",        letra: "Q",    x: 35, y: 44, ruaPrincipal: "Av. Geovani Marcos" },
+    { id: "qR",        letra: "R",    x: 31, y: 44, ruaPrincipal: "Av. Geovani Marcos" },
 
     // ─────────────────────────────────────────────────────────────────────
     // BANDA PAU BRASIL — (y≈53-62)
     // ─────────────────────────────────────────────────────────────────────
     // Sub-faixa leste
-    { id: "qA-pb",     letra: "A",   x: 94, y: 55 },
-    { id: "qB-pb",     letra: "B",   x: 91, y: 55 },
-    { id: "qC-pb",     letra: "C",   x: 88, y: 55 },
-    { id: "qD-pb",     letra: "D",   x: 85, y: 55 },
+    { id: "qA-pb",     letra: "A",    x: 94, y: 55, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "qB-pb",     letra: "B",    x: 91, y: 55, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "qC-pb",     letra: "C",    x: 88, y: 55, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "qD-pb",     letra: "D",    x: 85, y: 55, ruaPrincipal: "Rua Pau Brasil" },
     // Série W/X/Y/Z interior
-    { id: "qZ-pb",     letra: "Z",   x: 85, y: 59 },
-    { id: "qW-pb",     letra: "W",   x: 80, y: 59 },
-    { id: "qY-pb",     letra: "Y",   x: 75, y: 59 },
-    { id: "qX-pb",     letra: "X",   x: 70, y: 59 },
-    { id: "qV-pb",     letra: "V",   x: 65, y: 59 },
-    { id: "qU-pb",     letra: "U",   x: 60, y: 59 },
-    { id: "qT-pb",     letra: "T",   x: 55, y: 59 },
-    { id: "qS-pb",     letra: "S",   x: 50, y: 59 },
+    { id: "qZ-pb",     letra: "Z",    x: 85, y: 59, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "qW-pb",     letra: "W",    x: 80, y: 59, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "qY-pb",     letra: "Y",    x: 75, y: 59, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "qX-pb",     letra: "X",    x: 70, y: 59, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "qV-pb",     letra: "V",    x: 65, y: 59, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "qU-pb",     letra: "U",    x: 60, y: 59, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "qT-pb",     letra: "T",    x: 55, y: 59, ruaPrincipal: "Rua Pau Brasil" },
+    { id: "qS-pb",     letra: "S",    x: 50, y: 59, ruaPrincipal: "Rua Pau Brasil" },
     // Sub-fila E5..A1 (inferior desta banda)
-    { id: "qA1-pb",    letra: "A1",  x: 79, y: 63 },
-    { id: "qB2-pb",    letra: "B2",  x: 73, y: 63 },
-    { id: "qC3-pb",    letra: "C3",  x: 67, y: 63 },
-    { id: "qD4-pb",    letra: "D4",  x: 61, y: 63 },
-    { id: "qE5-pb",    letra: "E5",  x: 55, y: 63 },
+    { id: "qA1-pb",    letra: "A1",   x: 79, y: 63, ruaPrincipal: "Rua Carvalho Faustino" },
+    { id: "qB2-pb",    letra: "B2",   x: 73, y: 63, ruaPrincipal: "Rua Carvalho Faustino" },
+    { id: "qC3-pb",    letra: "C3",   x: 67, y: 63, ruaPrincipal: "Rua Carvalho Faustino" },
+    { id: "qD4-pb",    letra: "D4",   x: 61, y: 63, ruaPrincipal: "Rua Carvalho Faustino" },
+    { id: "qE5-pb",    letra: "E5",   x: 55, y: 63, ruaPrincipal: "Rua Carvalho Faustino" },
 
     // ─────────────────────────────────────────────────────────────────────
     // BANDA SUL — entre Rua Das Rosas e Av. Sérgio Ribeiro (y≈68-88)
     // ─────────────────────────────────────────────────────────────────────
-    { id: "qV-sul",    letra: "V",   x: 89, y: 72 },
-    { id: "qU-sul",    letra: "U",   x: 85, y: 72 },
-    { id: "qT-sul",    letra: "T",   x: 81, y: 73 },
-    { id: "qS-sul",    letra: "S",   x: 77, y: 74 },
-    { id: "qA-sul",    letra: "A",   x: 93, y: 76 },
+    { id: "qV-sul",    letra: "V",    x: 89, y: 72, ruaPrincipal: "Av. Das Rosas" },
+    { id: "qU-sul",    letra: "U",    x: 85, y: 72, ruaPrincipal: "Av. Das Rosas" },
+    { id: "qT-sul",    letra: "T",    x: 81, y: 73, ruaPrincipal: "Av. Das Rosas" },
+    { id: "qS-sul",    letra: "S",    x: 77, y: 74, ruaPrincipal: "Av. Das Rosas" },
+    { id: "qA-sul",    letra: "A",    x: 93, y: 76, ruaPrincipal: "Av. Das Rosas" },
   ],
   observacoes:
     "Mapeamento extraído de fotografia do mapa físico oficial do Gravatá II. " +

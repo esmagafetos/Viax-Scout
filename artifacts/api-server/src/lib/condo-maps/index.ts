@@ -548,49 +548,111 @@ function quadraLabel(q: Quadra): string {
   return "Quadra ?";
 }
 
-function loteLabel(row: DeliveryRow): string {
-  if (row.loteId) return `Lote ${row.loteId}`;
-  if (row.lote !== null) return `Lote ${row.lote}`;
-  return "Lote ?";
-}
-
 function dist(a: { x: number; y: number }, b: { x: number; y: number }): number {
   const dx = a.x - b.x, dy = a.y - b.y;
   return Math.sqrt(dx * dx + dy * dy);
 }
 
 /**
- * Gera instrução de navegação entre duas quadras usando produto vetorial.
+ * Determina se a quadra está ao LADO DIREITO ou ESQUERDO da estrada que liga
+ * `prevPt` a `next`. Usa produto vetorial (cross product) no sistema de
+ * coordenadas do mapa (y cresce para sul, i.e. eixo invertido em relação ao
+ * plano matemático padrão), onde:
+ *   cross > 0  →  quadra à direita do vetor prevPt→next
+ *   cross < 0  →  quadra à esquerda
  *
- * O ângulo entre o vetor de entrada (prev → current) e o vetor de saída
- * (current → next) determina a manobra:
- *   |ângulo| < 25°       → siga em frente
- *   25° < ângulo ≤ 110°  → vire à direita (ângulo positivo = curva horária)
- *   ângulo > 110°        → retorno à direita
- *   análogo negativo     → esquerda
+ * Retorna null quando o desvio perpendicular é pequeno demais (≤ 3 unidades)
+ * ou quando não há próxima parada de referência.
  */
-function instructionFor(
-  prev: { x: number; y: number },
-  current: Quadra,
-  next: Quadra | null,
-): string {
-  if (!next) {
-    return `Entregar em ${quadraLabel(current)} e finalizar a rota.`;
-  }
-  const vIn  = { x: current.x - prev.x, y: current.y - prev.y };
-  const vOut = { x: next.x - current.x, y: next.y - current.y };
+function ladoQuadra(
+  prevPt:  { x: number; y: number },
+  current: { x: number; y: number },
+  next:    { x: number; y: number } | null,
+): "direito" | "esquerdo" | null {
+  if (!next) return null;
+  const vRoad = { x: next.x - prevPt.x,    y: next.y - prevPt.y };
+  const vOff  = { x: current.x - prevPt.x, y: current.y - prevPt.y };
+  const cross = vRoad.x * vOff.y - vRoad.y * vOff.x;
+  const roadLen = Math.sqrt(vRoad.x ** 2 + vRoad.y ** 2);
+  if (roadLen < 0.001) return null;
+  const perpDist = Math.abs(cross) / roadLen;
+  if (perpDist < 3) return null;
+  return cross > 0 ? "direito" : "esquerdo";
+}
+
+/**
+ * Calcula o ângulo (em graus) da curva realizada em `pivot`:
+ * vindo de `from` → `pivot` e seguindo para `pivot` → `to`.
+ * Positivo = curva horária (direita). Negativo = anti-horária (esquerda).
+ */
+function anguloBetween(
+  from:  { x: number; y: number },
+  pivot: { x: number; y: number },
+  to:    { x: number; y: number },
+): number {
+  const vIn  = { x: pivot.x - from.x,  y: pivot.y - from.y };
+  const vOut = { x: to.x    - pivot.x, y: to.y    - pivot.y };
   const cross = vIn.x * vOut.y - vIn.y * vOut.x;
   const dot   = vIn.x * vOut.x + vIn.y * vOut.y;
-  const angle = Math.atan2(cross, dot) * (180 / Math.PI);
+  return Math.atan2(cross, dot) * (180 / Math.PI);
+}
 
-  let manobra: string;
-  if (Math.abs(angle) < 25)              manobra = "siga em frente";
-  else if (angle >  25 && angle <= 110)  manobra = "vire à direita";
-  else if (angle > 110)                  manobra = "faça o retorno à direita";
-  else if (angle < -25 && angle >= -110) manobra = "vire à esquerda";
-  else                                   manobra = "faça o retorno à esquerda";
+function manobraFromAngle(angle: number): string {
+  if (Math.abs(angle) < 25)              return "siga em frente";
+  if (angle >  25 && angle <= 110)       return "vire à direita";
+  if (angle > 110)                       return "faça o retorno à direita";
+  if (angle < -25 && angle >= -110)      return "vire à esquerda";
+  return "faça o retorno à esquerda";
+}
 
-  return `Saindo de ${quadraLabel(current)}, ${manobra} em direção a ${quadraLabel(next)}.`;
+/**
+ * Gera a instrução completa de navegação para chegar a `current` vindo de
+ * `prevPt` (portaria ou quadra anterior), tendo chegado a `prevPt` a partir
+ * de `prevprevPt`.
+ *
+ * Formato resultante:
+ *   "Saindo da portaria, vire à direita na Av. Geovani Marcos. Casa Lote 5."
+ *   "De Quadra A, vire à esquerda na Rua Pau Brasil. Lote não informado — quadra ao seu lado direito."
+ *   "De Quadra B, siga em frente na Av. Das Rosas. Casa Lote 3. Última entrega."
+ */
+function gerarInstrucao(
+  prevprevPt: { x: number; y: number },
+  prevPt:     { x: number; y: number },
+  current:    Quadra,
+  next:       Quadra | null,
+  lote:       number | null,
+  loteId:     string | null,
+  prevQuadra: Quadra | null,
+): string {
+  // ── Manobra: ângulo da curva realizada em prevPt ao seguir para current ───
+  const angle    = anguloBetween(prevprevPt, prevPt, current);
+  const manobra  = manobraFromAngle(angle);
+
+  // ── Nome da rua destino (rua principal da quadra atual) ───────────────────
+  const ruaSufixo = current.ruaPrincipal ? ` na ${current.ruaPrincipal}` : "";
+
+  // ── Destino: lote conhecido ou indicação de lado da quadra ────────────────
+  let destino: string;
+  if (loteId) {
+    destino = ` Casa Lote ${loteId}.`;
+  } else if (lote !== null) {
+    destino = ` Casa Lote ${lote}.`;
+  } else {
+    const lado = ladoQuadra(prevPt, current, next);
+    if      (lado === "direito")   destino = ` Lote não informado — quadra ao seu lado direito.`;
+    else if (lado === "esquerdo")  destino = ` Lote não informado — quadra ao seu lado esquerdo.`;
+    else                           destino = ` Lote não informado.`;
+  }
+
+  // ── Sufixo de encerramento ────────────────────────────────────────────────
+  const fim = !next ? " Última entrega." : "";
+
+  // ── Ponto de partida ──────────────────────────────────────────────────────
+  const partida = prevQuadra === null
+    ? "Saindo da portaria"
+    : `De ${quadraLabel(prevQuadra)}`;
+
+  return `${partida}, ${manobra}${ruaSufixo}.${destino}${fim}`;
 }
 
 // ─── API pública: buildRoute ───────────────────────────────────────────────────
@@ -601,19 +663,21 @@ function instructionFor(
  * ## Algoritmo
  *
  * 1. Cada endereço é parseado via `parseEndereco`.
- * 2. Entregas roteáveis (quadra identificada + lote presente) entram na fila
- *    de otimização; demais são classificadas e explicadas.
+ * 2. Entregas roteáveis (quadra identificada no mapa interno; lote é opcional)
+ *    entram na fila de otimização; demais são classificadas e explicadas.
  * 3. Sequenciamento pelo algoritmo Nearest-Neighbor a partir da portaria:
  *    - Distância euclidiana no plano cartesiano normalizado.
  *    - Desempate pelo número/ID do lote (para entregas na mesma quadra).
  * 4. Instruções de navegação geradas por análise de ângulo vetorial.
+ *    A primeira instrução usa `condo.prevEntrada` para calcular a direção
+ *    de entrada pela portaria (ex: "Entre pela portaria e vire à direita…").
  *
  * ## Classificações de saída
  *
  *   "ordenada"               → endereço completo com nome do condomínio; roteado.
- *   "encontrada_sem_condominio" → quadra e lote encontrados, mas condo não mencionado.
+ *   "encontrada_sem_condominio" → quadra encontrada, mas condo não mencionado; roteado.
  *   "loja"                   → comércio na Rua Das Pacas; acesso direto, sem roteamento.
- *   "nuance"                 → endereço incompleto ou quadra não mapeada.
+ *   "nuance"                 → quadra não identificada/mapeada; verificar manualmente.
  */
 export function buildRoute(
   rows: { linha: number; endereco: string }[],
@@ -643,29 +707,28 @@ export function buildRoute(
       continue;
     }
 
-    // ── Lote ausente → nuance ──────────────────────────────────────────────
+    // ── Sem quadra → nuance; lote é opcional para roteamento ──────────────
     const temQuadra = parsed.quadra !== null || parsed.quadraLetra !== null;
-    const temLote   = parsed.lote !== null || parsed.loteId !== null;
 
-    if (!temQuadra || !temLote) {
+    if (!temQuadra) {
+      const temLote = parsed.lote !== null || parsed.loteId !== null;
       detalhes.push({
         linha: r.linha,
         enderecoOriginal: r.endereco,
-        quadra: parsed.quadra,
-        quadraLetra: parsed.quadraLetra,
+        quadra: null,
+        quadraLetra: null,
         lote: parsed.lote,
         loteId: parsed.loteId,
         classificacao: "nuance",
-        motivo: !temQuadra && !temLote
-          ? "Endereço incompleto: quadra e lote não informados."
-          : !temQuadra
-          ? "Quadra não informada no endereço."
-          : "Lote não informado no endereço.",
+        motivo: temLote
+          ? "Quadra não identificada (apenas lote foi encontrado)."
+          : "Endereço incompleto: quadra não informada.",
         confiancaParse: parsed.confianca,
         ruaCitada: parsed.ruaCitada,
       });
       continue;
     }
+    // Lote é opcional — endereços com apenas quadra são roteados normalmente.
 
     // ── Lookup de quadra no mapa interno ──────────────────────────────────
     const quadraObj = findQuadra(condo, parsed);
@@ -725,16 +788,31 @@ export function buildRoute(
   }
 
   // ── Geração de instruções ─────────────────────────────────────────────────
-  let prev: { x: number; y: number } = condo.entrada;
+  // prevprevPt: ponto antes da portaria (fora do condo) — ancora a direção
+  // prevPt: posição atual do cursor (começa na portaria)
+  // prevQuadra: última quadra entregue (null = ainda não saiu da portaria)
+  const prevEntradaPt = condo.prevEntrada ?? { x: condo.entrada.x + 10, y: condo.entrada.y };
+  let prevprevPt: { x: number; y: number } = prevEntradaPt;
+  let prevPt:     { x: number; y: number } = condo.entrada;
+  let prevQuadra: Quadra | null = null;
+
   for (let i = 0; i < sequence.length; i++) {
     const cur = sequence[i];
     const nxt = sequence[i + 1] ?? null;
     cur.row.ordem = i + 1;
-    cur.row.instrucao = i === 0
-      ? `Saindo da portaria, siga até ${quadraLabel(cur.quadra)} (${loteLabel(cur.row)}).`
-      : instructionFor(prev, cur.quadra, nxt?.quadra ?? null) + ` ${loteLabel(cur.row)}.`;
+    cur.row.instrucao = gerarInstrucao(
+      prevprevPt,
+      prevPt,
+      cur.quadra,
+      nxt?.quadra ?? null,
+      cur.row.lote,
+      cur.row.loteId,
+      prevQuadra,
+    );
     detalhes.push(cur.row);
-    prev = cur.quadra;
+    prevprevPt = prevPt;
+    prevPt     = cur.quadra;
+    prevQuadra = cur.quadra;
   }
 
   // ── Ordenação final ───────────────────────────────────────────────────────

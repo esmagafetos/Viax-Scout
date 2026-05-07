@@ -52,6 +52,16 @@ export interface CondoMap {
   status: "ativo" | "em_desenvolvimento";
   totalLotes?: number;
   entrada: { x: number; y: number; rotuloEntrada: string };
+  /**
+   * Ponto virtual "fora" do condomínio, na direção de onde o motorista vem
+   * antes de entrar pela portaria. Usado para calcular a direção da primeira
+   * instrução (ex: "Entre pela portaria e vire à direita em direção à Quadra A").
+   *
+   * Convenção: deve estar na direção oposta à entrada. Se a portaria é na
+   * borda leste (x≈96-99), defina prevEntrada com x > 100 e mesmo y.
+   * Padrão se omitido: { x: entrada.x + 10, y: entrada.y }
+   */
+  prevEntrada?: { x: number; y: number };
   quadras: Quadra[];
   ruas: RuaInterna[];
   observacoes?: string;
