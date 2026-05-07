@@ -109,12 +109,20 @@ router.post("/condominium/process", upload.single("arquivo"), async (req, res): 
     if (filtradas.length > 0 && filtradas.length < totalOriginal) {
       linhas = filtradas;
       sendSSE(res, "step", {
-        step: `🏘️ Filtro Nova Califórnia: ${filtradas.length} de ${totalOriginal} endereço(s) identificado(s) no bairro.`,
+        step: `Filtro Nova Califórnia: ${filtradas.length} de ${totalOriginal} endereço(s) identificado(s) no bairro.`,
       });
     } else if (filtradas.length === 0) {
-      sendSSE(res, "step", {
-        step: `⚠️ Padrão Nova Califórnia não detectado — processando todos os ${totalOriginal} endereço(s).`,
+      // Nenhum endereço reconhecido como Nova Califórnia — recusar processamento
+      // para evitar que endereços de outras cidades com padrões "Quadra/Lote"
+      // sejam incorretamente roteados.
+      sendSSE(res, "error", {
+        error:
+          `Nenhum endereço de Nova Califórnia (Tamoios / Gravatá / Bougainville) detectado nos ` +
+          `${totalOriginal} endereço(s) da planilha. Verifique se a planilha contém o bairro ou ` +
+          `condomínio correto antes de roteirizar.`,
       });
+      res.end();
+      return;
     }
     // Se filtradas.length === totalOriginal: planilha já era 100% Nova Califórnia, não exibe aviso.
 
