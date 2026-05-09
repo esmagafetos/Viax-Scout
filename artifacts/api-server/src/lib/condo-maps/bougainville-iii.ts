@@ -37,31 +37,40 @@ export const BOUGAINVILLE_III: CondoMap = {
   entrada: { x: 99, y: 60, rotuloEntrada: "Portaria — Avenida do Bougainville Leste" },
   prevEntrada: { x: 109, y: 60 },
   ruas: [
-    { id: "av-branco",     nome: "Avenida do Bougainville Branco", apelido: "Rua Projetada 1" },
-    { id: "av-rosa",       nome: "Avenida do Bougainville Rosa",   apelido: "Rua Projetada 2" },
-    { id: "av-roxo",       nome: "Avenida do Bougainville Roxo",   apelido: "Rua Projetada 3" },
-    { id: "rp4-acacia",    nome: "Rua da Acácia",                  apelido: "Rua Projetada 4" },
-    { id: "rp5-anturio",   nome: "Rua do Antúrio",                 apelido: "Rua Projetada 5" },
-    { id: "rp6-azaleia",   nome: "Rua da Azaléia",                 apelido: "Rua Projetada 6" },
-    { id: "rp7-begonia",   nome: "Rua da Begônia",                 apelido: "Rua Projetada 7" },
-    { id: "rp8-bromelia",  nome: "Rua da Bromélia",                apelido: "Rua Projetada 8" },
-    { id: "rp9-camelia",   nome: "Rua da Camélia",                 apelido: "Rua Projetada 9" },
-    { id: "rp10-cravo",    nome: "Rua do Cravo",                   apelido: "Rua Projetada 10" },
-    { id: "rp11-dalia",    nome: "Rua da Dália",                   apelido: "Rua Projetada 11" },
-    { id: "rp12-crisantemo", nome: "Rua do Crisântemo",            apelido: "Rua Projetada 12" },
-    { id: "rp13-flores",   nome: "Rua das Flores",                 apelido: "Rua Projetada 13" },
-    { id: "rp14-fresia",   nome: "Rua da Fresia",                  apelido: "Rua Projetada 14" },
-    { id: "rp15-geranio",  nome: "Rua do Gerânio",                 apelido: "Rua Projetada 15" },
-    { id: "rp16-gerbera",  nome: "Rua da Gérbera",                 apelido: "Rua Projetada 16" },
-    { id: "rp17-girassol", nome: "Rua do Girassol",                apelido: "Rua Projetada 17" },
-    { id: "rp18-hortensia", nome: "Rua da Hortênsia",              apelido: "Rua Projetada 18" },
-    { id: "rp19-lirio",    nome: "Rua do Lírio",                   apelido: "Rua Projetada 19" },
-    { id: "rp20-margarida", nome: "Rua da Margarida",              apelido: "Rua Projetada 20" },
-    { id: "rp21-orquidea", nome: "Rua da Orquídea",                apelido: "Rua Projetada 21" },
-    { id: "rp22-rosa",     nome: "Rua da Rosa",                    apelido: "Rua Projetada 22" },
-    { id: "rp23-tulipa",   nome: "Rua da Tulipa",                  apelido: "Rua Projetada 23" },
-    { id: "rp24-violeta",  nome: "Rua da Violeta",                 apelido: "Rua Projetada 24" },
-    { id: "av-leste",      nome: "Avenida do Bougainville Leste" },
+    // ── Borda leste (portaria) ─────────────────────────────────────────────────
+    { id: "av-leste",       nome: "Avenida do Bougainville Leste",                              eixo: "v", pos: 100 },
+
+    // ── Ruas horizontais (leste↔oeste) — ordenadas norte→sul por pos (y) ──────
+    { id: "rp10-cravo",     nome: "Rua do Cravo",       apelido: "Rua Projetada 10",            eixo: "h", pos:  10 },
+    { id: "rp9-camelia",    nome: "Rua da Camélia",     apelido: "Rua Projetada 9",             eixo: "h", pos:  22 },
+    { id: "rp8-bromelia",   nome: "Rua da Bromélia",    apelido: "Rua Projetada 8",             eixo: "h", pos:  28 },
+    { id: "rp7-begonia",    nome: "Rua da Begônia",     apelido: "Rua Projetada 7",             eixo: "h", pos:  34 },
+    { id: "rp4-acacia",     nome: "Rua da Acácia",      apelido: "Rua Projetada 4",             eixo: "h", pos:  40 },
+    { id: "rp6-azaleia",    nome: "Rua da Azaléia",     apelido: "Rua Projetada 6",             eixo: "h", pos:  46 },
+    { id: "av-roxo",        nome: "Avenida do Bougainville Roxo",  apelido: "Rua Projetada 3",  eixo: "h", pos:  59 },
+    { id: "av-rosa",        nome: "Avenida do Bougainville Rosa",  apelido: "Rua Projetada 2",  eixo: "h", pos:  72 },
+    { id: "av-branco",      nome: "Avenida do Bougainville Branco",apelido: "Rua Projetada 1",  eixo: "h", pos:  92 },
+
+    // ── Ruas verticais (norte↔sul) — pos (x) derivado de dados de quadras ─────
+    // rp5-anturio: quadras Q37-Q42 em x≈20-28 → x≈26
+    { id: "rp5-anturio",    nome: "Rua do Antúrio",     apelido: "Rua Projetada 5",             eixo: "v", pos:  26 },
+    // rp12-crisantemo: quadras Q49-Q50 em x≈8-12 → x≈10
+    { id: "rp12-crisantemo",nome: "Rua do Crisântemo",  apelido: "Rua Projetada 12",            eixo: "v", pos:  10 },
+    // rp13-flores: quadra Q51 em x≈6
+    { id: "rp13-flores",    nome: "Rua das Flores",     apelido: "Rua Projetada 13",            eixo: "v", pos:   6 },
+    // Verticais estimadas pelos gaps das quadras na faixa Av. Roxo (y≈59)
+    { id: "rp11-dalia",     nome: "Rua da Dália",       apelido: "Rua Projetada 11",            eixo: "v", pos:  21 },
+    { id: "rp14-fresia",    nome: "Rua da Fresia",      apelido: "Rua Projetada 14",            eixo: "v", pos:  31 },
+    { id: "rp15-geranio",   nome: "Rua do Gerânio",     apelido: "Rua Projetada 15",            eixo: "v", pos:  41 },
+    { id: "rp16-gerbera",   nome: "Rua da Gérbera",     apelido: "Rua Projetada 16",            eixo: "v", pos:  50 },
+    { id: "rp17-girassol",  nome: "Rua do Girassol",    apelido: "Rua Projetada 17",            eixo: "v", pos:  58 },
+    { id: "rp18-hortensia", nome: "Rua da Hortênsia",   apelido: "Rua Projetada 18",            eixo: "v", pos:  66 },
+    { id: "rp19-lirio",     nome: "Rua do Lírio",       apelido: "Rua Projetada 19",            eixo: "v", pos:  74 },
+    { id: "rp20-margarida", nome: "Rua da Margarida",   apelido: "Rua Projetada 20",            eixo: "v", pos:  83 },
+    { id: "rp21-orquidea",  nome: "Rua da Orquídea",    apelido: "Rua Projetada 21",            eixo: "v", pos:  88 },
+    { id: "rp22-rosa",      nome: "Rua da Rosa",        apelido: "Rua Projetada 22",            eixo: "v", pos:  92 },
+    { id: "rp23-tulipa",    nome: "Rua da Tulipa",      apelido: "Rua Projetada 23",            eixo: "v", pos:  95 },
+    { id: "rp24-violeta",   nome: "Rua da Violeta",     apelido: "Rua Projetada 24",            eixo: "v", pos:  97 },
   ],
   quadras: [
     // ──────────────────────────────────────────────────────────────────────────

@@ -542,8 +542,19 @@ export function parseEndereco(endereco: string, condo: CondoMap): ParsedAddress 
 
 // ─── Instruções de navegação ──────────────────────────────────────────────────
 
+/** Ordinais femininos (esquerda / direita são substantivos femininos). */
+const ORDINAIS: readonly string[] = [
+  "primeira", "segunda", "terceira", "quarta", "quinta",
+  "sexta", "sétima", "oitava", "nona", "décima",
+];
+
+function ordinalFeminino(n: number): string {
+  if (n >= 1 && n <= ORDINAIS.length) return ORDINAIS[n - 1];
+  return `${n}ª`;
+}
+
 function quadraLabel(q: Quadra): string {
-  if (q.letra) return `Quadra ${q.letra}`;
+  if (q.letra)              return `Quadra ${q.letra}`;
   if (q.numero !== undefined) return `Quadra ${q.numero}`;
   return "Quadra ?";
 }
@@ -554,36 +565,13 @@ function dist(a: { x: number; y: number }, b: { x: number; y: number }): number 
 }
 
 /**
- * Determina se a quadra está ao LADO DIREITO ou ESQUERDO da estrada que liga
- * `prevPt` a `next`. Usa produto vetorial (cross product) no sistema de
- * coordenadas do mapa (y cresce para sul, i.e. eixo invertido em relação ao
- * plano matemático padrão), onde:
- *   cross > 0  →  quadra à direita do vetor prevPt→next
- *   cross < 0  →  quadra à esquerda
- *
- * Retorna null quando o desvio perpendicular é pequeno demais (≤ 3 unidades)
- * ou quando não há próxima parada de referência.
- */
-function ladoQuadra(
-  prevPt:  { x: number; y: number },
-  current: { x: number; y: number },
-  next:    { x: number; y: number } | null,
-): "direito" | "esquerdo" | null {
-  if (!next) return null;
-  const vRoad = { x: next.x - prevPt.x,    y: next.y - prevPt.y };
-  const vOff  = { x: current.x - prevPt.x, y: current.y - prevPt.y };
-  const cross = vRoad.x * vOff.y - vRoad.y * vOff.x;
-  const roadLen = Math.sqrt(vRoad.x ** 2 + vRoad.y ** 2);
-  if (roadLen < 0.001) return null;
-  const perpDist = Math.abs(cross) / roadLen;
-  if (perpDist < 3) return null;
-  return cross > 0 ? "direito" : "esquerdo";
-}
-
-/**
  * Calcula o ângulo (em graus) da curva realizada em `pivot`:
  * vindo de `from` → `pivot` e seguindo para `pivot` → `to`.
  * Positivo = curva horária (direita). Negativo = anti-horária (esquerda).
+ *
+ * Convenção de coordenadas y-down (y cresce para sul):
+ *   cross > 0  →  virada à direita
+ *   cross < 0  →  virada à esquerda
  */
 function anguloBetween(
   from:  { x: number; y: number },
@@ -597,12 +585,105 @@ function anguloBetween(
   return Math.atan2(cross, dot) * (180 / Math.PI);
 }
 
-function manobraFromAngle(angle: number): string {
-  if (Math.abs(angle) < 25)              return "siga em frente";
-  if (angle >  25 && angle <= 110)       return "vire à direita";
-  if (angle > 110)                       return "faça o retorno à direita";
-  if (angle < -25 && angle >= -110)      return "vire à esquerda";
-  return "faça o retorno à esquerda";
+/**
+ * Determina em qual LADO da trajetória prevPt→next a quadra `current` se
+ * encontra. Usa cross-product no plano y-down:
+ *   cross > 0  →  lado direito
+ *   cross < 0  →  lado esquerdo
+ * Retorna null quando a distância perpendicular é insignificante (≤ 3 u)
+ * ou quando não há próxima parada de referência.
+ */
+function ladoQuadra(
+  prevPt:  { x: number; y: number },
+  current: { x: number; y: number },
+  next:    { x: number; y: number } | null,
+): "direito" | "esquerdo" | null {
+  if (!next) return null;
+  const vRoad = { x: next.x - prevPt.x,    y: next.y - prevPt.y };
+  const vOff  = { x: current.x - prevPt.x, y: current.y - prevPt.y };
+  const cross = vRoad.x * vOff.y - vRoad.y * vOff.x;
+  const roadLen = Math.sqrt(vRoad.x ** 2 + vRoad.y ** 2);
+  if (roadLen < 0.001) return null;
+  if (Math.abs(cross) / roadLen < 3) return null;
+  return cross > 0 ? "direito" : "esquerdo";
+}
+
+/**
+ * Conta quantas ruas o motorista cruzará ANTES de chegar à rua da quadra
+ * destino.
+ *
+ * Estratégia (por eixo da RUA DESTINO, não por vetor de deslocamento):
+ *
+ *   targetRua horizontal (eixo:'h')
+ *     → o motorista percorre uma rua vertical até encontrar a H-rua destino.
+ *     → conta ruas horizontais com pos (y) entre fromPt.y e targetQ.y.
+ *
+ *   targetRua vertical (eixo:'v')
+ *     → o motorista percorre uma rua horizontal até encontrar a V-rua destino.
+ *     → conta ruas verticais com pos (x) entre fromPt.x e targetQ.x.
+ *
+ *   targetRua sem eixo conhecido (pos indisponível)
+ *     → fallback geométrico: usa o eixo dominante do vetor fromPt→targetQ.
+ *
+ * O ordinal da virada = contarRuasCruzadas(...) + 1.
+ * Exemplos: 0 ruas antes → 1ª (primeira); 1 rua antes → 2ª (segunda).
+ */
+function contarRuasCruzadas(
+  fromPt:    { x: number; y: number },
+  targetQ:   Quadra,
+  sourceRua: string | undefined,
+  allRuas:   RuaInterna[],
+): number {
+  const targetRua  = targetQ.ruaPrincipal;
+  const targetEixo = allRuas.find(r => r.nome === targetRua)?.eixo;
+
+  if (targetEixo === "h") {
+    // ── Rua destino é horizontal: conta H-ruas entre os y ────────────────────
+    const yMin = Math.min(fromPt.y, targetQ.y);
+    const yMax = Math.max(fromPt.y, targetQ.y);
+    return allRuas.filter(r =>
+      r.eixo === "h" &&
+      r.pos  !== undefined &&
+      r.nome !== sourceRua &&
+      r.nome !== targetRua &&
+      r.pos > yMin + 1 &&
+      r.pos < yMax - 1,
+    ).length;
+  }
+
+  if (targetEixo === "v") {
+    // ── Rua destino é vertical: conta V-ruas entre os x ──────────────────────
+    const xMin = Math.min(fromPt.x, targetQ.x);
+    const xMax = Math.max(fromPt.x, targetQ.x);
+    return allRuas.filter(r =>
+      r.eixo === "v" &&
+      r.pos  !== undefined &&
+      r.nome !== sourceRua &&
+      r.nome !== targetRua &&
+      r.pos > xMin + 1 &&
+      r.pos < xMax - 1,
+    ).length;
+  }
+
+  // ── Fallback geométrico: eixo dominante do vetor ─────────────────────────
+  const dx = targetQ.x - fromPt.x;
+  const dy = targetQ.y - fromPt.y;
+  if (Math.abs(dy) >= Math.abs(dx)) {
+    const yMin = Math.min(fromPt.y, targetQ.y);
+    const yMax = Math.max(fromPt.y, targetQ.y);
+    return allRuas.filter(r =>
+      r.eixo === "h" && r.pos !== undefined &&
+      r.nome !== sourceRua && r.nome !== targetRua &&
+      r.pos > yMin + 1 && r.pos < yMax - 1,
+    ).length;
+  }
+  const xMin = Math.min(fromPt.x, targetQ.x);
+  const xMax = Math.max(fromPt.x, targetQ.x);
+  return allRuas.filter(r =>
+    r.eixo === "v" && r.pos !== undefined &&
+    r.nome !== sourceRua && r.nome !== targetRua &&
+    r.pos > xMin + 1 && r.pos < xMax - 1,
+  ).length;
 }
 
 /**
@@ -610,10 +691,11 @@ function manobraFromAngle(angle: number): string {
  * `prevPt` (portaria ou quadra anterior), tendo chegado a `prevPt` a partir
  * de `prevprevPt`.
  *
- * Formato resultante:
- *   "Saindo da portaria, vire à direita na Av. Geovani Marcos. Casa Lote 5."
- *   "De Quadra A, vire à esquerda na Rua Pau Brasil. Lote não informado — quadra ao seu lado direito."
- *   "De Quadra B, siga em frente na Av. Das Rosas. Casa Lote 3. Última entrega."
+ * Formatos resultantes:
+ *   "Entrando pela portaria, vire à direita na Av. Geovani Marcos. Casa Lote 5."
+ *   "De Quadra A, vire a 2ª esquerda na Rua Pau Brasil. Quadra B ao lado direito."
+ *   "De Quadra B, continue pela Av. Geovani Marcos. Quadra C ao lado esquerdo. Última entrega."
+ *   "De Quadra R, faça o retorno. Quadra Q ao lado direito."
  */
 function gerarInstrucao(
   prevprevPt: { x: number; y: number },
@@ -623,36 +705,72 @@ function gerarInstrucao(
   lote:       number | null,
   loteId:     string | null,
   prevQuadra: Quadra | null,
+  allRuas:    RuaInterna[],
 ): string {
-  // ── Manobra: ângulo da curva realizada em prevPt ao seguir para current ───
-  const angle    = anguloBetween(prevprevPt, prevPt, current);
-  const manobra  = manobraFromAngle(angle);
-
-  // ── Nome da rua destino (rua principal da quadra atual) ───────────────────
-  const ruaSufixo = current.ruaPrincipal ? ` na ${current.ruaPrincipal}` : "";
-
-  // ── Destino: lote conhecido ou indicação de lado da quadra ────────────────
-  let destino: string;
-  if (loteId) {
-    destino = ` Casa Lote ${loteId}.`;
-  } else if (lote !== null) {
-    destino = ` Casa Lote ${lote}.`;
-  } else {
-    const lado = ladoQuadra(prevPt, current, next);
-    if      (lado === "direito")   destino = ` Lote não informado — quadra ao seu lado direito.`;
-    else if (lado === "esquerdo")  destino = ` Lote não informado — quadra ao seu lado esquerdo.`;
-    else                           destino = ` Lote não informado.`;
-  }
-
-  // ── Sufixo de encerramento ────────────────────────────────────────────────
-  const fim = !next ? " Última entrega." : "";
+  const angle = anguloBetween(prevprevPt, prevPt, current);
+  const absAng = Math.abs(angle);
 
   // ── Ponto de partida ──────────────────────────────────────────────────────
   const partida = prevQuadra === null
-    ? "Saindo da portaria"
+    ? "Entrando pela portaria"
     : `De ${quadraLabel(prevQuadra)}`;
 
-  return `${partida}, ${manobra}${ruaSufixo}.${destino}${fim}`;
+  // ── Nome da rua da quadra destino ─────────────────────────────────────────
+  const rua = current.ruaPrincipal ?? "";
+
+  // ── Manobra com ordinal ───────────────────────────────────────────────────
+  let manobra: string;
+
+  if (absAng < 25) {
+    // Siga em frente — mesma rua ou rua diferente com quase sem curva
+    const mesmaRua = prevQuadra?.ruaPrincipal === rua;
+    if (mesmaRua && rua) {
+      manobra = `continue pela ${rua}`;
+    } else if (rua) {
+      manobra = `siga em frente na ${rua}`;
+    } else {
+      manobra = "siga em frente";
+    }
+
+  } else if (absAng > 150) {
+    // Retorno
+    manobra = "faça o retorno";
+
+  } else {
+    // Virada à direita ou esquerda — com ordinal
+    const isDir = angle > 0;
+    const dir   = isDir ? "direita" : "esquerda";
+    const count = contarRuasCruzadas(prevPt, current, prevQuadra?.ruaPrincipal, allRuas);
+    const ord   = count + 1; // 1ª, 2ª, 3ª…
+
+    const ruaNa = rua ? ` na ${rua}` : "";
+
+    if (ord === 1) {
+      manobra = `vire à ${dir}${ruaNa}`;
+    } else {
+      manobra = `vire a ${ordinalFeminino(ord)} ${dir}${ruaNa}`;
+    }
+  }
+
+  // ── Destino: lote ou lado da quadra ───────────────────────────────────────
+  const qLabel = quadraLabel(current);
+  let destino: string;
+
+  if (loteId) {
+    destino = `${qLabel}. Casa Lote ${loteId}`;
+  } else if (lote !== null) {
+    destino = `${qLabel}. Casa Lote ${lote}`;
+  } else {
+    const lado = ladoQuadra(prevPt, current, next);
+    if      (lado === "direito")  destino = `${qLabel} ao lado direito`;
+    else if (lado === "esquerdo") destino = `${qLabel} ao lado esquerdo`;
+    else                          destino = qLabel;
+  }
+
+  // ── Sufixo de encerramento ────────────────────────────────────────────────
+  const fim = next ? "" : " Última entrega.";
+
+  return `${partida}, ${manobra}. ${destino}.${fim}`;
 }
 
 // ─── API pública: buildRoute ───────────────────────────────────────────────────
@@ -808,6 +926,7 @@ export function buildRoute(
       cur.row.lote,
       cur.row.loteId,
       prevQuadra,
+      condo.ruas,
     );
     detalhes.push(cur.row);
     prevprevPt = prevPt;

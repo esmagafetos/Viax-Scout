@@ -59,35 +59,42 @@ export const GRAVATA_II: CondoMap = {
   entrada: { x: 96, y: 51, rotuloEntrada: "Portaria — Rua Das Pacas" },
   prevEntrada: { x: 106, y: 51 },
   ruas: [
-    { id: "rua-das-pacas",        nome: "Rua Das Pacas",          apelido: "Rua das Pacas" },
-    { id: "andre-terra",          nome: "Rua André Terra" },
-    { id: "coqueirais",           nome: "Rua Coqueirais" },
-    { id: "das-oliveiras",        nome: "Rua Das Oliveiras" },
-    { id: "joao-ferreira",        nome: "Rua João Ferreira" },
-    { id: "geovani-marcos",       nome: "Av. Geovani Marcos",     apelido: "Rua Geovani Marcos" },
-    { id: "das-estrelas",         nome: "Rua Das Estrelas" },
-    { id: "av-gravata",           nome: "Av. Gravatá",            apelido: "Avenida Gravatá" },
-    { id: "pau-brasil",           nome: "Rua Pau Brasil" },
-    { id: "carvalho-faustino",    nome: "Rua Carvalho Faustino" },
-    { id: "das-rosas",            nome: "Av. Das Rosas",          apelido: "Rua Das Rosas" },
-    { id: "nininhof",             nome: "Rua Nininhof" },
-    { id: "elza-rodrigues",       nome: "Rua Elza Rodrigues" },
-    { id: "sergio-ribeiro",       nome: "Av. Sérgio Ribeiro" },
-    { id: "marcos-correia",       nome: "Rua Marcos Correia" },
-    { id: "francisco-assis",      nome: "Rua Francisco de Assis" },
-    { id: "zelia-goiaf",          nome: "Rua Zélia Goiaf",        apelido: "Rua Zélia" },
-    { id: "maracana",             nome: "Rua Maracanã" },
-    { id: "flamboyant",           nome: "Rua Flamboyant" },
-    { id: "vinicius-moraes",      nome: "Rua Vinícius de Moraes" },
-    { id: "mambiran-lobato",      nome: "Rua Mambiran Lobato" },
-    { id: "cecilia-meireles",     nome: "Rua Cecília Meireles" },
-    { id: "eternio-ferreira",     nome: "Rua Etêrnio Ferreira" },
-    { id: "lerica",               nome: "Rua Lérica" },
-    { id: "douragal",             nome: "Rua Douragal" },
-    { id: "jose",                 nome: "Rua José" },
-    // "Rua Lima Barreto" — confirmado no dataset real (planilha Ayslane, ROW98/102/205/206/207).
-    // A grafia "Uma Barrei" em versões anteriores era erro de leitura do mapa físico.
-    { id: "lima-barreto",         nome: "Rua Lima Barreto",      apelido: "R. Lima Barreto" },
+    // ── Borda leste (perimetral externa) ──────────────────────────────────────
+    { id: "rua-das-pacas",     nome: "Rua Das Pacas",         apelido: "Rua das Pacas",      eixo: "v", pos: 100 },
+
+    // ── Ruas horizontais (leste↔oeste) — ordenadas norte→sul por pos (y) ──────
+    { id: "andre-terra",       nome: "Rua André Terra",                                      eixo: "h", pos:  5 },
+    { id: "coqueirais",        nome: "Rua Coqueirais",                                       eixo: "h", pos: 11 },
+    { id: "joao-ferreira",     nome: "Rua João Ferreira",                                    eixo: "h", pos: 16 },
+    { id: "das-oliveiras",     nome: "Rua Das Oliveiras",                                    eixo: "h", pos: 21 },
+    { id: "geovani-marcos",    nome: "Av. Geovani Marcos",    apelido: "Rua Geovani Marcos",  eixo: "h", pos: 46 },
+    { id: "das-estrelas",      nome: "Rua Das Estrelas",                                     eixo: "h", pos: 50 },
+    { id: "pau-brasil",        nome: "Rua Pau Brasil",                                       eixo: "h", pos: 57 },
+    { id: "carvalho-faustino", nome: "Rua Carvalho Faustino",                                eixo: "h", pos: 63 },
+    { id: "nininhof",          nome: "Rua Nininhof",                                         eixo: "h", pos: 68 },
+    { id: "das-rosas",         nome: "Av. Das Rosas",         apelido: "Rua Das Rosas",       eixo: "h", pos: 73 },
+    { id: "elza-rodrigues",    nome: "Rua Elza Rodrigues",                                   eixo: "h", pos: 79 },
+    { id: "sergio-ribeiro",    nome: "Av. Sérgio Ribeiro",                                   eixo: "h", pos: 84 },
+
+    // ── Ruas verticais (norte↔sul) — ordenadas leste→oeste por pos (x) ────────
+    // pos é estimado pelos intervalos entre quadras consecutivas na Av. Geovani Marcos.
+    // Grafia confirmada no dataset real (Tamoios/Cabo Frio).
+    { id: "marcos-correia",    nome: "Rua Marcos Correia",                                   eixo: "v", pos: 81 },
+    { id: "francisco-assis",   nome: "Rua Francisco de Assis",                               eixo: "v", pos: 77 },
+    { id: "zelia-goiaf",       nome: "Rua Zélia Goiaf",       apelido: "Rua Zélia",           eixo: "v", pos: 73 },
+    { id: "maracana",          nome: "Rua Maracanã",                                         eixo: "v", pos: 69 },
+    { id: "flamboyant",        nome: "Rua Flamboyant",                                       eixo: "v", pos: 65 },
+    { id: "vinicius-moraes",   nome: "Rua Vinícius de Moraes",                               eixo: "v", pos: 61 },
+    { id: "mambiran-lobato",   nome: "Rua Mambiran Lobato",                                  eixo: "v", pos: 57 },
+    { id: "cecilia-meireles",  nome: "Rua Cecília Meireles",                                 eixo: "v", pos: 53 },
+    { id: "eternio-ferreira",  nome: "Rua Etêrnio Ferreira",                                 eixo: "v", pos: 49 },
+    { id: "lerica",            nome: "Rua Lérica",                                           eixo: "v", pos: 45 },
+    { id: "douragal",          nome: "Rua Douragal",                                         eixo: "v", pos: 41 },
+    { id: "jose",              nome: "Rua José",                                             eixo: "v", pos: 37 },
+    { id: "lima-barreto",      nome: "Rua Lima Barreto",      apelido: "R. Lima Barreto",     eixo: "v", pos: 33 },
+
+    // ── Diagonal (Av. Gravatá — borda sul, sem pos fixa) ─────────────────────
+    { id: "av-gravata",        nome: "Av. Gravatá",           apelido: "Avenida Gravatá" },
   ],
   quadras: [
     // ─────────────────────────────────────────────────────────────────────

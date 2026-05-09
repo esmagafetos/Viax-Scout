@@ -44,6 +44,19 @@ export interface RuaInterna {
   nome: string;
   /** Apelido alternativo (ex: "Rua Geovani Marcos" para "Av. Geovani Marcos"). */
   apelido?: string;
+  /**
+   * Orientação da rua no mapa normalizado do condomínio.
+   *   'h' = horizontal (leste↔oeste, percorrida mudando x)
+   *   'v' = vertical   (norte↔sul,   percorrida mudando y)
+   */
+  eixo?: 'h' | 'v';
+  /**
+   * Posição normalizada (0–100) no eixo perpendicular:
+   *   ruas 'h' → valor de y (latitude normalizada)
+   *   ruas 'v' → valor de x (longitude normalizada)
+   * Usado pelo motor de instruções para contar cruzamentos antes de uma virada.
+   */
+  pos?: number;
 }
 
 export interface CondoMap {
