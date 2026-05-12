@@ -74,6 +74,7 @@ import type {
   DeliveryRow,
   RouteResult,
   Quadra,
+  RuaInterna,
 } from "./types.js";
 import { BOUGAINVILLE_III } from "./bougainville-iii.js";
 import { GRAVATA_II } from "./gravata-ii.js";
@@ -953,3 +954,4 @@ export function buildRoute(
     metricas: { tempo_ms: Date.now() - t0 },
   };
 }
+
