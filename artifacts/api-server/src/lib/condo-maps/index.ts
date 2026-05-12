@@ -955,3 +955,45 @@ export function buildRoute(
   };
 }
 
+// ─── Detecção automática de condomínio ───────────────────────────────────────
+
+/** Padrões para identificar endereços do bairro Nova Califórnia (Tamoios/Cabo Frio). */
+const NOVA_CALIFORNIA_PATTERNS: RegExp[] = [
+  /nova\s*calif[oó]rnia/i,
+  /tamoios/i,
+  /bougainville/i,
+  /gravat[aá]/i,
+  /residencial\s*nova/i,
+];
+
+/** Retorna true se o endereço pertence ao bairro Nova Califórnia / Tamoios. */
+export function isNovaCaliforniaArea(rawAddress: string): boolean {
+  return NOVA_CALIFORNIA_PATTERNS.some((p) => p.test(rawAddress));
+}
+
+export interface DetectedCondoInfo {
+  condoId: string;
+  condoNome: string;
+  status: "ativo" | "em_desenvolvimento";
+}
+
+/**
+ * Identifica o condomínio específico do endereço via lookup nos aliases cadastrados.
+ * Retorna null se nenhum condomínio específico for detectado.
+ */
+export function detectCondoId(rawAddress: string): DetectedCondoInfo | null {
+  const norm = normalize(rawAddress);
+  for (const [condoId, aliases] of Object.entries(CONDO_ALIASES)) {
+    if (aliases.some((a) => norm.includes(normalize(a)))) {
+      if (REGISTRY[condoId]) {
+        return { condoId, condoNome: REGISTRY[condoId].nome, status: "ativo" };
+      }
+      const dev = EM_DESENVOLVIMENTO.find((c) => c.id === condoId);
+      if (dev) {
+        return { condoId, condoNome: dev.nome, status: "em_desenvolvimento" };
+      }
+    }
+  }
+  return null;
+}
+
