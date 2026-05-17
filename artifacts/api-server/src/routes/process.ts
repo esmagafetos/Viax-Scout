@@ -11,6 +11,7 @@ import {
   type ResultRow,
 } from "../lib/geocoder.js";
 import { createJob, updateJob, getJob, deleteJobLater } from "../lib/job-store.js";
+import { detectCondoId, getCondo, buildRoute } from "../lib/condo-maps/index.js";
 
 const router: IRouter = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -316,7 +317,56 @@ router.post("/process/upload", upload.single("arquivo"), async (req, res): Promi
       sendSSE(res, "step", { step: `M10: ${homonimosMarcados} parada(s) marcada(s) como homônimo intra-rota.` });
     }
 
-    sendSSE(res, "step", { step: "✓ Geocodificação concluída. Gerando relatório..." });
+    sendSSE(res, "step", { step: "✓ Geocodificação concluída. Identificando condomínios..." });
+
+    // ── Condo-routing — enriquece cada ResultRow com dados do motor nativo ──
+    // Agrupa os endereços por condomínio detectado, executa buildRoute() para
+    // os condos ativos e escreve os campos condo_* de volta em cada linha.
+    const KEY_NAO_LOC = "__nao_loc__";
+    type CondoGroup = { condoId: string; enderecos: { idx: number; linha: number; endereco: string }[] };
+    const condoGroups = new Map<string, CondoGroup>();
+
+    for (let i = 0; i < detalhes.length; i++) {
+      const row = detalhes[i];
+      const detected = detectCondoId(row.endereco_original);
+      if (!detected) {
+        row.condo_detectado = null;
+        continue;
+      }
+      row.condo_detectado = detected.condoNome;
+      row.condo_status = detected.status;
+      if (detected.status !== "ativo") continue;
+      if (!condoGroups.has(detected.condoId)) {
+        condoGroups.set(detected.condoId, { condoId: detected.condoId, enderecos: [] });
+      }
+      condoGroups.get(detected.condoId)!.enderecos.push({ idx: i, linha: row.linha, endereco: row.endereco_original });
+    }
+
+    for (const [, group] of condoGroups) {
+      const condo = getCondo(group.condoId);
+      if (!condo || condo.status !== "ativo") continue;
+      const route = buildRoute(group.enderecos, condo);
+      if (!route?.detalhes) continue;
+      for (const d of route.detalhes) {
+        if (d.ordem == null) continue;
+        const match = group.enderecos.find((e) => e.linha === d.linha);
+        if (match == null) continue;
+        const row = detalhes[match.idx];
+        row.condo_ordem = d.ordem;
+        row.condo_instrucao = d.instrucao ?? null;
+        const q = d.quadraLetra ? `Quadra ${d.quadraLetra}` : d.quadra != null ? `Quadra ${d.quadra}` : null;
+        const l = d.loteId ? `Lote ${d.loteId}` : d.lote != null ? `Lote ${d.lote}` : null;
+        row.condo_quadra_label = q;
+        row.condo_lote_label = l;
+      }
+    }
+
+    const condoCount = condoGroups.size;
+    if (condoCount > 0) {
+      sendSSE(res, "step", { step: `✓ ${condoCount} condomínio(s) Nova Califórnia identificado(s) — rota logística aplicada.` });
+    }
+
+    sendSSE(res, "step", { step: "✓ Gerando relatório..." });
 
     const total = detalhes.length;
     const tempoMs = Date.now() - tInicio;

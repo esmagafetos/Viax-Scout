@@ -307,6 +307,14 @@ export interface ResultRow {
   // M10 — a mesma rua extraída aparece em outras linhas com coordenadas GPS
   // distantes ≥ 800 m, indicando provável homonímia interna na rota.
   is_homonimo_intra_rota?: boolean;
+  // Condo-routing — campos preenchidos quando o endereço pertence a um
+  // condomínio Nova Califórnia mapeado no motor nativo.
+  condo_detectado?: string | null;       // nome do condomínio
+  condo_status?: string | null;          // "ativo" | "em_desenvolvimento"
+  condo_ordem?: number | null;           // posição na rota logística (1-based)
+  condo_instrucao?: string | null;       // instrução de navegação gerada pelo motor
+  condo_quadra_label?: string | null;    // ex.: "Quadra 5" / "Quadra A"
+  condo_lote_label?: string | null;      // ex.: "Lote 3"
 }
 
 function normalizarTexto(texto: string): string {

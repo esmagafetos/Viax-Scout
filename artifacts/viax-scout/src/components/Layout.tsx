@@ -80,7 +80,6 @@ export default function Layout({ children, showNav = true }: LayoutProps) {
   const navLinks = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/process", label: "Processar" },
-    { href: "/tool", label: "Ferramenta" },
     { href: "/history", label: "Histórico" },
     { href: "/docs", label: "Docs" },
   ];

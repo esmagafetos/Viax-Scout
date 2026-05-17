@@ -42,7 +42,6 @@ class AppLayout extends StatelessWidget {
   static const _navItems = <_NavItem>[
     _NavItem(path: '/dashboard', label: 'Dashboard', icon: Icons.dashboard_outlined),
     _NavItem(path: '/process', label: 'Processar', icon: Icons.bolt_outlined),
-    _NavItem(path: '/tool', label: 'Ferramenta', icon: Icons.build_outlined),
     _NavItem(path: '/history', label: 'Histórico', icon: Icons.history_outlined),
     _NavItem(path: '/docs', label: 'Docs', icon: Icons.description_outlined),
   ];

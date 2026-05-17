@@ -15,6 +15,12 @@ interface ResultRow {
   poi_estruturado: string | null;
   distancia_metros: number | null;
   tipo_endereco: string;
+  condo_detectado?: string | null;
+  condo_status?: string | null;
+  condo_ordem?: number | null;
+  condo_instrucao?: string | null;
+  condo_quadra_label?: string | null;
+  condo_lote_label?: string | null;
 }
 
 interface ProcessResult {
@@ -171,9 +177,29 @@ export default function Process() {
     }
   };
 
-  const filteredRows = result?.detalhes.filter((r) =>
+  // Separa endereços de condo (Nova Califórnia) dos demais
+  const condoRows = result?.detalhes.filter((r) => r.condo_detectado && r.condo_ordem != null) ?? [];
+  const condoDevRows = result?.detalhes.filter((r) => r.condo_detectado && r.condo_ordem == null && r.condo_status === "em_desenvolvimento") ?? [];
+
+  // Agrupa os condo ativos por condomínio e ordena logisticamente
+  const condoGroups = condoRows.reduce<Record<string, ResultRow[]>>((acc, r) => {
+    const key = r.condo_detectado!;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(r);
+    return acc;
+  }, {});
+  for (const key of Object.keys(condoGroups)) {
+    condoGroups[key].sort((a, b) => (a.condo_ordem ?? 0) - (b.condo_ordem ?? 0));
+  }
+
+  const condoActiveNames = Object.keys(condoGroups);
+  const hasCondoSection = condoActiveNames.length > 0 || condoDevRows.length > 0;
+
+  // Demais endereços (sem condo detectado)
+  const otherRows = result?.detalhes.filter((r) => !r.condo_detectado) ?? [];
+  const filteredRows = otherRows.filter((r) =>
     activeFilter === "all" ? true : activeFilter === "nuance" ? r.is_nuance : !r.is_nuance
-  ) ?? [];
+  );
 
   const exportCsv = () => {
     if (!result) return;
@@ -352,6 +378,157 @@ export default function Process() {
 
       {result && (
         <div className="animate-fade-up">
+
+          {/* ── Seção: Condomínios Nova Califórnia ── */}
+          {hasCondoSection && (
+            <div style={{ marginBottom: "1.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.9rem" }}>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--ok)" }} />
+                <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>
+                  Condomínios Nova Califórnia — Rota Logística
+                </span>
+              </div>
+
+              {/* Um bloco por condomínio ativo */}
+              {condoActiveNames.map((condoNome) => {
+                const rows = condoGroups[condoNome];
+                return (
+                  <div key={condoNome} style={{
+                    background: "var(--surface)", border: "1px solid var(--border-strong)",
+                    borderRadius: 14, overflow: "hidden", marginBottom: "1rem",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+                  }}>
+                    {/* Header do condo */}
+                    <div style={{
+                      padding: "0.75rem 1.25rem",
+                      borderBottom: "1px solid var(--border)",
+                      borderLeft: "3px solid var(--ok)",
+                      display: "flex", alignItems: "center", gap: "0.75rem",
+                    }}>
+                      <span style={{
+                        fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.08em",
+                        padding: "0.15rem 0.55rem", borderRadius: 99,
+                        background: "rgba(34,197,94,0.12)", color: "var(--ok)",
+                      }}>ATIVO</span>
+                      <span style={{ fontWeight: 800, fontSize: "0.92rem", color: "var(--text)" }}>{condoNome}</span>
+                      <span style={{ marginLeft: "auto", fontSize: "0.72rem", color: "var(--text-faint)" }}>
+                        {rows.length} entrega{rows.length !== 1 ? "s" : ""} em ordem logística
+                      </span>
+                    </div>
+
+                    {/* Linhas em ordem logística */}
+                    {rows.map((row, i) => {
+                      const isFirst = i === 0;
+                      const isLast = i === rows.length - 1;
+                      return (
+                        <div key={row.linha} style={{
+                          padding: "0.9rem 1.25rem",
+                          borderBottom: isLast ? "none" : "1px solid var(--border)",
+                          display: "flex", gap: "1rem", alignItems: "flex-start",
+                        }}>
+                          {/* Badge de ordem */}
+                          <div style={{
+                            flexShrink: 0, width: 34, height: 34, borderRadius: 9,
+                            background: isFirst ? "var(--ok)" : "rgba(34,197,94,0.1)",
+                            border: isFirst ? "none" : "1px solid rgba(34,197,94,0.25)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontWeight: 900, fontSize: "0.82rem",
+                            color: isFirst ? "#fff" : "var(--ok)",
+                          }}>
+                            {row.condo_ordem}
+                          </div>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            {/* Quadra/Lote */}
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
+                              {(row.condo_quadra_label || row.condo_lote_label) && (
+                                <span style={{ fontWeight: 800, fontSize: "0.95rem", color: "var(--text)" }}>
+                                  {[row.condo_quadra_label, row.condo_lote_label].filter(Boolean).join(" · ")}
+                                </span>
+                              )}
+                              {row.is_nuance && (
+                                <span style={{
+                                  fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em",
+                                  padding: "0.1rem 0.45rem", borderRadius: 99,
+                                  background: "var(--accent-dim)", color: "var(--accent)",
+                                }}>NUANCE</span>
+                              )}
+                            </div>
+
+                            {/* Instrução de navegação — destaque principal */}
+                            {row.condo_instrucao && (
+                              <div style={{
+                                display: "flex", alignItems: "flex-start", gap: "0.5rem",
+                                padding: "0.55rem 0.75rem", borderRadius: 8, marginBottom: "0.35rem",
+                                background: isFirst ? "rgba(34,197,94,0.07)" : "var(--surface-2)",
+                                border: `1px solid ${isFirst ? "rgba(34,197,94,0.2)" : "var(--border)"}`,
+                              }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={isFirst ? "var(--ok)" : "var(--text-muted)"} strokeWidth="2.5" style={{ flexShrink: 0, marginTop: 1 }}>
+                                  <polygon points="3,11 22,2 13,21 11,13 3,11"/>
+                                </svg>
+                                <span style={{ fontSize: "0.82rem", fontWeight: 600, color: isFirst ? "var(--ok)" : "var(--text-muted)", lineHeight: 1.4 }}>
+                                  {row.condo_instrucao}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Endereço original */}
+                            <div style={{ fontSize: "0.72rem", color: "var(--text-faint)", marginBottom: row.is_nuance && row.motivo ? "0.25rem" : 0 }}>
+                              {row.endereco_original}
+                            </div>
+
+                            {/* Nuance detalhe secundário */}
+                            {row.is_nuance && row.motivo && (
+                              <div style={{ fontSize: "0.7rem", color: "var(--accent)", fontStyle: "italic", opacity: 0.85 }}>
+                                ⚠ {row.motivo}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+
+              {/* Condos em desenvolvimento */}
+              {condoDevRows.length > 0 && (
+                <div style={{
+                  background: "var(--surface)", border: "1px solid var(--border-strong)",
+                  borderRadius: 14, overflow: "hidden", marginBottom: "1rem",
+                }}>
+                  <div style={{
+                    padding: "0.75rem 1.25rem", borderBottom: "1px solid var(--border)",
+                    borderLeft: "3px solid #d97706",
+                    display: "flex", alignItems: "center", gap: "0.75rem",
+                  }}>
+                    <span style={{
+                      fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.08em",
+                      padding: "0.15rem 0.55rem", borderRadius: 99,
+                      background: "rgba(217,119,6,0.12)", color: "#d97706",
+                    }}>EM BREVE</span>
+                    <span style={{ fontWeight: 800, fontSize: "0.92rem", color: "var(--text)" }}>
+                      {condoDevRows[0].condo_detectado}
+                    </span>
+                    <span style={{ marginLeft: "auto", fontSize: "0.72rem", color: "var(--text-faint)" }}>
+                      {condoDevRows.length} entrega{condoDevRows.length !== 1 ? "s" : ""} — condomínio em mapeamento
+                    </span>
+                  </div>
+                  {condoDevRows.map((row, i) => (
+                    <div key={row.linha} style={{
+                      padding: "0.7rem 1.25rem",
+                      borderBottom: i === condoDevRows.length - 1 ? "none" : "1px solid var(--border)",
+                      display: "flex", alignItems: "center", gap: "0.75rem",
+                    }}>
+                      <span style={{ fontSize: "0.72rem", color: "var(--text-faint)", minWidth: 40 }}>linha {row.linha}</span>
+                      <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.endereco_original}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Summary stats */}
           <div className="stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
             {[

@@ -337,20 +337,50 @@ class _ProcessScreenState extends State<ProcessScreen> {
     final ok = total - nuances;
     final pct = (r['percentual_problema'] as num?)?.toDouble() ?? 0.0;
     final metricas = Map<String, dynamic>.from(r['metricas_tecnicas'] ?? {});
-    final geoOk =
-        (metricas['taxa_geocode_sucesso'] as num?)?.toDouble() ?? 0.0;
-    final tempoMs =
-        (metricas['tempo_processamento_ms'] as num?)?.toInt() ?? 0;
+    final geoOk = (metricas['taxa_geocode_sucesso'] as num?)?.toDouble() ?? 0.0;
+    final tempoMs = (metricas['tempo_processamento_ms'] as num?)?.toInt() ?? 0;
     final detalhes = (r['detalhes'] as List?) ?? const [];
-    final filtered = detalhes.where((row) {
+
+    // Separar endereços de condo dos demais
+    final condoAtivos = detalhes
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .where((e) => e['condo_detectado'] != null && e['condo_ordem'] != null)
+        .toList()
+      ..sort((a, b) =>
+          ((a['condo_ordem'] as num).compareTo(b['condo_ordem'] as num)));
+
+    final condoDev = detalhes
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .where((e) =>
+            e['condo_detectado'] != null &&
+            e['condo_ordem'] == null &&
+            e['condo_status'] == 'em_desenvolvimento')
+        .toList();
+
+    // Agrupar ativos por nome do condomínio
+    final condoGroups = <String, List<Map<String, dynamic>>>{};
+    for (final row in condoAtivos) {
+      final key = row['condo_detectado'] as String;
+      condoGroups.putIfAbsent(key, () => []).add(row);
+    }
+
+    final otherRows = detalhes
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .where((e) => e['condo_detectado'] == null)
+        .toList();
+
+    final filtered = otherRows.where((row) {
       if (_activeFilter == 'all') return true;
-      final isNuance = (row as Map)['is_nuance'] == true;
+      final isNuance = row['is_nuance'] == true;
       return _activeFilter == 'nuance' ? isNuance : !isNuance;
     }).toList();
+
+    final hasCondoSection = condoGroups.isNotEmpty || condoDev.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Stats
         GridView.count(
           crossAxisCount: 3,
           shrinkWrap: true,
@@ -375,66 +405,392 @@ class _ProcessScreenState extends State<ProcessScreen> {
         ),
         const SizedBox(height: 14),
         AnalysisChart(total: total, nuances: nuances, detalhes: detalhes),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            for (final f in const ['all', 'nuance', 'ok'])
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: GestureDetector(
-                  onTap: () => setState(() => _activeFilter = f),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color:
-                          _activeFilter == f ? context.accent : context.surface2,
-                      borderRadius: BorderRadius.circular(AppRadii.pill),
-                      border: Border.all(
-                          color: _activeFilter == f
-                              ? context.accent
-                              : context.borderStrong),
-                    ),
-                    child: Text(
-                      f == 'all'
-                          ? 'Todos'
-                          : f == 'nuance'
-                              ? 'Nuances'
-                              : 'OK',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+
+        // ── Seção de condomínios ──────────────────────────────────────────
+        if (hasCondoSection) ...[
+          const SizedBox(height: 18),
+          Row(children: [
+            Container(
+              width: 10, height: 10,
+              decoration: BoxDecoration(
+                  color: context.ok, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            Text('Condomínios Nova Califórnia — Rota Logística',
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.6,
+                    color: context.textMuted)),
+          ]),
+          const SizedBox(height: 10),
+
+          // Um card por condo ativo
+          for (final condoNome in condoGroups.keys)
+            _condoCard(condoNome, condoGroups[condoNome]!),
+
+          // Condos em desenvolvimento
+          if (condoDev.isNotEmpty)
+            _condoDevCard(condoDev),
+        ],
+
+        // ── Demais endereços ─────────────────────────────────────────────
+        if (otherRows.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              for (final f in const ['all', 'nuance', 'ok'])
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _activeFilter = f),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
                         color: _activeFilter == f
-                            ? Colors.white
-                            : context.textMuted,
+                            ? context.accent
+                            : context.surface2,
+                        borderRadius: BorderRadius.circular(AppRadii.pill),
+                        border: Border.all(
+                            color: _activeFilter == f
+                                ? context.accent
+                                : context.borderStrong),
+                      ),
+                      child: Text(
+                        f == 'all'
+                            ? 'Todos'
+                            : f == 'nuance'
+                                ? 'Nuances'
+                                : 'OK',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: _activeFilter == f
+                              ? Colors.white
+                              : context.textMuted,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        CardSection(
-          header: const CardHeaderLabel('Detalhes'),
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              if (filtered.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Center(
-                      child: Text('Nenhum item.',
-                          style: TextStyle(
-                              color: context.textFaint, fontSize: 13))),
-                ),
-              for (int i = 0; i < filtered.length && i < 200; i++)
-                _detailRow(
-                    Map<String, dynamic>.from(filtered[i] as Map), i == 0),
             ],
           ),
-        ),
+          const SizedBox(height: 12),
+          CardSection(
+            header: const CardHeaderLabel('Demais Endereços'),
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                if (filtered.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Center(
+                        child: Text('Nenhum item.',
+                            style: TextStyle(
+                                color: context.textFaint, fontSize: 13))),
+                  ),
+                for (int i = 0; i < filtered.length && i < 200; i++)
+                  _detailRow(filtered[i], i == 0),
+              ],
+            ),
+          ),
+        ],
       ],
+    );
+  }
+
+  Widget _condoCard(String condoNome, List<Map<String, dynamic>> rows) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: context.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border(
+          left: BorderSide(color: context.ok, width: 3),
+          right: BorderSide(color: context.borderStrong),
+          top: BorderSide(color: context.borderStrong),
+          bottom: BorderSide(color: context.borderStrong),
+        ),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 3)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: context.border)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: context.ok.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text('ATIVO',
+                      style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.6,
+                          color: context.ok)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(condoNome,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: context.text)),
+                ),
+                Text('${rows.length} entrega${rows.length != 1 ? 's' : ''}',
+                    style: TextStyle(
+                        fontSize: 11, color: context.textFaint)),
+              ],
+            ),
+          ),
+
+          // Linhas em ordem logística
+          for (int i = 0; i < rows.length; i++)
+            _condoRow(rows[i], i == 0, i == rows.length - 1),
+        ],
+      ),
+    );
+  }
+
+  Widget _condoRow(Map<String, dynamic> row, bool isFirst, bool isLast) {
+    final isNuance = row['is_nuance'] == true;
+    final ordem = row['condo_ordem'];
+    final instrucao = row['condo_instrucao']?.toString();
+    final quadraLabel = row['condo_quadra_label']?.toString();
+    final loteLabel = row['condo_lote_label']?.toString();
+    final motivo = row['motivo']?.toString() ?? '';
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        border: isFirst
+            ? null
+            : Border(top: BorderSide(color: context.border)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Badge de ordem
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: isFirst
+                  ? context.ok
+                  : context.ok.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(9),
+              border: isFirst
+                  ? null
+                  : Border.all(
+                      color: context.ok.withValues(alpha: 0.25)),
+            ),
+            child: Center(
+              child: Text('$ordem',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      color: isFirst ? Colors.white : context.ok)),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Quadra · Lote
+                if (quadraLabel != null || loteLabel != null)
+                  Row(
+                    children: [
+                      Text(
+                        [quadraLabel, loteLabel]
+                            .where((s) => s != null)
+                            .join(' · '),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: context.text),
+                      ),
+                      if (isNuance) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: context.accent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(99),
+                          ),
+                          child: Text('NUANCE',
+                              style: TextStyle(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.4,
+                                  color: context.accent)),
+                        ),
+                      ],
+                    ],
+                  ),
+
+                // Instrução — destaque principal
+                if (instrucao != null) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: isFirst
+                          ? context.ok.withValues(alpha: 0.07)
+                          : context.surface2,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isFirst
+                            ? context.ok.withValues(alpha: 0.2)
+                            : context.border,
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.navigation_outlined,
+                            size: 13,
+                            color: isFirst
+                                ? context.ok
+                                : context.textMuted),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(instrucao,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isFirst
+                                      ? context.ok
+                                      : context.textMuted,
+                                  height: 1.4)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Endereço original
+                const SizedBox(height: 4),
+                Text(row['endereco_original']?.toString() ?? '',
+                    style:
+                        TextStyle(fontSize: 11, color: context.textFaint),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
+
+                // Nuance detalhe
+                if (isNuance && motivo.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text('⚠ $motivo',
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: context.accent,
+                          fontStyle: FontStyle.italic)),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _condoDevCard(List<Map<String, dynamic>> rows) {
+    final condoNome = rows.first['condo_detectado']?.toString() ?? '';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: context.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border(
+          left: const BorderSide(color: Color(0xFFd97706), width: 3),
+          right: BorderSide(color: context.borderStrong),
+          top: BorderSide(color: context.borderStrong),
+          bottom: BorderSide(color: context.borderStrong),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+            decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: context.border))),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFd97706).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: const Text('EM BREVE',
+                      style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.6,
+                          color: Color(0xFFd97706))),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(condoNome,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: context.text)),
+                ),
+                Text('${rows.length} entrega${rows.length != 1 ? 's' : ''}',
+                    style: TextStyle(fontSize: 11, color: context.textFaint)),
+              ],
+            ),
+          ),
+          for (int i = 0; i < rows.length; i++)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                border: i == 0
+                    ? null
+                    : Border(top: BorderSide(color: context.border)),
+              ),
+              child: Row(
+                children: [
+                  Text('linha ${rows[i]['linha']}',
+                      style: TextStyle(
+                          fontSize: 10, color: context.textFaint),
+                      textWidthBasis: TextWidthBasis.longestLine),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      rows[i]['endereco_original']?.toString() ?? '',
+                      style: TextStyle(
+                          fontSize: 12, color: context.textMuted),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 
