@@ -113,7 +113,6 @@ class DocsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppLayout(
-      currentPath: '/docs',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -168,7 +167,13 @@ class DocsScreen extends StatelessWidget {
 
   Widget _quickLink(BuildContext c, IconData icon, String label, String desc, String path) {
     return InkWell(
-      onTap: () => c.go(path),
+      onTap: () {
+        if (path == '/settings') {
+          c.push(path);
+        } else {
+          c.go(path);
+        }
+      },
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(12),

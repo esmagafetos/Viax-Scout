@@ -14,6 +14,9 @@ import 'screens/setup.dart';
 import 'screens/tool.dart';
 import 'state/auth_provider.dart';
 import 'theme/theme.dart';
+import 'widgets/layout.dart';
+
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Soft fade-only page transition used across the entire app — gives the
 /// "Replit-like" smoothness the user requested. No slide, no scale, no zoom:
@@ -37,6 +40,7 @@ CustomTransitionPage<T> _fadePage<T>({
 
 GoRouter createRouter(AuthProvider auth) {
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: '/setup',
     refreshListenable: auth,
     redirect: (ctx, state) {
@@ -61,40 +65,65 @@ GoRouter createRouter(AuthProvider auth) {
         path: '/register',
         pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const RegisterScreen()),
       ),
-      GoRoute(
-        path: '/dashboard',
-        pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const DashboardScreen()),
+      // The four tab-root screens live inside a StatefulShellRoute: one
+      // Navigator per branch, so switching tabs preserves each screen's
+      // scroll position and back stack instead of rebuilding it from
+      // scratch. AppShell (widgets/layout.dart) supplies the bottom tab
+      // bar and reads `navigationShell.currentIndex` for the active tab.
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) => AppShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/dashboard',
+              pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const DashboardScreen()),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/process',
+              pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const ProcessScreen()),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/history',
+              pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const HistoryScreen()),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/docs',
+              pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const DocsScreen()),
+            ),
+          ]),
+        ],
       ),
-      GoRoute(
-        path: '/process',
-        pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const ProcessScreen()),
-      ),
-      GoRoute(
-        path: '/tool',
-        pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const ToolScreen()),
-      ),
-      GoRoute(
-        path: '/history',
-        pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const HistoryScreen()),
-      ),
+      // Pushed on the root navigator — full-screen over the whole shell
+      // (bottom tab bar included), with a native back button. These are
+      // reached via `context.push(...)`, never a tab.
       GoRoute(
         path: '/history/:id',
+        parentNavigatorKey: _rootNavigatorKey,
         pageBuilder: (_, st) {
           final id = int.tryParse(st.pathParameters['id'] ?? '') ?? 0;
           return _fadePage(key: st.pageKey, child: AnalysisDetailScreen(id: id));
         },
       ),
       GoRoute(
+        path: '/tool',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const ToolScreen()),
+      ),
+      GoRoute(
         path: '/settings',
+        parentNavigatorKey: _rootNavigatorKey,
         pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const SettingsScreen()),
       ),
       GoRoute(
         path: '/server-status',
+        parentNavigatorKey: _rootNavigatorKey,
         pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const ServerStatusScreen()),
-      ),
-      GoRoute(
-        path: '/docs',
-        pageBuilder: (_, st) => _fadePage(key: st.pageKey, child: const DocsScreen()),
       ),
     ],
     errorBuilder: (ctx, st) => Scaffold(

@@ -72,34 +72,22 @@ class _AnalysisDetailScreenState extends State<AnalysisDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AppLayout(
+    return DetailScaffold(
       currentPath: '/history',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                icon: Icon(Icons.arrow_back, color: context.text),
-                onPressed: () => context.go('/history'),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  _analysis?['fileName']?.toString() ?? 'Análise',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.4,
-                      color: context.text),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          Text(
+            _analysis?['fileName']?.toString() ?? 'Análise',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.4,
+                color: context.text),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           if (_loading)
             const Padding(
                 padding: EdgeInsets.symmetric(vertical: 60),

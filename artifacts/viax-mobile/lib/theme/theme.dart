@@ -113,7 +113,7 @@ ThemeData buildTheme(Brightness b) {
         elevation: 0,
         backgroundColor: isDark ? AppColors.accentDark : AppColors.accent,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.lg)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.pill)),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         minimumSize: const Size(0, 42),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -128,7 +128,7 @@ ThemeData buildTheme(Brightness b) {
       style: OutlinedButton.styleFrom(
         foregroundColor: isDark ? AppColors.textDark : AppColors.text,
         side: BorderSide(color: isDark ? AppColors.borderStrongDark : AppColors.borderStrong),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.lg)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.pill)),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         minimumSize: const Size(0, 42),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,

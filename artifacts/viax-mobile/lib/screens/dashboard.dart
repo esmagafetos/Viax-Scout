@@ -81,7 +81,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         : 'usuário';
 
     return AppLayout(
-      currentPath: '/dashboard',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -209,7 +208,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 14),
             ElevatedButton(
-              onPressed: () => context.go('/settings'),
+              onPressed: () => context.push('/settings'),
               child: const Text('Configurar agora'),
             ),
           ],
@@ -239,7 +238,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 14),
             ElevatedButton(
-              onPressed: () => context.go('/settings'),
+              onPressed: () => context.push('/settings'),
               child: const Text('Configurar agora'),
             ),
           ],
