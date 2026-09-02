@@ -12,67 +12,54 @@ class SetupScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: context.bg,
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const BrandLockup(
-                  markSize: 88,
-                  wordmarkSize: 30,
-                  showSubtitle: true,
-                  horizontal: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
+          child: Column(
+            children: [
+              const Spacer(flex: 3),
+              const BrandLockup(
+                markSize: 84,
+                wordmarkSize: 32,
+                showSubtitle: true,
+                horizontal: false,
+              ),
+              const SizedBox(height: 28),
+              Text(
+                'Auditoria inteligente de rotas logísticas.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: context.textMuted,
+                  height: 1.4,
                 ),
-                const SizedBox(height: 36),
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: context.surface,
-                    borderRadius: BorderRadius.circular(AppRadii.lg),
-                    border: Border.all(color: context.borderStrong),
+              ),
+              const Spacer(flex: 4),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () => context.go('/register'),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.pill)),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Bem-vindo ao ViaX:Trace',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: context.text,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Auditoria inteligente de rotas logísticas. Entre na sua conta ou crie uma nova para começar.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 13, color: context.textMuted, height: 1.5),
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 42,
-                        child: ElevatedButton(
-                          onPressed: () => context.go('/login'),
-                          child: const Text('Entrar'),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 42,
-                        child: OutlinedButton(
-                          onPressed: () => context.go('/register'),
-                          child: const Text('Criar conta'),
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: const Text('Criar conta', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton(
+                  onPressed: () => context.go('/login'),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.pill)),
+                  ),
+                  child: const Text('Já tenho conta', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
         ),
       ),

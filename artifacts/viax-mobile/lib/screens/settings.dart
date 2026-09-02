@@ -288,7 +288,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().user;
-    return AppLayout(
+    return DetailScaffold(
       currentPath: '/settings',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

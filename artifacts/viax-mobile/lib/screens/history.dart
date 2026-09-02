@@ -74,7 +74,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final fmt = DateFormat('dd/MM HH:mm');
 
     return AppLayout(
-      currentPath: '/history',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -157,7 +156,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final id = (a['id'] as num).toInt();
     final daysLeft = _daysUntilExpiration(created);
     return InkWell(
-      onTap: () => context.go('/history/$id'),
+      onTap: () => context.push('/history/$id'),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(

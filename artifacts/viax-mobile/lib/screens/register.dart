@@ -123,178 +123,133 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: context.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: context.borderStrong),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.09),
-                            blurRadius: 40,
-                            offset: const Offset(0, 12)),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(28, 28, 28, 20),
-                          decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: context.border)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.only(bottom: 12),
-                                child: BrandLockup(
-                                  markSize: 28,
-                                  wordmarkSize: 22,
-                                  showSubtitle: true,
-                                  horizontal: true,
-                                ),
-                              ),
-                              Text('Crie sua conta gratuita',
-                                  style: TextStyle(fontSize: 13, color: context.textFaint)),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(28, 24, 28, 28),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _label(context, 'Nome completo'),
-                              const SizedBox(height: 6),
-                              _input(
-                                controller: _name,
-                                hint: 'Seu nome',
-                                error: nameError,
-                                onBlur: () => setState(() => _touched['name'] = true),
-                              ),
-                              if (nameError != null) _err(context, nameError),
-                              const SizedBox(height: 16),
-                              _label(context, 'Email'),
-                              const SizedBox(height: 6),
-                              _input(
-                                controller: _email,
-                                hint: 'seu@email.com',
-                                error: emailError,
-                                keyboardType: TextInputType.emailAddress,
-                                onBlur: () => setState(() => _touched['email'] = true),
-                              ),
-                              if (emailError != null) _err(context, emailError),
-                              const SizedBox(height: 16),
-                              _label(context, 'Senha'),
-                              const SizedBox(height: 6),
-                              _input(
-                                controller: _password,
-                                hint: 'Mínimo 8 caracteres',
-                                error: passwordError,
-                                obscure: true,
-                                onBlur: () => setState(() => _touched['password'] = true),
-                              ),
-                              if (_password.text.isNotEmpty)
-                                _PasswordStrength(password: _password.text),
-                              if (passwordError != null) _err(context, passwordError),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  _label(context, 'Data de nascimento'),
-                                  const SizedBox(width: 6),
-                                  Text('(opcional)',
-                                      style: TextStyle(
-                                          fontSize: 10.5,
-                                          fontWeight: FontWeight.w400,
-                                          color: context.textFaint.withValues(alpha: 0.7))),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              InkWell(
-                                onTap: _pickDate,
-                                child: InputDecorator(
-                                  decoration: const InputDecoration(),
-                                  child: Text(
-                                    _birthDate.isEmpty ? 'mm/dd/aaaa' : _birthDate,
-                                    style: TextStyle(
-                                      color:
-                                          _birthDate.isEmpty ? context.textFaint : context.text,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 22),
-                              SizedBox(
-                                height: 42,
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: _loading ? null : _submit,
-                                  child: Text(
-                                    _loading ? 'Criando conta...' : 'Criar conta',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('Já tem conta? ',
-                                      style: TextStyle(fontSize: 12.5, color: context.textFaint)),
-                                  GestureDetector(
-                                    onTap: () => context.go('/login'),
-                                    child: Text('Entrar',
-                                        style: TextStyle(
-                                            fontSize: 12.5,
-                                            color: context.accent,
-                                            fontWeight: FontWeight.w700)),
-                                  ),
-                                ],
-                              ),
-                            ],
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 20),
+                      const BrandMark(size: 48, withBackground: false),
+                      const SizedBox(height: 20),
+                      Text('Comece a monitorar.',
+                          style: TextStyle(
+                              fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.6, color: context.text)),
+                      const SizedBox(height: 6),
+                      Text('Crie sua conta gratuita para auditar rotas em minutos.',
+                          style: TextStyle(fontSize: 13.5, color: context.textFaint, height: 1.5)),
+                      const SizedBox(height: 28),
+                      _label(context, 'Nome completo'),
+                      const SizedBox(height: 6),
+                      _input(
+                        controller: _name,
+                        hint: 'Seu nome',
+                        error: nameError,
+                        onBlur: () => setState(() => _touched['name'] = true),
+                      ),
+                      if (nameError != null) _err(context, nameError),
+                      const SizedBox(height: 16),
+                      _label(context, 'Email'),
+                      const SizedBox(height: 6),
+                      _input(
+                        controller: _email,
+                        hint: 'seu@email.com',
+                        error: emailError,
+                        keyboardType: TextInputType.emailAddress,
+                        onBlur: () => setState(() => _touched['email'] = true),
+                      ),
+                      if (emailError != null) _err(context, emailError),
+                      const SizedBox(height: 16),
+                      _label(context, 'Senha'),
+                      const SizedBox(height: 6),
+                      _input(
+                        controller: _password,
+                        hint: 'Mínimo 8 caracteres',
+                        error: passwordError,
+                        obscure: true,
+                        onBlur: () => setState(() => _touched['password'] = true),
+                      ),
+                      if (_password.text.isNotEmpty)
+                        _PasswordStrength(password: _password.text),
+                      if (passwordError != null) _err(context, passwordError),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          _label(context, 'Data de nascimento'),
+                          const SizedBox(width: 6),
+                          Text('(opcional)',
+                              style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w400,
+                                  color: context.textFaint.withValues(alpha: 0.7))),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      InkWell(
+                        onTap: _pickDate,
+                        child: InputDecorator(
+                          decoration: const InputDecoration(),
+                          child: Text(
+                            _birthDate.isEmpty ? 'mm/dd/aaaa' : _birthDate,
+                            style: TextStyle(
+                              color:
+                                  _birthDate.isEmpty ? context.textFaint : context.text,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 26),
+                      SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _loading ? null : _submit,
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.pill)),
+                          ),
+                          child: Text(
+                            _loading ? 'Criando conta...' : 'Criar conta',
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Já tem conta? ',
+                              style: TextStyle(fontSize: 13, color: context.textFaint)),
+                          GestureDetector(
+                            onTap: () => context.go('/login'),
+                            child: Text('Entrar',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: context.accent,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
             Positioned(
-              top: 12,
-              right: 16,
+              top: 4,
+              right: 4,
               child: Material(
-                color: Colors.transparent,
+                color: context.surface,
+                shape: CircleBorder(side: BorderSide(color: context.border)),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(99),
+                  customBorder: const CircleBorder(),
                   onTap: themeProv.toggle,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: context.surface,
-                      borderRadius: BorderRadius.circular(99),
-                      border: Border.all(color: context.borderStrong),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          dark ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
-                          size: 13,
-                          color: context.textMuted,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(dark ? 'Claro' : 'Escuro',
-                            style: TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w500,
-                                color: context.textMuted)),
-                      ],
+                  child: SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: Icon(
+                      dark ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
+                      size: 16,
+                      color: context.textMuted,
                     ),
                   ),
                 ),

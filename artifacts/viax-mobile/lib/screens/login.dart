@@ -70,163 +70,121 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
+                  constraints: const BoxConstraints(maxWidth: 420),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 12),
-                      const BrandLockup(markSize: 28, wordmarkSize: 22, showSubtitle: true, horizontal: true),
-                      const SizedBox(height: 20),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: context.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: context.borderStrong),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withValues(alpha: 0.09), blurRadius: 40, offset: const Offset(0, 12)),
-                          ],
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(28, 28, 28, 20),
-                              decoration: BoxDecoration(
-                                border: Border(bottom: BorderSide(color: context.border)),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Acessar conta',
-                                      style: TextStyle(fontSize: 17.5, fontWeight: FontWeight.w800, letterSpacing: -0.3, color: context.text)),
-                                  const SizedBox(height: 3),
-                                  Text('Entre com suas credenciais para continuar',
-                                      style: TextStyle(fontSize: 13, color: context.textFaint)),
-                                ],
-                              ),
+                      const SizedBox(height: 28),
+                      const BrandMark(size: 52, withBackground: false),
+                      const SizedBox(height: 24),
+                      Text('Bem-vindo de volta.',
+                          style: TextStyle(
+                              fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.6, color: context.text)),
+                      const SizedBox(height: 6),
+                      Text('Entre com suas credenciais para continuar.',
+                          style: TextStyle(fontSize: 13.5, color: context.textFaint, height: 1.5)),
+                      const SizedBox(height: 32),
+                      _label(context, 'Email'),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _email,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        autofillHints: const [AutofillHints.email],
+                        decoration: const InputDecoration(hintText: 'seu@email.com'),
+                      ),
+                      const SizedBox(height: 16),
+                      _label(context, 'Senha'),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _password,
+                        obscureText: !_showPass,
+                        textInputAction: TextInputAction.done,
+                        autofillHints: const [AutofillHints.password],
+                        onSubmitted: (_) => _submit(),
+                        decoration: InputDecoration(
+                          hintText: '••••••••',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _showPass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              size: 18,
+                              color: context.textFaint,
                             ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(28, 24, 28, 28),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  _label(context, 'Email'),
-                                  const SizedBox(height: 6),
-                                  TextField(
-                                    controller: _email,
-                                    keyboardType: TextInputType.emailAddress,
-                                    textInputAction: TextInputAction.next,
-                                    autofillHints: const [AutofillHints.email],
-                                    decoration: const InputDecoration(hintText: 'seu@email.com'),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _label(context, 'Senha'),
-                                  const SizedBox(height: 6),
-                                  TextField(
-                                    controller: _password,
-                                    obscureText: !_showPass,
-                                    textInputAction: TextInputAction.done,
-                                    autofillHints: const [AutofillHints.password],
-                                    onSubmitted: (_) => _submit(),
-                                    decoration: InputDecoration(
-                                      hintText: '••••••••',
-                                      suffixIcon: IconButton(
-                                        icon: Icon(
-                                          _showPass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                          size: 18,
-                                          color: context.textFaint,
-                                        ),
-                                        onPressed: () => setState(() => _showPass = !_showPass),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 22),
-                                  SizedBox(
-                                    height: 42,
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      onPressed: _loading ? null : _submit,
-                                      child: _loading
-                                          ? Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: const [
-                                                SizedBox(
-                                                  width: 15, height: 15,
-                                                  child: CircularProgressIndicator(
-                                                      strokeWidth: 2, color: Colors.white),
-                                                ),
-                                                SizedBox(width: 10),
-                                                Text('Entrando...',
-                                                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
-                                              ],
-                                            )
-                                          : Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: const [
-                                                Text('Entrar',
-                                                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
-                                                SizedBox(width: 8),
-                                                Icon(Icons.arrow_forward, size: 15),
-                                              ],
-                                            ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 18),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text('Ainda não tem conta? ',
-                                          style: TextStyle(fontSize: 12.5, color: context.textFaint)),
-                                      GestureDetector(
-                                        onTap: () => context.go('/register'),
-                                        child: Text('Criar conta grátis',
-                                            style: TextStyle(
-                                                fontSize: 12.5, color: context.accent, fontWeight: FontWeight.w700)),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                            onPressed: () => setState(() => _showPass = !_showPass),
+                          ),
                         ),
+                      ),
+                      const SizedBox(height: 28),
+                      SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _loading ? null : _submit,
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.pill)),
+                          ),
+                          child: _loading
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    SizedBox(
+                                      width: 15, height: 15,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: Colors.white),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text('Entrando...',
+                                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                  ],
+                                )
+                              : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Text('Entrar',
+                                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                    SizedBox(width: 8),
+                                    Icon(Icons.arrow_forward, size: 16),
+                                  ],
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Ainda não tem conta? ',
+                              style: TextStyle(fontSize: 13, color: context.textFaint)),
+                          GestureDetector(
+                            onTap: () => context.go('/register'),
+                            child: Text('Criar conta grátis',
+                                style: TextStyle(
+                                    fontSize: 13, color: context.accent, fontWeight: FontWeight.w700)),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-            // Theme toggle (top-right, mirrors web)
+            // Theme toggle — top-right, chrome-free icon only.
             Positioned(
-              top: 12,
-              right: 16,
+              top: 4,
+              right: 4,
               child: Material(
-                color: Colors.transparent,
+                color: context.surface,
+                shape: CircleBorder(side: BorderSide(color: context.border)),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(99),
+                  customBorder: const CircleBorder(),
                   onTap: themeProv.toggle,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: context.surface,
-                      borderRadius: BorderRadius.circular(99),
-                      border: Border.all(color: context.borderStrong),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          dark ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
-                          size: 13,
-                          color: context.textMuted,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(dark ? 'Claro' : 'Escuro',
-                            style: TextStyle(
-                                fontSize: 11.5, fontWeight: FontWeight.w500, color: context.textMuted)),
-                      ],
+                  child: SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: Icon(
+                      dark ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
+                      size: 16,
+                      color: context.textMuted,
                     ),
                   ),
                 ),

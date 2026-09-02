@@ -79,7 +79,7 @@ class _ServerStatusScreenState extends State<ServerStatusScreen> {
     final maint = _maintenance;
     final maintActive = maint?['active'] == true;
 
-    return AppLayout(
+    return DetailScaffold(
       currentPath: '/server-status',
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),

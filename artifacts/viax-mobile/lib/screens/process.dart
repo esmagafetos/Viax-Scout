@@ -110,7 +110,6 @@ class _ProcessScreenState extends State<ProcessScreen> {
         _filePath != null && !processing && warning?['type'] != 'error';
 
     return AppLayout(
-      currentPath: '/process',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

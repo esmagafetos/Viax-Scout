@@ -257,7 +257,7 @@ class _ToolScreenState extends State<ToolScreen> {
     }
 
     // ── Tela principal ────────────────────────────────────────────────────
-    return AppLayout(
+    return DetailScaffold(
       currentPath: '/tool',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
