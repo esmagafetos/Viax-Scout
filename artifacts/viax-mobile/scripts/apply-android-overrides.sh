@@ -18,6 +18,8 @@
 #      flutter_foreground_task (mantém o processamento ativo com notificação
 #      persistente em Android 14+).
 #   5. Definir o nome visível do app como "ViaX:Trace".
+#   6. Fixar compileSdk em 36+ (dependências transitivas foram exigindo
+#      versões mais novas do que o padrão do Flutter SDK oferece).
 # =============================================================================
 set -euo pipefail
 
@@ -167,6 +169,45 @@ if src != orig:
     print(f"[apply-android-overrides] {p} patcheado.")
 else:
     print(f"[apply-android-overrides] {p} já estava patcheado.")
+PY
+
+# 5. Fixa o compileSdk em 36+. flutter.compileSdkVersion (o valor padrão que
+#    o próprio Flutter SDK injeta) ficou defasado em relação a algumas deps
+#    transitivas — o flutter_plugin_android_lifecycle (puxado por vários
+#    plugins) passou a exigir compileSdk 36+ de quem depende dele. Sem
+#    pubspec.lock versionado, `flutter pub get` sempre resolve a versão mais
+#    nova disponível, então esse tipo de exigência pode aparecer em qualquer
+#    build sem nenhuma mudança de código — foi o caso aqui, quebrando
+#    checkReleaseAarMetadata com "compile against version 36 or later".
+#    (file_picker continua compilado contra API 34 — isso é normal, uma
+#    dependência pode ter compileSdk menor que o do app; o requisito é
+#    sobre o compileSdk do PRÓPRIO app, não sobre bater com o de cada dep.)
+python3 - "$APP_GRADLE" <<'PY'
+import re, sys
+p = sys.argv[1]
+src = open(p, encoding='utf-8').read()
+orig = src
+is_kts = p.endswith('.kts')
+MIN_COMPILE_SDK = 36
+
+if is_kts:
+    if re.search(r'compileSdk\s*=\s*\d+', src):
+        src = re.sub(r'compileSdk\s*=\s*\d+', f'compileSdk = {MIN_COMPILE_SDK}', src, count=1)
+    elif re.search(r'compileSdk\s*=\s*flutter\.compileSdkVersion', src):
+        src = re.sub(r'compileSdk\s*=\s*flutter\.compileSdkVersion',
+                      f'compileSdk = {MIN_COMPILE_SDK}', src, count=1)
+else:
+    if re.search(r'compileSdk\s+\d+', src):
+        src = re.sub(r'compileSdk\s+\d+', f'compileSdk {MIN_COMPILE_SDK}', src, count=1)
+    elif re.search(r'compileSdk\s+flutter\.compileSdkVersion', src):
+        src = re.sub(r'compileSdk\s+flutter\.compileSdkVersion',
+                      f'compileSdk {MIN_COMPILE_SDK}', src, count=1)
+
+if src != orig:
+    open(p, 'w', encoding='utf-8').write(src)
+    print(f"[apply-android-overrides] compileSdk = {MIN_COMPILE_SDK} ({p})")
+else:
+    print(f"[apply-android-overrides] WARN: padrão de compileSdk não encontrado em {p} — verifique manualmente.")
 PY
 else
   echo "[apply-android-overrides] WARN: app/build.gradle[.kts] não encontrado."
